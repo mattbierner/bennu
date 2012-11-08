@@ -1,0 +1,21 @@
+{
+  "name": "parse.js",
+  "version": "0.1.0",
+  "description": "Combinatorial Parser Javascript Library",
+  "main": "lib/parse.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mattbierner/parse.js.git"
+  },
+  "keywords": [
+    "act",
+    "function"
+    "become",
+    "behavior",
+  ],
+  "author": "Matt Bierner",
+  "license": "MIT"
+}
