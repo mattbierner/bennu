@@ -11,11 +11,11 @@
     "url": "git://github.com/mattbierner/parse.js.git"
   },
   "keywords": [
-    "act",
-    "function"
-    "become",
-    "behavior",
+    "parse",
+    "parser",
+    "combinatorial",
+    "functional"
   ],
   "author": "Matt Bierner",
-  "license": "MIT"
+  "license": "Eclipse Public License - v 1.0"
 }
