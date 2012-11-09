@@ -20,16 +20,18 @@
         require(
             ['parse', 'testAlways', 'testBind', 'testNext', 'testNever',
                 'testEither', 'testAttempt', 'testToken', 'testMany', 'testTimes',
+                'testLookahead', 'testChoice',
                 'testChar', 'testString'],
             function(p, testAlways, testBind, testNext, testNever, testEither,
-                testAttempt, testToken, testMany, testTimes, testChar, testString)
+                testAttempt, testToken, testMany, testTimes, testLookahead,
+                testChoice, testChar, testString)
             {
                 // set global.
                 parse = p;
 
                 [testAlways, testBind, testNext, testNever, 
-                testEither, testAttempt, testToken, testMany, testTimes, testChar,
-                testString].forEach(function(m){
+                testEither, testAttempt, testToken, testMany, testTimes,
+                testLookahead, testChoice, testChar, testString].forEach(function(m){
                     m.module && module(m.module);
                     m.tests.forEach(function(e){ test.apply(this, e); });
             });
