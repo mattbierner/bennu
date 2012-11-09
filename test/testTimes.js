@@ -19,14 +19,13 @@ define(['parse'], function(parse){
                  
                  assert.deepEqual(parse.run(a, ""), []);
             }],
-            ["Consume To few",
+            ["Consume Too few",
             function(){
                 var a = parse.times(3, parse.char('a'));
 
                 assert.throws(parse.run.bind(undefined, a, "aa"));
                 assert.throws(parse.run.bind(undefined, a, ""));
              }],
-             
              ["Consume non string",
              function(){
                  var abPairs = parse.times(3, parse.char('ab'));
