@@ -19,15 +19,17 @@
         });
         require(
             ['parse', 'testAlways', 'testBind', 'testNext', 'testNever',
-                'testEither', 'testAttempt', 'testToken'],
+                'testEither', 'testAttempt', 'testToken', 'testMany', 'testTimes',
+                'testChar', 'testString'],
             function(p, testAlways, testBind, testNext, testNever, testEither,
-                testAttempt, testToken)
+                testAttempt, testToken, testMany, testTimes, testChar, testString)
             {
+                // set global.
                 parse = p;
-                //parse.run(parse.char('a'), 'b')
-                
+
                 [testAlways, testBind, testNext, testNever, 
-                testEither, testAttempt, testToken].forEach(function(m){
+                testEither, testAttempt, testToken, testMany, testTimes, testChar,
+                testString].forEach(function(m){
                     m.module && module(m.module);
                     m.tests.forEach(function(e){ test.apply(this, e); });
             });

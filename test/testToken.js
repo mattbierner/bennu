@@ -9,19 +9,15 @@ define(['parse'], function(parse){
                 
                 assert.deepEqual(parse.run(any, "abc"), 'a');
                 
-                assert.throws(parse.run.bind(undefined,
-                        any, ""
-                    )
-                );
+                assert.throws(parse.run.bind(undefined, any, ""));
             }],
             ["Never Consume Token",
             function(){
-                 assert.throws(
-                     parse.run.bind(undefined,
-                         parse.token(function() { return false; }),
-                         "abc"
-                     )
-                 );
+                var none = parse.token(function() { return false; })
+                
+                assert.throws(parse.run.bind(undefined, none, "abc"));
+                
+                assert.throws(parse.run.bind(undefined, none, ""));
              }],
            
         ],
