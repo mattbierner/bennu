@@ -1,5 +1,4 @@
 define(['parse'], function(parse){
-
     
     return {
         'module': "Times Tests",
@@ -34,7 +33,16 @@ define(['parse'], function(parse){
                  
                   assert.deepEqual(parse.run(abPairs, ['ab', 'ab', 'ab', 'ca']), ['ab', 'ab', 'ab']);
               }],
-           
+              
+              ["Consume large input many",
+               function(){
+                   var a = parse.times(1000, parse.char('a'));
+                   
+                   var input = (new Array(2000 + 1)).join('a');
+                   
+                   var result = parse.run(a, input);
+                   assert.deepEqual(result.length, 1000);
+               }],
         ],
     };
 });

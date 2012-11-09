@@ -18,7 +18,6 @@ define(['parse'], function(parse){
                 
                 assert.deepEqual(parse.run(ab, ""), []);
              }],
-             
              ["Consume non string",
              function(){
                  var pairs = parse.many(parse.either(
@@ -27,7 +26,21 @@ define(['parse'], function(parse){
                  
                   assert.deepEqual(parse.run(pairs, ['ab', 'cd', 'ab', 'ca']), ['ab', 'cd', 'ab']);
               }],
-           
+              ["Consume large input many",
+              function(){
+                  var a = parse.many(parse.char('a'));
+                  
+                  var input = (new Array(1000 + 1)).join('a');
+                  
+                  var result = parse.run(a, input);
+                  assert.deepEqual(result.length, 1000);
+              }],
+              ["Consume infinite throws",
+               function(){
+                   assert.throws(parse.run.bind(undefined,
+                       parse.many(parse.always('z')), "abbaab"));
+               }],
+              
         ],
     };
 });
