@@ -9,7 +9,7 @@ Combinatorial parsers allow complex parsers to be created from a set of simple
 building blocks. Compared to other parsing techniques, combinatorial parsers
 can be written more quickly and integrate better with the host language.
 
-parser.js parsers are regular Javascript functions. A set of common parsers is
+parse.js parsers are regular Javascript functions. A set of common parsers is
 include. Here is a polish notation parser:
 
     // Note: this example is simplified to only support single digit positive
@@ -66,6 +66,6 @@ Include parse.js file directly and use 'parse' global.
     </body>
 
 
-[CombinatorialParsers]: http://en.wikipedia.org/wiki/Parser_combinator)
+[CombinatorialParsers]: http://en.wikipedia.org/wiki/Parser_combinator
 [Parsatron]: https://github.com/youngnh/parsatron
 [Parsec]: http://legacy.cs.uu.nl/daan/parsec.html
