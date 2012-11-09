@@ -11,6 +11,8 @@ define(['parse'], function(parse){
                 
                 assert.deepEqual(parse.run(a, "abc"), 'a');
                 
+                assert.deepEqual(parse.run(a, "bac"), 'b');
+                
                 assert.deepEqual(parse.run(a, "cab"), 'c');
             }],
             ["Zero Choice",
