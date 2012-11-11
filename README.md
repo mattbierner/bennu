@@ -12,24 +12,28 @@ can be written more quickly and integrate better with the host language.
 parse.js parsers are regular Javascript functions. A set of common parsers is
 include. Here is a polish notation parser:
 
-    // Note: this example is simplified to only support single digit positive
+    // Note: this example is simplified to only supports single digit positive
     //     integers.
     var op = parse.choice(
         parse.char('+'),
         parse.char('-'),
         parse.char('*'),
-        parse.char('/')
-    );
+        parse.char('/'));
+    
     var num = parse.digit();
-    var expr = parse.next(op, parse.times(2, parse.choice(num, expr)));
+    var expr = parse.Parser('expr', function() {
+        return parse.next(op, parse.times(2, parse.choice(num, this.expr)));
+    });
     
     var pn = parse.next(parse.many(expr), parse.eof());
     
     // Tokenize the input
-    var tok = parse.either(
-        parse.next(parse.space(), tok),
-        parse.either(op, num)
-    );
+    var tok = parse.Parser('tok', function() {
+        return parse.either(
+            parse.next(parse.space(), this.tok),
+            parse.either(op, num));
+        });
+        
     
     parse.run(pn, parse.run(parse.many1(tok), "+ 3 + 4 8"));
 
