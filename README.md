@@ -32,8 +32,7 @@ include. Here is a polish notation parser:
         return parse.either(
             parse.next(parse.space(), this.tok),
             parse.either(op, num));
-        });
-        
+    });
     
     parse.run(pn, parse.run(parse.many1(tok), "+ 3 + 4 8"));
 
