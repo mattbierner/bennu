@@ -25,14 +25,16 @@ include. Here is a polish notation parser:
         return parse.next(op, parse.times(2, parse.choice(num, this.expr)));
     });
     
-    var pn = parse.next(parse.many(expr), parse.eof());
-    
     // Tokenize the input
     var tok = parse.Parser('tok', function() {
         return parse.either(
             parse.next(parse.space(), this.tok),
             parse.either(op, num));
     });
+    
+    // Parse tokenized input
+    var pn = parse.next(parse.many(expr), parse.eof());
+    
     
     parse.run(pn, parse.run(parse.many1(tok), "+ 3 + 4 8"));
 
