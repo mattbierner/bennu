@@ -32,12 +32,6 @@
                 // set global.
                 parse = p;
                 
-                var a = parse.many(parse.char('a'));
-                var input = (new Array(1000 + 1)).join('a');
-                
-                console.profile();
-                    parse.run(a, input);
-                console.profileEnd();
                 
                 [testAlways, testBind, testNext, testNever, 
                 testEither, testAttempt, testToken, testMany, testMany1, testTimes,
