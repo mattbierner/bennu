@@ -12,6 +12,12 @@ define(['parse'], function(parse){
                 
                 assert.throws(parse.run.bind(undefined, p, "ab"));
             }],
+            ["String Object",
+            function(){
+                 assert.deepEqual(parse.run(parse.string('abc'), new String('abc')), 'abc');
+                 assert.deepEqual(parse.run(parse.string(new String('abc')), 'abc'), 'abc');
+                 assert.deepEqual(parse.run(parse.string(new String('abc')), new String('abc')), 'abc');
+            }],
             ["Multi String",
              function(){
                  var p = parse.string('ab');
