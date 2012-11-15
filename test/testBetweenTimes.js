@@ -1,19 +1,26 @@
 define(['parse'], function(parse){
+    var ab = parse.either(
+        parse.attempt(parse.char('a')),
+        parse.char('b')
+    );
+    
     
     return {
         'module': "Between Times Tests",
         'tests': [
             ["Greedy Consume Times items",
             function(){
-                var a = parse.betweenTimes(1, 3, parse.char('a'));
+                var a = parse.betweenTimes(1, 3, ab);
                 
-                assert.deepEqual(parse.run(a, "a"), ['a']);
+                assert.deepEqual(parse.run(a, "ab"), ['a', 'b']);
                 
-                assert.deepEqual(parse.run(a, "aa"), ['a', 'a']);
+                assert.deepEqual(parse.run(a, "abc"), ['a', 'b']);
+
+                assert.deepEqual(parse.run(a, "aba"), ['a', 'b', 'a']);
                 
-                assert.deepEqual(parse.run(a, "aaa"), ['a', 'a', 'a']);
+                assert.deepEqual(parse.run(a, "aaba"), ['a', 'a', 'b']);
                 
-                assert.deepEqual(parse.run(a, "aaaaa"), ['a', 'a', 'a']);
+                assert.deepEqual(parse.run(a, "ababa"), ['a', 'b', 'a']);
             }],
             ["Consume Zero times",
              function(){
