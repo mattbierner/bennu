@@ -18,11 +18,11 @@ define(['parse'], function(parse){
                  assert.deepEqual(parse.run(parse.string(new String('abc')), 'abc'), 'abc');
                  assert.deepEqual(parse.run(parse.string(new String('abc')), new String('abc')), 'abc');
             }],
-            ["Multi String",
+            ["Char Array String",
              function(){
-                 var p = parse.string('ab');
+                 var p = parse.string('abc');
                  
-                 assert.deepEqual(parse.run(p, ["a", "b"]), 'ab');
+                 assert.deepEqual(parse.run(p, ["a", "b", "c"]), 'abc');
                  
                  assert.throws(parse.run.bind(undefined, p, ["ab"], 'ab'));
              }],

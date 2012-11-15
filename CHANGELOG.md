@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 0.4.1 - Nov 15th, 2012 ##
+* Added 'optional' parser to consume item zero or one time.
+* Added 'betweenTimes' parser to consume item between a min and max times.
+
 ## 0.4.0 - Nov 13th, 2012 ##
 * Fixed creating String objects instead of string literals.
 * Added stream style input.
