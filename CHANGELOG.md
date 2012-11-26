@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 0.4.2 - Nov 25th, 2012 ##
+* Added 'test' to test if a parser succeeds or fails for a given input.
+
 ## 0.4.1 - Nov 15th, 2012 ##
 * Added 'optional' parser to consume item zero or one time.
 * Added 'betweenTimes' parser to consume item between a min and max times.

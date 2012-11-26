@@ -15,7 +15,7 @@ define(['parse'], function(parse){
                 assert.deepEqual(parse.run(a, "ab"), ['a', 'b']);
                 
                 assert.deepEqual(parse.run(a, "abc"), ['a', 'b']);
-
+                
                 assert.deepEqual(parse.run(a, "aba"), ['a', 'b', 'a']);
                 
                 assert.deepEqual(parse.run(a, "aaba"), ['a', 'a', 'b']);
