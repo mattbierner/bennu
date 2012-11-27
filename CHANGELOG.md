@@ -1,7 +1,8 @@
 # ChangeLog #
 
 ## 1.0.1 - Nov 27th, 2012 ##
-* Rewrote 'betweenTimes' parser,
+* Rewrote 'betweenTimes' parser.
+* Updated implementation of consume multiple parsers.
 
 ## 1.0.0 - Nov 25th, 2012 ##
 * Constant parsers (letter, space, ... ) use object instead of constant function.
