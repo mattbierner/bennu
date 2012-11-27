@@ -1,8 +1,10 @@
 # ChangeLog #
 
+## 1.0.1 - Nov 27th, 2012 ##
+* Rewrote 'betweenTimes' parser,
+
 ## 1.0.0 - Nov 25th, 2012 ##
-* Constant parsers (letter, space, ... ) use direct object instead
-of constant function.
+* Constant parsers (letter, space, ... ) use object instead of constant function.
 * Added anyToken parser that accepts any token. Different in behavior than anyChar.
 
 ## 0.6.0 - Nov 25th, 2012 ##
