@@ -33,7 +33,9 @@
                 parse = p;
                 console.profile();
                     var input = (new Array(1000 + 1)).join('abc');
-                    parse.run(parse.many(parse.string('abc')), input);
+                    parse.run(parse.many(parse.choice(
+                        parse.char('a'), parse.char('b'), parse.char('c')
+                    )), input);
                 console.profileEnd();
                 
                 [testAlways, testBind, testNext, testNever, 
