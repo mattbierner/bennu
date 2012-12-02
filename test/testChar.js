@@ -12,14 +12,8 @@ define(['parse'], function(parse){
                 
                 assert.throws(parse.run.bind(undefined, p, ""));
             }],
-            ["String Object",
-            function(){
-                assert.deepEqual(parse.run(parse.char('a'), new String('a')), 'a');
-                assert.deepEqual(parse.run(parse.char(new String('a')), 'a'), 'a');
-                assert.deepEqual(parse.run(parse.char(new String('a')), new String('a')), 'a');
-            }],
             ["Multi Char",
-             function(){
+            function(){
                  var p = parse.char('ab');
                  
                  assert.deepEqual(parse.run(p, ["ab"]), 'ab');
