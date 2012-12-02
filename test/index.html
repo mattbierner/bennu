@@ -15,8 +15,7 @@
         requirejs.config({
             paths: {
                 'parse': '../lib/parse',
-                'callable': 'resources/callable',
-                'args': 'resources/args',
+                'parse_string': '../lib/parse_string',
                 'composed': 'resources/composed'
             }
         });
@@ -24,24 +23,18 @@
             ['parse', 'testAlways', 'testBind', 'testNext', 'testNever',
                 'testEither', 'testAttempt', 'testToken', 'testMany', 'testMany1',
                 'testTimes', 'testBetweenTimes', 'testLookahead', 'testChoice',
-                'testChar', 'testString'],
+                'testChar', 'testString', 'testParse_string'],
             function(p, testAlways, testBind, testNext, testNever, testEither,
                 testAttempt, testToken, testMany, testMany1, testTimes, testBetweenTimes,
-                testLookahead, testChoice, testChar, testString)
+                testLookahead, testChoice, testChar, testString, testParse_string)
             {
                 // set global.
                 parse = p;
-                console.profile();
-                    var input = (new Array(1000 + 1)).join('abc');
-                    parse.run(parse.many(parse.choice(
-                        parse.char('a'), parse.char('b'), parse.char('c')
-                    )), input);
-                console.profileEnd();
                 
                 [testAlways, testBind, testNext, testNever, 
                 testEither, testAttempt, testToken, testMany, testMany1, testTimes,
                 testBetweenTimes, testLookahead, testChoice, testChar,
-                testString].forEach(function(m){
+                testString, testParse_string].forEach(function(m){
                     m.module && module(m.module);
                     m.tests.forEach(function(e){ test.apply(this, e); });
             });
