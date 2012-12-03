@@ -1,5 +1,15 @@
 # ChangeLog #
 
+## 2.0.0 - December 2, 2012 ##
+* Moved Parse string specific parsers to own file to better separate when string
+  input is assumed.
+* 'parse.char' and 'parse.string' do strict equal. Also can be given own
+  predicate compare. Does not convert to string.
+* 'parse_string.char' and 'parse_string.string' have old logic, unboxing string
+  objects for comparison.
+* Renamed 'Parser' constructor 'RecParser'.
+* Added new 'Parser' constructor for creating named parsers. Also, 'NamedRecParser'.
+
 ## 1.0.1 - Nov 27th, 2012 ##
 * Rewrote 'betweenTimes' parser.
 * Updated implementation of consume multiple parsers.
