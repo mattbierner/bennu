@@ -5,7 +5,7 @@ define(['parse'], function(parse){
         'tests': [
             ["Simple Char",
             function(){
-                var p = parse.char('a');
+                var p = parse.character('a');
                 
                 assert.deepEqual(parse.run(p, "a"), 'a');
                 assert.deepEqual(parse.run(p, "ab"), 'a');
@@ -14,7 +14,7 @@ define(['parse'], function(parse){
             }],
             ["Multi Char",
             function(){
-                 var p = parse.char('ab');
+                 var p = parse.character('ab');
                  
                  assert.deepEqual(parse.run(p, ["ab"]), 'ab');
                  assert.deepEqual(parse.run(p, ["ab", 'c']), 'ab');

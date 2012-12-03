@@ -1,7 +1,7 @@
 define(['parse'], function(parse){
     var ab = parse.either(
-        parse.attempt(parse.char('a')),
-        parse.char('b')
+        parse.attempt(parse.character('a')),
+        parse.character('b')
     );
     
     
@@ -24,7 +24,7 @@ define(['parse'], function(parse){
             }],
             ["Consume Zero times",
              function(){
-                var a = parse.betweenTimes(0, 2, parse.char('a'));
+                var a = parse.betweenTimes(0, 2, parse.character('a'));
                  
                  assert.deepEqual(parse.run(a, "aaa"), ['a', 'a']);
                  
@@ -32,21 +32,21 @@ define(['parse'], function(parse){
             }],
             ["Consume Too few",
             function(){
-                var a = parse.betweenTimes(3, 4, parse.char('a'));
+                var a = parse.betweenTimes(3, 4, parse.character('a'));
 
                 assert.throws(parse.run.bind(undefined, a, "aa"));
                 assert.throws(parse.run.bind(undefined, a, ""));
              }],
              ["Consume Max lt Min",
              function(){
-                var a = parse.betweenTimes(5, 1, parse.char('a'));
+                var a = parse.betweenTimes(5, 1, parse.character('a'));
                 
                 assert.throws(parse.run.bind(undefined, a, "aa"));
                 assert.throws(parse.run.bind(undefined, a, ""));
              }],
              ["Consume large input many",
              function(){
-                 var a = parse.betweenTimes(1000, 1500, parse.char('a'));
+                 var a = parse.betweenTimes(1000, 1500, parse.character('a'));
                
                  var input = (new Array(2000 + 1)).join('a');
                

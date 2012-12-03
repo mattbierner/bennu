@@ -5,14 +5,14 @@ define(['parse'], function(parse){
             ["Success",
             function(){
                 assert.deepEqual(parse.run(
-                    parse.lookahead(parse.char('a')),
+                    parse.lookahead(parse.character('a')),
                     "a"),
                 'a');
                 
                 assert.deepEqual(parse.run(
                     parse.next(
-                        parse.lookahead(parse.char('a')),
-                        parse.char('a')),
+                        parse.lookahead(parse.character('a')),
+                        parse.character('a')),
                     "a"),
                 'a');
                 
@@ -20,7 +20,7 @@ define(['parse'], function(parse){
             ["Fails",
             function(){
                 assert.throws(parse.run.bind(undefined,
-                    parse.lookahead(parse.char('a')),
+                    parse.lookahead(parse.character('a')),
                     "")
                 );
             }],

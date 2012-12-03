@@ -5,9 +5,9 @@ define(['parse'], function(parse){
             ["Succeed Choice",
             function(){
                 var a = parse.choice(
-                    parse.char('a'),
-                    parse.char('b'),
-                    parse.char('c'));
+                    parse.character('a'),
+                    parse.character('b'),
+                    parse.character('c'));
                 
                 assert.deepEqual(parse.run(a, "abc"), 'a');
                 
@@ -24,9 +24,9 @@ define(['parse'], function(parse){
             ["Failed Choices To few",
             function(){
                 var a = parse.choice(
-                    parse.char('a'),
-                    parse.char('b'),
-                    parse.char('c'));
+                    parse.character('a'),
+                    parse.character('b'),
+                    parse.character('c'));
                 
                 assert.throws(parse.run.bind(undefined, a, "z"));
                 

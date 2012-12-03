@@ -15,10 +15,10 @@ include. Here is a polish notation parser:
     // Note: this example is simplified to only supports single digit positive
     //     integers.
     var op = parse.choice(
-        parse.char('+'),
-        parse.char('-'),
-        parse.char('*'),
-        parse.char('/'));
+        parse.character('+'),
+        parse.character('-'),
+        parse.character('*'),
+        parse.character('/'));
     
     var num = parse.digit();
     var expr = parse.Parser('expr', function() {

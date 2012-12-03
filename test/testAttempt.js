@@ -20,8 +20,8 @@ define(['parse'], function(parse){
                  var result = parse.run(
                      parse.either(
                          parse.attempt(
-                             parse.next(parse.char('a'), parse.char('b'))),
-                         parse.next(parse.char('a'), parse.char('c'))
+                             parse.next(parse.character('a'), parse.character('b'))),
+                         parse.next(parse.character('a'), parse.character('c'))
                      ),
                      'ac'
                  );

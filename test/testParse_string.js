@@ -5,9 +5,9 @@ define(['parse', 'parse_string'], function(parse, parse_string){
         'tests': [
             ["String Object Char",
             function(){
-                assert.deepEqual(parse.run(parse_string.char('a'), new String('a')), 'a');
-                assert.deepEqual(parse.run(parse_string.char(new String('a')), 'a'), 'a');
-                assert.deepEqual(parse.run(parse_string.char(new String('a')), new String('a')), 'a');
+                assert.deepEqual(parse.run(parse_string.character('a'), new String('a')), 'a');
+                assert.deepEqual(parse.run(parse_string.character(new String('a')), 'a'), 'a');
+                assert.deepEqual(parse.run(parse_string.character(new String('a')), new String('a')), 'a');
             }],
             ["String Object String",
             function(){
