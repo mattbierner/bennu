@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 3.0.0 - December 3, 2012 ##
+* Renamed exported 'char' parser 'character' because ECMAScript 3 reserves char keyword.
+* Added 'parse_string.trie' parser for parsing large sets of words.
+
 ## 2.0.0 - December 2, 2012 ##
 * Moved Parse string specific parsers to own file to better separate when string
   input is assumed.
