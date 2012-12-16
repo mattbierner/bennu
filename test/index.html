@@ -23,10 +23,11 @@
             ['parse', 'testAlways', 'testBind', 'testNext', 'testNever',
                 'testEither', 'testAttempt', 'testToken', 'testMany', 'testMany1',
                 'testTimes', 'testBetweenTimes', 'testLookahead', 'testChoice',
-                'testChar', 'testString', 'testParse_string'],
+                'testChar', 'testString', 'testParse_string', 'testSepBy'],
             function(p, testAlways, testBind, testNext, testNever, testEither,
                 testAttempt, testToken, testMany, testMany1, testTimes, testBetweenTimes,
-                testLookahead, testChoice, testChar, testString, testParse_string)
+                testLookahead, testChoice, testChar, testString, testParse_string,
+                testSepBy)
             {
                 // set global.
                 parse = p;
@@ -34,7 +35,7 @@
                 [testAlways, testBind, testNext, testNever, 
                 testEither, testAttempt, testToken, testMany, testMany1, testTimes,
                 testBetweenTimes, testLookahead, testChoice, testChar,
-                testString, testParse_string].forEach(function(m){
+                testString, testParse_string, testSepBy].forEach(function(m){
                     m.module && module(m.module);
                     m.tests.forEach(function(e){ test.apply(this, e); });
             });

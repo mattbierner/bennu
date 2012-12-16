@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 3.1.0 - December 16, 2012 ##
+* Added 'sequence' parsing a finite sequence of different parsers.
+* Added 'sepBy', 'sepBy1' for parsing list or infix operator type input.
+
 ## 3.0.0 - December 3, 2012 ##
 * Renamed exported 'char' parser 'character' because ECMAScript 3 reserves char keyword.
 * Added 'parse_string.trie' parser for parsing large sets of words.
