@@ -1,4 +1,4 @@
-define(['parse'], function(parse){
+define(['parse/parse'], function(parse){
     
     return {
         'module': "Always Tests",

@@ -1,4 +1,4 @@
-define(['parse'], function(parse){
+define(['parse/parse'], function(parse){
     
     var identity = function(v) { return v; };
     var constant = function(v) { return identity.bind(this, v); };

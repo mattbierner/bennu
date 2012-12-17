@@ -1,4 +1,4 @@
-define(['parse'], function(parse){
+define(['parse/parse'], function(parse){
     var ab = parse.many(parse.either(
             parse.character('a'),
             parse.character('b')));

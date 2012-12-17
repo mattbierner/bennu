@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 4.0.0 - December 17, 2012 ##
+* Use 'parse' package to access to parse and parse_string.
+
 ## 3.1.0 - December 16, 2012 ##
 * Added 'sequence' parsing a finite sequence of different parsers.
 * Added 'sepBy', 'sepBy1' for parsing list or infix operator type input.

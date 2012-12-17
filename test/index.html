@@ -14,13 +14,11 @@
     <script type="application/javascript">
         requirejs.config({
             paths: {
-                'parse': '../lib/parse',
-                'parse_string': '../lib/parse_string',
-                'composed': 'resources/composed'
+                'parse': '../lib',
             }
         });
         require(
-            ['parse', 'testAlways', 'testBind', 'testNext', 'testNever',
+            ['parse/parse', 'testAlways', 'testBind', 'testNext', 'testNever',
                 'testEither', 'testAttempt', 'testToken', 'testMany', 'testMany1',
                 'testTimes', 'testBetweenTimes', 'testLookahead', 'testChoice',
                 'testChar', 'testString', 'testParse_string', 'testSepBy'],

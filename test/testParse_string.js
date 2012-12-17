@@ -1,4 +1,4 @@
-define(['parse', 'parse_string'], function(parse, parse_string){
+define(['parse/parse', 'parse/parse_string'], function(parse, parse_string){
     
     return {
         'module': "Parse String Tests",

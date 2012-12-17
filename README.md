@@ -51,7 +51,12 @@ Include any AMD style module loader and load parse:
     <body>
         <script type="application/javascript" src="require.js"></script>
         <script type="application/javascript">
-            require(['parse'], function(parse) {
+            requirejs.config({
+                paths: {
+                    'parse': 'parse/lib',
+                }
+            });
+            require(['parse/parse'], function(parse) {
                 ...
             });
         </script>
