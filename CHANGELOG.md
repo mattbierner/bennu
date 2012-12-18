@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 4.1.0 - December 17, 2012 ##
+* Added 'binda' parser that calls apply 'f' with result of 'p'.
+
 ## 4.0.0 - December 17, 2012 ##
 * Use 'parse' package to access to parse and parse_string.
 
