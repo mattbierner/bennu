@@ -1,5 +1,10 @@
 # ChangeLog #
 
+## 5.0.0 - December 17, 2012 ##
+* Token parser calls 'state.next' instead of creating new InputState itself.
+  Allows InputState to be subclassed and other implementations passed in when
+  running a parser.
+
 ## 4.1.0 - December 17, 2012 ##
 * Added 'binda' parser that calls apply 'f' with result of 'p'.
 
