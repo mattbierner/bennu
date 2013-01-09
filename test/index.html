@@ -36,6 +36,7 @@
                 testString, testParse_string, testSepBy].forEach(function(m){
                     m.module && module(m.module);
                     m.tests.forEach(function(e){ test.apply(this, e); });
+                console.profileEnd();
             });
         });
     </script>
