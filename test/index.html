@@ -22,11 +22,11 @@
             ['parse/parse', 'testAlways', 'testBind', 'testNext', 'testNever',
                 'testEither', 'testAttempt', 'testToken', 'testMany', 'testMany1',
                 'testTimes', 'testBetweenTimes', 'testLookahead', 'testChoice',
-                'testChar', 'testString', 'testParse_string', 'testSepBy'],
+                'testChar', 'testString', 'testParse_string', 'testSepBy', 'testSequence'],
             function(p, testAlways, testBind, testNext, testNever, testEither,
                 testAttempt, testToken, testMany, testMany1, testTimes, testBetweenTimes,
                 testLookahead, testChoice, testChar, testString, testParse_string,
-                testSepBy)
+                testSepBy, testSequence)
             {
                 // set global.
                 parse = p;
@@ -34,7 +34,7 @@
                 [testAlways, testBind, testNext, testNever, 
                 testEither, testAttempt, testToken, testMany, testMany1, testTimes,
                 testBetweenTimes, testLookahead, testChoice, testChar,
-                testString, testParse_string, testSepBy].forEach(function(m){
+                testString, testParse_string, testSepBy, testSequence].forEach(function(m){
                     m.module && module(m.module);
                     m.tests.forEach(function(e){ test.apply(this, e); });
                 console.profileEnd();
