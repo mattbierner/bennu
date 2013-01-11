@@ -1,4 +1,4 @@
-define(['parse/parse'], function(parse){
+define(['parse/parse', 'parse/parse_eager'], function(parse, parse_eager){
     var ab = parse.either(
         parse.attempt(parse.character('a')),
         parse.character('b')
@@ -10,7 +10,7 @@ define(['parse/parse'], function(parse){
         'tests': [
             ["Greedy Consume Times items",
             function(){
-                var a = parse.betweenTimes(1, 3, ab);
+                var a = parse_eager.betweenTimes(1, 3, ab);
                 
                 assert.deepEqual(parse.run(a, "ab"), ['a', 'b']);
                 
@@ -24,7 +24,7 @@ define(['parse/parse'], function(parse){
             }],
             ["Consume Zero times",
              function(){
-                var a = parse.betweenTimes(0, 2, parse.character('a'));
+                var a = parse_eager.betweenTimes(0, 2, parse.character('a'));
                  
                  assert.deepEqual(parse.run(a, "aaa"), ['a', 'a']);
                  
@@ -32,21 +32,21 @@ define(['parse/parse'], function(parse){
             }],
             ["Consume Too few",
             function(){
-                var a = parse.betweenTimes(3, 4, parse.character('a'));
+                var a = parse_eager.betweenTimes(3, 4, parse.character('a'));
 
                 assert.throws(parse.run.bind(undefined, a, "aa"));
                 assert.throws(parse.run.bind(undefined, a, ""));
              }],
              ["Consume Max lt Min",
              function(){
-                var a = parse.betweenTimes(5, 1, parse.character('a'));
+                var a = parse_eager.betweenTimes(5, 1, parse.character('a'));
                 
                 assert.throws(parse.run.bind(undefined, a, "aa"));
                 assert.throws(parse.run.bind(undefined, a, ""));
              }],
              ["Consume large input many",
              function(){
-                 var a = parse.betweenTimes(1000, 1500, parse.character('a'));
+                 var a = parse_eager.betweenTimes(1000, 1500, parse.character('a'));
                
                  var input = (new Array(2000 + 1)).join('a');
                

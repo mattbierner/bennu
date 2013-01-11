@@ -1,5 +1,5 @@
-define(['parse/parse'], function(parse){
-    var ab = parse.many(parse.either(
+define(['parse/parse', 'parse/parse_eager'], function(parse, parse_eager){
+    var ab = parse_eager.many(parse.either(
             parse.character('a'),
             parse.character('b')));
     
@@ -20,7 +20,7 @@ define(['parse/parse'], function(parse){
              }],
              ["Consume non string",
              function(){
-                 var pairs = parse.many(parse.either(
+                 var pairs = parse_eager.many(parse.either(
                          parse.character('ab'),
                          parse.character('cd')));
                  
@@ -28,7 +28,7 @@ define(['parse/parse'], function(parse){
               }],
               ["Consume large input many",
               function(){
-                  var a = parse.many(parse.character('a'));
+                  var a = parse_eager.many(parse.character('a'));
                   
                   var input = (new Array(1000 + 1)).join('a');
                   
