@@ -1,7 +1,12 @@
 # ChangeLog #
 
+## 7.0.0 - January 13, 2012 ##
+* Changed how 'optional' parser works. It returns a value, not a stream. May 
+  return a default value as well.
+* Exported 'consParser' for working with streams.
+
 ## 6.1.0 - January 13, 2012 ##
-* Exported concatParser for joining two streams.
+* Exported 'concatParser' for working with streams.
 
 ## 6.0.0 - January 13, 2012 ##
 * Updated to use stream.js for iterative parsers. Should improve performance for
