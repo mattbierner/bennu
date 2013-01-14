@@ -1,5 +1,11 @@
 # ChangeLog #
 
+## 6.0.0 - January 13, 2012 ##
+* Updated to use stream.js for iterative parsers. Should improve performance for
+  large inputs.
+* Added set of eager iterative parsers that transform streams into finite arrays
+  before returning.
+
 ## 5.0.0 - December 17, 2012 ##
 * Token parser calls 'state.next' instead of creating new InputState itself.
   Allows InputState to be subclassed and other implementations passed in when
