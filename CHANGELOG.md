@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 6.1.0 - January 13, 2012 ##
+* Exported concatParser for joining two streams.
+
 ## 6.0.0 - January 13, 2012 ##
 * Updated to use stream.js for iterative parsers. Should improve performance for
   large inputs.
