@@ -1,5 +1,12 @@
 # ChangeLog #
 
+## 8.0.0 - January 17, 2012 ##
+* Renamed 'runParser' to 'runState' and 'testParser' to 'testState'.
+* Exported 'exec' for cleanly manually running a parser and correctly extracting
+  the results.
+* Added 'runMany' for running a parser zero or more times to produce a lazy stream
+  or results.
+
 ## 7.0.0 - January 13, 2012 ##
 * Changed how 'optional' parser works. It returns a value, not a stream. May 
   return a default value as well.
