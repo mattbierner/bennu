@@ -62,20 +62,6 @@ Include any AMD style module loader and load parse:
         </script>
     </body>
 
-## Global ##
-Include parse.js file directly and use 'parse' global.
-
-    <!DOCTYPE html>
-    <html>
-    <head></head>
-    <body>
-        <script type="application/javascript" src="parse.js"></script>
-        <script type="application/javascript">
-            ...
-        </script>
-    </body>
-
-
 [CombinatorialParsers]: http://en.wikipedia.org/wiki/Parser_combinator
 [Parsatron]: https://github.com/youngnh/parsatron
 [Parsec]: http://legacy.cs.uu.nl/daan/parsec.html
