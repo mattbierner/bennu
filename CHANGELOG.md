@@ -1,5 +1,13 @@
 # ChangeLog #
 
+## 9.0.0 - January 25, 2012 ##
+* Refactored all parsers to allow passing a memoization table. params
+  are now 'state, m, cok, cerr, eok, eerr'.
+* Added 'memo' and 'backtrack' for working with memoization table.
+* Changed position to be a prototyped object. Must be called with 'new' now.
+  Position can be subclassed now.
+* Added state and pos equality tests.
+
 ## 8.0.2 - January 17, 2012 ##
 * Changed 'token' to use own error type to avoid string building until needed.
 
