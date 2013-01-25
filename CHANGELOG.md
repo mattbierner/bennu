@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 8.0.2 - January 17, 2012 ##
+* Changed 'token' to use own error type to avoid string building until needed.
+
 ## 8.0.1 - January 17, 2012 ##
 * Changed 'choice' and 'string' to use reduceRight instead of reduce. Should
   improve performance when dealing with many choices and larger inputs.

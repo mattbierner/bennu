@@ -15,9 +15,8 @@ define(['parse/parse'], function(parse){
             function(){
                 var none = parse.token(function() { return false; })
                 
-                assert.throws(parse.run.bind(undefined, none, "abc"));
-                
-                assert.throws(parse.run.bind(undefined, none, ""));
+                assert.throws(parse.run.bind(undefined, none, "abc"), parse.UnexpectError);
+                assert.throws(parse.run.bind(undefined, none, ""), parse.UnexpectError);
              }],
            
         ],
