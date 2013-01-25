@@ -23,16 +23,17 @@
                 'testEither', 'testAttempt', 'testToken', 'testMany', 'testMany1',
                 'testTimes', 'testBetweenTimes', 'testLookahead', 'testChoice',
                 'testChar', 'testString', 'testParse_string', 'testSepBy', 'testSequence',
-                'testRunMany'],
+                'testRunMany', 'testMemo'],
             function(p, testAlways, testBind, testNext, testNever, testEither,
                 testAttempt, testToken, testMany, testMany1, testTimes, testBetweenTimes,
                 testLookahead, testChoice, testChar, testString, testParse_string,
-                testSepBy, testSequence, testRunMany)
+                testSepBy, testSequence, testRunMany, testMemo)
             {
                 [testAlways, testBind, testNext, testNever, 
                 testEither, testAttempt, testToken, testMany, testMany1, testTimes,
                 testBetweenTimes, testLookahead, testChoice, testChar,
-                testString, testParse_string, testSepBy, testSequence, testRunMany].forEach(function(m){
+                testString, testParse_string, testSepBy, testSequence, testRunMany,
+                testMemo].forEach(function(m){
                     m.module && module(m.module);
                     m.tests.forEach(function(e){ test.apply(this, e); });
                 console.profileEnd();
