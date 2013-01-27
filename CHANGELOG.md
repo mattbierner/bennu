@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 9.0.1 - January 27, 2012 ##
+* Updated memo impl to not use trampoline but store values with callbacks. Should
+  fix memo stack issues
+
 ## 9.0.0 - January 27, 2012 ##
 * Refactored all parsers to allow passing a memoization table. params
   are now 'state, m, cok, cerr, eok, eerr'.
