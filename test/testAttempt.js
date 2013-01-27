@@ -1,5 +1,4 @@
 define(['parse/parse'], function(parse){
-    
     return {
         'module': "Attempt Tests",
         'tests': [
@@ -19,9 +18,10 @@ define(['parse/parse'], function(parse){
                  ));
                  var result = parse.run(
                      parse.either(
-                         parse.attempt(
-                             parse.next(parse.character('a'), parse.character('b'))),
-                         parse.next(parse.character('a'), parse.character('c'))
+                         parse.attempt(parse.next(parse.character('a'),
+                             parse.character('b'))),
+                         parse.next(parse.character('a'),
+                             parse.character('c'))
                      ),
                      'ac'
                  );
