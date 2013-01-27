@@ -1,5 +1,10 @@
 # ChangeLog #
 
+## 9.1.0 - January 27, 2012 ##
+* Update 'manyStream' to pass along memo table.
+* Update exec to take memo table.
+* Updated 'manyStream' to return memoized stream.
+
 ## 9.0.1 - January 27, 2012 ##
 * Updated memo impl to not use trampoline but store values with callbacks. Should
   fix memo stack issues
