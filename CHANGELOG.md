@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 9.1.2 - January 28, 2012 ##
+* Fixed error in 'sepBy' with trailing sep.
+
 ## 9.1.1 - January 27, 2012 ##
 * Improved 'between' perf about 2x.
 

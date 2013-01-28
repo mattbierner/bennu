@@ -1,6 +1,6 @@
 {
   "name": "parse.js",
-  "version": "9.1.1",
+  "version": "9.1.2",
   "description": "Combinatorial Parser Javascript Library",
   "main": "lib/parse.js",
   "scripts": {
