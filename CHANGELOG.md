@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 9.1.1 - January 27, 2012 ##
+* Improved 'between' perf about 2x.
+
 ## 9.1.0 - January 27, 2012 ##
 * Update 'manyStream' to pass along memo table.
 * Update exec to take memo table.
