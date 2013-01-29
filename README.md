@@ -3,44 +3,26 @@
 ## About ##
 parse.js is a library for creating [combinatorial parsers][CombinatorialParsers] in Javascript. 
 It is based on Nate Young's [Parsatron][Parsatron] which in turn is based on
-[Parsec][Parsec]. 
+[Parsec][Parsec].
 
 Combinatorial parsers allow complex parsers to be created from a set of simple
 building blocks. Compared to other parsing techniques, combinatorial parsers
 can be written more quickly and integrate better with the host language.
 
-parse.js parsers are regular Javascript functions. A set of common parsers is
-include. Here is a polish notation parser:
+## Examples ##
+* [parse-ecma][parseecma] - Combinatory parsers for lexing and parsing ECMAScript 5.
 
-    // Note: this example is simplified to only supports single digit positive
-    //     integers.
-    var op = parse.choice(
-        parse.character('+'),
-        parse.character('-'),
-        parse.character('*'),
-        parse.character('/'));
-    
-    var num = parse.digit();
-    var expr = parse.Parser('expr', function() {
-        return parse.next(op, parse.times(2, parse.choice(num, this.expr)));
-    });
-    
-    // Tokenize the input
-    var tok = parse.Parser('tok', function() {
-        return parse.either(
-            parse.next(parse.space(), this.tok),
-            parse.either(op, num));
-    });
-    
-    // Parse tokenized input
-    var pn = parse.next(parse.many(expr), parse.eof());
-    
-    
-    parse.run(pn, parse.run(parse.many1(tok), "+ 3 + 4 8"));
+## To clone ##
+    git clone https://github.com/mattbierner/parse.js parse
+    cd parse
+    git submodule update --init --recursive
 
 
 # Using parse.js #
-parse.js can be used either as an AMD style module or in the global scope.
+
+## Dependencies ##
+parse.js depends on [stream.js][stream] internally and also uses stream.js 
+objects in the API.
 
 ## With AMD ##
 Include any AMD style module loader and load parse:
@@ -53,7 +35,8 @@ Include any AMD style module loader and load parse:
         <script type="application/javascript">
             requirejs.config({
                 paths: {
-                    'parse': 'parse/lib',
+                    'parse': './lib',
+                    'stream': './dependencies/stream/lib/stream'
                 }
             });
             require(['parse/parse'], function(parse) {
@@ -62,6 +45,23 @@ Include any AMD style module loader and load parse:
         </script>
     </body>
 
+## Modules ##
+All files live in the top level 'parse' module.
+
+### lib/parse - 'parse/parse' ###
+Core functionality. Defines core parsers and data structures for creating and
+running parsers.
+
+### lib/parse_string - 'parse/parse_string' ###
+Parsers for working specifically with strings.
+
+### lib/parse_eager - 'parse/parse_eager' ###
+Redefines iterative core parsers to return regular Javascript arrays instead
+of streams.
+
+
 [CombinatorialParsers]: http://en.wikipedia.org/wiki/Parser_combinator
 [Parsatron]: https://github.com/youngnh/parsatron
 [Parsec]: http://legacy.cs.uu.nl/daan/parsec.html
+[parseecma]: https://github.com/mattbierner/parse-ecma
+[stream]: https://github.com/mattbierner/stream.js
