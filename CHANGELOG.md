@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 9.1.3 - January 30, 2012 ##
+* Altered how multiple errors are displayed. Errors should now be joined together
+  correctly.
+
 ## 9.1.2 - January 28, 2012 ##
 * Fixed error in 'sepBy' with trailing sep.
 
