@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 9.1.4 - January 30, 2012 ##
+* 'binda' calls 'f' with state as last argument.
+
 ## 9.1.3 - January 30, 2012 ##
 * Altered how multiple errors are displayed. Errors should now be joined together
   correctly.
