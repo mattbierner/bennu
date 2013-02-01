@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 10.0.0 - February 1, 2012 ##
+* Position changed to use array index only instead of assuming string input.
+
 ## 9.1.4 - January 30, 2012 ##
 * 'binda' calls 'f' with state as last argument.
 
