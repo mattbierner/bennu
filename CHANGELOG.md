@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 10.1.1 - February 6, 2012 ##
+* Fixed calls to 'Position' in 'run' using old style arguments.
+
 ## 10.1.0 - February 5, 2012 ##
 * Changed 'Position' to use compare instead of simple equals.
 
