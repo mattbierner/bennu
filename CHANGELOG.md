@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 10.1.0 - February 5, 2012 ##
+* Changed 'Position' to use compare instead of simple equals.
+
 ## 10.0.0 - February 1, 2012 ##
 * Position changed to use array index only instead of assuming string input.
 
