@@ -28,13 +28,13 @@ var uniqueParserId = () -> Math.random();
 
 // Continuation
 ////////////////////////////////////////
-var cont = function(f, args) {
+var cont = (f, args) -> {
     var c = [f, args];
     c._next = true;
     return c;
 };
 
-var trampoline = function(f) {
+var trampoline = (f) -> {
     var value = f;
     while (value && value._next) {
         value = value[0].apply(undefined, value[1]);
@@ -169,7 +169,7 @@ Object.defineProperties(ParseError.prototype, {
         }
     },
     'messages' : {
-        'get': function() { return this._messages; }
+        'get': () -> this._messages
     }
 });
 
@@ -321,7 +321,6 @@ var bindParser = (p, f) -> function BIND_PARSER(state, m, cok, cerr, eok, eerr) 
     return cont(p, [state, m, pcok, cerr, peok, eerr]);
 };
 
-
 /**
  * Same as bind but calls apply on 'f' using results of 'p'.
  * 
@@ -329,7 +328,6 @@ var bindParser = (p, f) -> function BIND_PARSER(state, m, cok, cerr, eok, eerr) 
  */
 var bindaParser = (p, f) -> bindParser(p,
     (x, state) -> f.apply(undefined, stream.toArray(x).concat([state])));
-
 
 /**
  * Parser that matches end of input. If end of input, succeeds with null.
@@ -389,7 +387,8 @@ var nextParser = (p, q) -> bindParser(p, constant(q));
  */
 var eitherParser = (p, q) -> function EITHER_PARSER(state, m, cok, cerr, eok, eerr) {
     var peerr = function(errFromP, _, mFromP) {
-        var qeerr = (errFromQ, _, mFromQ) -> eerr(new MultipleError(errFromP, errFromQ), state, mFromQ);
+        var qeerr = (errFromQ, _, mFromQ) ->
+            eerr(new MultipleError(errFromP, errFromQ), state, mFromQ);
         return cont(q, [state, mFromP, cok, cerr, eok, qeerr]);
     };
     return cont(p, [state, m, cok, cerr, eok, peerr]);
@@ -464,14 +463,13 @@ var sequenceParser = (function(){
  * @return List of 'p' results. May be empty if zero 'p' was consumed.
  */
 var manyParser = (function(){
-    var manyError = function() {
+    var manyError = () -> {
         throw new Error("Many parser applied to a parser that accepts an empty string");
     };
     
     return function MANY_PARSER(p) {
-        var safeP = function(state, m, cok, cerr, eok, eerr) {
-            return cont(p, [state, m, cok, cerr, manyError, eerr]);
-        };
+        var safeP = (state, m, cok, cerr, eok, eerr) ->
+            cont(p, [state, m, cok, cerr, manyError, eerr]);
         
         return rec(self -> _optionalValueParser(consParser(safeP, self)));
     };
@@ -508,20 +506,16 @@ var timesParser = (n, p) -> (n <= 0 ?
  * @return List of 'p' results.
  */
 var betweenTimesParser = (function(){
-    var maxParser = function(max, p) {
-        return (max <= 0 ?
-            _end :
-            _optionalValueParser(
-                consParser(p, maxParser(max - 1, p))));
-    };
+    var maxParser = (max, p) -> (max <= 0 ?
+        _end :
+        _optionalValueParser(
+            consParser(p, maxParser(max - 1, p))));
     
-    return function(min, max, p) {
-        return (max < min ?
-            neverParser :
-            concatParser(
-                timesParser(min, p),
-                maxParser(max - min, p)));
-    };
+    return (min, max, p) -> (max < min ?
+        neverParser :
+        concatParser(
+            timesParser(min, p),
+            maxParser(max - min, p)));
 }());
 
 /**
@@ -533,9 +527,10 @@ var betweenTimesParser = (function(){
  *
  *@return Result of 'p'.
  */
-var betweenParser = (open, close, p) -> nextParser(open,
-    bindParser(p, x ->
-        nextParser(close, alwaysParser(x))));
+var betweenParser = (open, close, p) ->
+    nextParser(open,
+        bindParser(p, x ->
+            nextParser(close, alwaysParser(x))));
 
 
 /**
@@ -546,11 +541,12 @@ var betweenParser = (open, close, p) -> nextParser(open,
  * 
  * @return List of 'p' results.
  */
-var sepBy1 = (sep, p) -> rec(self ->
-    consParser(p,
-        eitherParser(
-            attemptParser(nextParser(sep, self)),
-            _end)));
+var sepBy1 = (sep, p) -> 
+    rec(self ->
+        consParser(p,
+            eitherParser(
+                attemptParser(nextParser(sep, self)),
+                _end)));
 
 
 /**
@@ -590,19 +586,17 @@ var tokenParser = (function(){
         }
     });
     
-    return function(consume) {
-        return function TOKEN_PARSER(state, m, cok, cerr, eok, eerr) {
-            var pos = state.pos,
-                input = state.input;
-            if (!input) {
-                return eerr(new UnexpectError(pos, "end of input"), state, m);
-            } else {
-                var tok = stream.first(input);
-                return (consume(tok) ?
-                    cok(tok, state.next(tok), m) :
-                    eerr(new UnexpectTokenError(pos, tok), state, m));
-            }
-        };
+    return consume -> function TOKEN_PARSER(state, m, cok, cerr, eok, eerr) {
+        var pos = state.pos,
+            input = state.input;
+        if (!input) {
+            return eerr(new UnexpectError(pos, "end of input"), state, m);
+        } else {
+            var tok = stream.first(input);
+            return (consume(tok) ?
+                cok(tok, state.next(tok), m) :
+                eerr(new UnexpectTokenError(pos, tok), state, m));
+        }
     };
 }());
 
@@ -636,8 +630,9 @@ var charParser = (c, pred) -> _charParser((pred || eq), c);
 var stringParser = (function(){
     var reducer = (p, c) -> nextParser(c, p);
     
-    return (s, pred) -> map.call(s, bind(_charParser, (pred || eq)))
-        .reduceRight(reducer, alwaysParser(s));
+    return (s, pred) ->
+        map.call(s, bind(_charParser, (pred || eq)))
+            .reduceRight(reducer, alwaysParser(s));
 }());
 
 /* Memo Parsers
@@ -645,16 +640,14 @@ var stringParser = (function(){
 /**
  * Parse 'p' and continue with old memo table.
  */
-var backtrackParser = function(p) {
-    return function(state, m, cok, cerr, eok, eerr) {
-        var pcok = (x, state /*, _*/) -> cok(x, state, m),
-            pcerr = (x, state /*, _*/) -> cerr(x, state, m),
-            peok = (x, state /*, _*/) -> eok(x, state, m),
-            peerr = (x, state /*, _*/) -> eerr(x, state, m);
-        return cont(p, [state, m, pcok, pcerr, peok, peerr]);
-    };
-};
- 
+var backtrackParser = p ->
+    (state, m, cok, cerr, eok, eerr) ->
+        cont(p, [state, m,
+             (x, state /*, _*/) -> cok(x, state, m),
+             (x, state /*, _*/) -> cerr(x, state, m),
+             (x, state /*, _*/) -> eok(x, state, m), 
+             (x, state /*, _*/) -> eerr(x, state, m)]);
+
 /**
  * Uses memoized result for 'p' or parse 'p' and store result in memo table.
  * 
@@ -696,9 +689,12 @@ var memoParser = function(p) {
  * 
  * Supplies an empty memo table.
  */
-var exec = (p, state, m, cok, cerr, eok, eerr) -> trampoline(p(state, m, cok, cerr, eok, eerr))();
+var exec = (p, state, m, cok, cerr, eok, eerr) ->
+    trampoline(p(state, m, cok, cerr, eok, eerr))();
 
-var _makeParser = (ok, err) -> (p, state, m) -> exec(p, state, (m || null), ok, err, ok, err);
+var _makeParser = (ok, err) ->
+    (p, state, m) ->
+        exec(p, state, (m || null), ok, err, ok, err);
 
 /**
  * Run a given parser with a given state.
