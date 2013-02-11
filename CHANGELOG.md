@@ -1,5 +1,10 @@
 # ChangeLog #
 
+## 10.2.0 - February 10, 2013 ##
+* Updated parse_string parsers to produce better error messages that include
+  expected and found token. 
+* Corrected string unboxing in parse_string. Now uses valueOf.
+
 ## 10.1.1 - February 6, 2013 ##
 * Fixed calls to 'Position' in 'run' using old style arguments.
 
