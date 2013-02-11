@@ -140,7 +140,7 @@ InputState.prototype.next = function(tok) {
  * 
  * States are equal if their position's are equal.
  */
-InputState.prototype.eq = state -> this.pos.compare(state.pos) === 0;
+InputState.prototype.eq = state -> (this.pos.compare(state.pos) === 0);
 
 /* Errors
  ******************************************************************************/
@@ -274,7 +274,6 @@ var Parser = (name, impl) -> Object.defineProperties(impl, {
         'writable': false
     }
 });
-
 
 /**
  * Create a recursively defined parser.
@@ -579,7 +578,9 @@ var tokenParser = (function(){
     UnexpectTokenError.prototype = new UnexpectError;
     UnexpectTokenError.prototype.constructor = UnexpectTokenError;
     Object.defineProperty(UnexpectTokenError.prototype, 'message', {
-        'get': () -> "Unexpected " + this.tok;
+        'get': function() {
+            return "Unexpected " + this.tok;
+        }
     });
     
     return consume -> function TOKEN_PARSER(state, m, cok, cerr, eok, eerr) {
