@@ -1,37 +1,37 @@
 # ChangeLog #
 
-## 10.1.1 - February 6, 2012 ##
+## 10.1.1 - February 6, 2013 ##
 * Fixed calls to 'Position' in 'run' using old style arguments.
 
-## 10.1.0 - February 5, 2012 ##
+## 10.1.0 - February 5, 2013 ##
 * Changed 'Position' to use compare instead of simple equals.
 
-## 10.0.0 - February 1, 2012 ##
+## 10.0.0 - February 1, 2013 ##
 * Position changed to use array index only instead of assuming string input.
 
-## 9.1.4 - January 30, 2012 ##
+## 9.1.4 - January 30, 2013 ##
 * 'binda' calls 'f' with state as last argument.
 
-## 9.1.3 - January 30, 2012 ##
+## 9.1.3 - January 30, 2013 ##
 * Altered how multiple errors are displayed. Errors should now be joined together
   correctly.
 
-## 9.1.2 - January 28, 2012 ##
+## 9.1.2 - January 28, 2013 ##
 * Fixed error in 'sepBy' with trailing sep.
 
-## 9.1.1 - January 27, 2012 ##
+## 9.1.1 - January 27, 2013 ##
 * Improved 'between' perf about 2x.
 
-## 9.1.0 - January 27, 2012 ##
+## 9.1.0 - January 27, 2013 ##
 * Update 'manyStream' to pass along memo table.
 * Update exec to take memo table.
 * Updated 'manyStream' to return memoized stream.
 
-## 9.0.1 - January 27, 2012 ##
+## 9.0.1 - January 27, 2013 ##
 * Updated memo impl to not use trampoline but store values with callbacks. Should
   fix memo stack issues
 
-## 9.0.0 - January 27, 2012 ##
+## 9.0.0 - January 27, 2013 ##
 * Refactored all parsers to allow passing a memoization table. params
   are now 'state, m, cok, cerr, eok, eerr'.
 * Added 'memo' and 'backtrack' for working with memoization table.
@@ -41,29 +41,29 @@
 * Renamed 'RecParser' to 'rec' and 'NamedRecParser' to 'RecParser' to make their
   purposes more clear.
 
-## 8.0.2 - January 17, 2012 ##
+## 8.0.2 - January 17, 2013 ##
 * Changed 'token' to use own error type to avoid string building until needed.
 
-## 8.0.1 - January 17, 2012 ##
+## 8.0.1 - January 17, 2013 ##
 * Changed 'choice' and 'string' to use reduceRight instead of reduce. Should
   improve performance when dealing with many choices and larger inputs.
 
-## 8.0.0 - January 17, 2012 ##
+## 8.0.0 - January 17, 2013 ##
 * Renamed 'runParser' to 'runState' and 'testParser' to 'testState'.
 * Exported 'exec' for cleanly manually running a parser and correctly extracting
   the results.
 * Added 'runMany' for running a parser zero or more times to produce a lazy stream
   of results.
 
-## 7.0.0 - January 13, 2012 ##
+## 7.0.0 - January 13, 2013 ##
 * Changed how 'optional' parser works. It returns a value, not a stream. May 
   return a default value as well.
 * Exported 'consParser' for working with streams.
 
-## 6.1.0 - January 13, 2012 ##
+## 6.1.0 - January 13, 2013 ##
 * Exported 'concatParser' for working with streams.
 
-## 6.0.0 - January 13, 2012 ##
+## 6.0.0 - January 13, 2013 ##
 * Updated to use stream.js for iterative parsers. Should improve performance for
   large inputs.
 * Added set of eager iterative parsers that transform streams into finite arrays

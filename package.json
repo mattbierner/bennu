@@ -1,11 +1,8 @@
 {
   "name": "parse.js",
   "version": "10.1.1",
-  "description": "Combinatorial Parser Javascript Library",
+  "description": "Combinatory Parsing Library",
   "main": "lib/parse.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
     "url": "git://github.com/mattbierner/parse.js.git"
@@ -14,6 +11,8 @@
     "parse",
     "parser",
     "combinatorial",
+    "combinatory",
+    "combinatory parsing",
     "functional"
   ],
   "author": "Matt Bierner",
