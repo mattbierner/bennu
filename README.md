@@ -59,9 +59,21 @@ Parsers for working specifically with strings.
 Redefines iterative core parsers to return regular Javascript arrays instead
 of streams.
 
+# Code #
+parse.js is written in Javascript / Khepri. [Khepri][khepri] is a ECMAScript subset
+that, among other things, adds a shorted lambda function syntax. It is also
+implemented using parse.js. Besides lambda functions, Khepri files (*.kep) are
+pretty much plain old Javascript.
+
+For now, both the .js and .kep versions of source code will be kept in 'lib/',
+but only Khepri sources will be developed and Javascript files will be
+generated from it.
+
+
 
 [CombinatorialParsers]: http://en.wikipedia.org/wiki/Parser_combinator
 [Parsatron]: https://github.com/youngnh/parsatron
 [Parsec]: http://legacy.cs.uu.nl/daan/parsec.html
 [parseecma]: https://github.com/mattbierner/parse-ecma
+[khepri]: https://github.com/mattbierner/khepri
 [stream]: https://github.com/mattbierner/stream.js

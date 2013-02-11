@@ -17,7 +17,7 @@ var bind = (f /*, ...*/) -> (arguments.length === 1 ? f : f.bind.apply(f, argume
 
 var identity = x -> x;
 
-var constant = bind(bind, identity);
+var constant = x -> () -> x;
 
 var throwConstant = err -> () -> { throw err; };
 
@@ -421,9 +421,10 @@ var optionalParser = (p, def) -> eitherParser(p, alwaysParser(def));
 ////////////////////////////////////////
 var _end = alwaysParser(stream.end);
 
-var _joinParser = (joiner, p1, p2) -> bindParser(p1,
-    v1 -> bindParser(p2,
-        v2 -> alwaysParser(joiner(v1, v2))));
+var _joinParser = (joiner, p1, p2) ->
+    bindParser(p1, v1 ->
+        bindParser(p2, v2 ->
+            alwaysParser(joiner(v1, v2))));
 
 
 var _optionalValueParser = p -> optionalParser(p, stream.end);

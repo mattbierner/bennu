@@ -1,0 +1,133 @@
+/**
+ * @fileOverview Parsers for use specifically with strings.
+ */
+define(['parse/parse',
+        'stream/stream'],
+function(parse,
+        stream) {
+"use strict";
+
+/* Prototypes
+ ******************************************************************************/
+var map = Array.prototype.map;
+var reduce = Array.prototype.reduce;
+var reduceRight = Array.prototype.reduceRight;
+
+var regExpTest = RegExp.prototype.test;
+
+
+/* Helpers
+ ******************************************************************************/
+var eq = (a, b) -> a === b;
+
+var stringEq = (a, b) -> a.valueOf() === b.valueOf();
+
+var tokenParser = (consume, msg) -> {
+    return function TOKEN_PARSER(state, m, cok, cerr, eok, eerr) {
+        var pos = state.pos,
+            input = state.input;
+        if (!input) {
+            return eerr(new parse.UnexpectError(pos, "end of input"), state, m);
+        } else {
+            var tok = stream.first(input);
+            return (consume(tok) ?
+                cok(tok, state.next(tok), m) :
+                eerr(new parse.ExpectError(pos, msg + ' Found: "' + tok + '"'), state, m));
+        }
+    };
+};
+
+/* Parsers
+ ******************************************************************************/
+/**
+ * Parser that consumes a given character. 
+ * 
+ * Unboxes string Objects
+ * 
+ * @param c The char to consume.
+ */
+var charParser = c -> tokenParser(stringEq.bind(undefined, c), '"' + c + '"');
+
+/**
+ * Parser that consumes a given string.
+ * 
+ * @param {String} s String to consume.
+ */
+var stringParser = (function(){
+    var reducer = (p, c) -> parse.next(c, p);
+    
+    return s ->
+        map.call(s, charParser)
+            .reduceRight(reducer, parse.always(s));
+}());
+
+/**
+ * Parser that builds a parse trie from an array of strings.
+ */
+var trieParser = (function(){
+    var wordReduce = (parent, l) -> (parent[l] = (parent[l] || {}));
+    
+    var wordsReduce = function(trie, word) {
+        var node = reduce.call(word, wordReduce, trie);
+        node[''] = null;
+        return trie;
+    };
+    
+    var makeTrie = words -> words.reduce(wordsReduce, {});
+    
+    var _trie = function(trie, prefix) {
+        var choices = [];
+        Object.keys(trie).forEach(k -> {
+            var n = trie[k];
+            if (n.length === 1) {
+                choices.push(parse.attempt(parse.next(
+                    charParser(n),
+                    _trie(trie[n], prefix + n))));
+            }
+        });
+        
+        if (trie.hasOwnProperty('')) {
+            choices.push(parse.always(prefix));
+        }
+        
+        return parse.choice.apply(undefined, choices);
+    };
+    
+    return nodes -> _trie(makeTrie(nodes), '');
+}());
+
+/**
+ * Parser that consumes any character.
+ */
+var anyCharParser = tokenParser(regExpTest.bind(/^.$/), "any character");
+
+/**
+ * Parser that consumes any letter character.
+ */
+var letterParser = tokenParser(regExpTest.bind(/^[a-z]$/i), "any letter character");
+
+/**
+ * Parser that consumes any space character.
+ */
+var spaceParser = tokenParser(regExpTest.bind(/^\s$/i), "any space character");
+
+/**
+ * Parser that consumes any number character.
+ */
+var digitParser = tokenParser(regExpTest.bind(/^[0-9]$/i), "any digit character");
+
+/* Export
+ ******************************************************************************/
+return {
+// Parsers
+    'character': charParser,
+    'string': stringParser,
+    'trie': trieParser,
+    
+    'anyChar': anyCharParser,
+    'letter': letterParser,
+    'space': spaceParser,
+    'digit': digitParser
+};
+
+});
