@@ -322,8 +322,8 @@ var bindParser = (p, f) -> function BIND_PARSER(state, m, cok, cerr, eok, eerr) 
  * 
  * State is supplied as the last argument to 'f'.
  */
-var bindaParser = (p, f) -> bindParser(p,
-    (x, state) -> f.apply(undefined, stream.toArray(x).concat([state])));
+var bindaParser = (p, f) -> bindParser(p, (x, state) ->
+    f.apply(undefined, stream.toArray(x).concat([state])));
 
 /**
  * Parser that matches end of input. If end of input, succeeds with null.

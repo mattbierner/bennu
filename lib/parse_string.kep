@@ -15,7 +15,6 @@ var reduceRight = Array.prototype.reduceRight;
 
 var regExpTest = RegExp.prototype.test;
 
-
 /* Helpers
  ******************************************************************************/
 var eq = (a, b) -> a === b;
