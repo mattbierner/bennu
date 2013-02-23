@@ -13,7 +13,7 @@ var reduceRight = Array.prototype.reduceRight;
 
 /* Helpers
  ******************************************************************************/
-var bind = (f /*, ...*/) -> (arguments.length === 1 ? f : f.bind.apply(f, arguments));
+var curry = (f /*, ...*/) -> (arguments.length === 1 ? f : f.bind.apply(f, arguments));
 
 var identity = x -> x;
 
@@ -319,11 +319,9 @@ var bindParser = (p, f) -> function BIND_PARSER(state, m, cok, cerr, eok, eerr) 
 
 /**
  * Same as bind but calls apply on 'f' using results of 'p'.
- * 
- * State is supplied as the last argument to 'f'.
  */
-var bindaParser = (p, f) -> bindParser(p, (x, state) ->
-    f.apply(undefined, stream.toArray(x).concat([state])));
+var bindaParser = (p, f) -> bindParser(p, x ->
+    f.apply(undefined, stream.toArray(x)));
 
 /**
  * Parser that matches end of input. If end of input, succeeds with null.
@@ -350,7 +348,7 @@ var extractParser = f -> function EXTRACT_PARSER(state, m, cok, cerr, eok /*, _*
 /**
  * Parser that returns the current state.
  */
-var examineParser = bind(extractParser, identity);
+var examineParser = curry(extractParser, identity);
 
 // Try Parsers
 ////////////////////////////////////////
@@ -434,12 +432,12 @@ var _optionalValueParser = p -> optionalParser(p, stream.end);
 
  * @return Stream with value from 'valueParser' consed on.
  */
-var consParser = bind(_joinParser, stream.cons);
+var consParser = curry(_joinParser, stream.cons);
 
 /**
  * Parser that joins the results of two iterative Parsers
  */
-var concatParser = bind(_joinParser, stream.concat);
+var concatParser = curry(_joinParser, stream.concat);
 
 /**
  * Consume a finite sequence of parsers, returning the results as a list.
@@ -538,7 +536,7 @@ var betweenParser = (open, close, p) ->
  * 
  * @return List of 'p' results.
  */
-var sepBy1 = (sep, p) -> 
+var sepBy1Parser = (sep, p) -> 
     rec(self ->
         consParser(p,
             eitherParser(
@@ -554,7 +552,7 @@ var sepBy1 = (sep, p) ->
  * 
  * @return List of 'p' results.
  */
-var sepBy = (sep, p) -> _optionalValueParser(sepBy1(sep, p));
+var sepByParser = (sep, p) -> _optionalValueParser(sepBy1Parser(sep, p));
 
 // Token Parsers
 ////////////////////////////////////////
@@ -605,7 +603,7 @@ var tokenParser = (function(){
  */
 var anyTokenParser = tokenParser(constant(true));
 
-var _charParser = (pred, c) -> tokenParser(bind(pred, c));
+var _charParser = (pred, c) -> tokenParser(curry(pred, c));
 
 /**
  * Parser that consumes a character based on a predicate.
@@ -628,7 +626,7 @@ var stringParser = (function(){
     var reducer = (p, c) -> nextParser(c, p);
     
     return (s, pred) ->
-        map.call(s, bind(_charParser, (pred || eq)))
+        map.call(s, curry(_charParser, (pred || eq)))
             .reduceRight(reducer, alwaysParser(s));
 }());
 
@@ -741,7 +739,7 @@ var run = (p, input) -> runStream(p, stream.from(input));
 var runManyState = function(p, state) {
     var manyP = _optionalValueParser(
         bindParser(p, (x, state, m) ->
-            alwaysParser(stream.memoStream(x, bind(runState, manyP, state, m)))));
+            alwaysParser(stream.memoStream(x, curry(runState, manyP, state, m)))));
     return runState(manyP, state);
 };
 
@@ -847,8 +845,8 @@ return {
     'betweenTimes': betweenTimesParser,
 
     'between': betweenParser,
-    'sepBy1': sepBy1,
-    'sepBy': sepBy,
+    'sepBy1': sepBy1Parser,
+    'sepBy': sepByParser,
 
     'token': tokenParser,
     'anyToken': anyTokenParser,
