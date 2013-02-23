@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 10.2.1 - February 23, 2013 ##
+* 'binda' no longer passes state.
+
 ## 10.2.0 - February 10, 2013 ##
 * Updated parse_string parsers to produce better error messages that include
   expected and found token. 
