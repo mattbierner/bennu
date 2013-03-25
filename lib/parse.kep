@@ -95,9 +95,11 @@ var Position = function(i) {
  * 
  * @returns Position after 'tok'.
  */
-Position.prototype.increment = tok -> new Position(this.index + 1);
+Position.prototype.increment = tok ->
+    new Position(this.index + 1);
 
-Position.prototype.toString = () -> '' + this.index;
+Position.prototype.toString = () ->
+    '' + this.index;
 
 /**
  * Compares two positions.
@@ -105,7 +107,8 @@ Position.prototype.toString = () -> '' + this.index;
  * @returns Number less than, equal to, or greater than zero if this position is
  *   less than,equal to, or greater than 'pos'.
  */
-Position.prototype.compare = pos -> this.index - pos.index;
+Position.prototype.compare = pos ->
+    this.index - pos.index;
 
 
 // InputState
@@ -130,17 +133,17 @@ var InputState = function(input, pos) {
  * 
  * @returns New input state for next item in stream.
  */
-InputState.prototype.next = function(tok) {
-    return (this._next ||
+InputState.prototype.next = tok ->
+    (this._next ||
         (this._next = new InputState(stream.rest(this.input), this.pos.increment(tok))));
-};
 
 /**
  * Are two states equal?
  * 
  * States are equal if their position's are equal.
  */
-InputState.prototype.eq = state -> (this.pos.compare(state.pos) === 0);
+InputState.prototype.eq = state ->
+    (this.pos.compare(state.pos) === 0);
 
 /* Errors
  ******************************************************************************/
@@ -264,16 +267,17 @@ var rec = def -> {
  *
  *@return 
  */
-var Parser = (name, impl) -> Object.defineProperties(impl, {
-    'displayName': {
-        'value': name,
-        'writable': false
-    },
-    'parserId': {
-        'value': uniqueParserId(),
-        'writable': false
-    }
-});
+var Parser = (name, impl) ->
+    Object.defineProperties(impl, {
+        'displayName': {
+            'value': name,
+            'writable': false
+        },
+        'parserId': {
+            'value': uniqueParserId(),
+            'writable': false
+        }
+    });
 
 /**
  * Create a recursively defined parser.
@@ -291,16 +295,18 @@ var RecParser = (name, body) -> Parser(name, rec(body));
  * 
  * @param x Value to yield.
  */
-var alwaysParser = x -> function ALWAYS_PARSER(state, m, cok, cerr, eok /*, _*/) {
-    return eok(x, state, m);
-};
+var alwaysParser = x ->
+    function ALWAYS_PARSER(state, m, cok, cerr, eok /*, _*/) {
+        return eok(x, state, m);
+    };
 
 /**
  * Parser that always fails and consumes no input.
  */
-var neverParser = constant(function NEVER_PARSER(state, m, cok, cerr, eok, eerr) {
-    return eerr(new UnknownError(state.pos), state, m);
-});
+var neverParser = () ->
+    function NEVER_PARSER(state, m, cok, cerr, eok, eerr) {
+        return eerr(new UnknownError(state.pos), state, m);
+    };
 
 /**
  * Parser that parses 'p', passing the results to function 'f' which returns a
@@ -311,26 +317,29 @@ var neverParser = constant(function NEVER_PARSER(state, m, cok, cerr, eok, eerr)
  * 
  * @return Value from 'q' parser.
  */
-var bindParser = (p, f) -> function BIND_PARSER(state, m, cok, cerr, eok, eerr) {
-    var pcok = (x, state, m) -> cont(f(x, state, m), [state, m, cok, cerr, cok, cerr]),
-        peok = (x, state, m) -> cont(f(x, state, m), [state, m, cok, cerr, eok, eerr]);
-    return cont(p, [state, m, pcok, cerr, peok, eerr]);
-};
+var bindParser = (p, f) ->
+    function BIND_PARSER(state, m, cok, cerr, eok, eerr) {
+        var pcok = (x, state, m) -> cont(f(x, state, m), [state, m, cok, cerr, cok, cerr]),
+            peok = (x, state, m) -> cont(f(x, state, m), [state, m, cok, cerr, eok, eerr]);
+        return cont(p, [state, m, pcok, cerr, peok, eerr]);
+    };
 
 /**
  * Same as bind but calls apply on 'f' using results of 'p'.
  */
-var bindaParser = (p, f) -> bindParser(p, x ->
-    f.apply(undefined, stream.toArray(x)));
+var bindaParser = (p, f) ->
+    bindParser(p, x ->
+        f.apply(undefined, stream.toArray(x)));
 
 /**
  * Parser that matches end of input. If end of input, succeeds with null.
  */
-var eofParser = constant(function EOF_PARSER(state, m, cok, cerr, eok, eerr) {
-    return (!state.input ?
-        eok(null, state, m) :
-        eerr(new ExpectError(state.pos, "end of input"), state, m));
-});
+var eofParser = () ->
+    function EOF_PARSER(state, m, cok, cerr, eok, eerr) {
+        return (!state.input ?
+            eok(null, state, m) :
+            eerr(new ExpectError(state.pos, "end of input"), state, m));
+    };
 
 
 // Parser State Interaction Parsers
@@ -341,9 +350,10 @@ var eofParser = constant(function EOF_PARSER(state, m, cok, cerr, eok, eerr) {
  * @param {function(Object): *} f Function that extracts information from a 
  *     given state object.
  */
-var extractParser = f -> function EXTRACT_PARSER(state, m, cok, cerr, eok /*, _*/) {
-    return eok(f(state), state, m);
-};
+var extractParser = f ->
+    function EXTRACT_PARSER(state, m, cok, cerr, eok /*, _*/) {
+        return eok(f(state), state, m);
+    };
 
 /**
  * Parser that returns the current state.
@@ -355,17 +365,19 @@ var examineParser = curry(extractParser, identity);
 /**
  * Parser that attempts to parse p. Upon failure, never consumes any input.
  */
-var attemptParser = p -> function ATTEMPT_PARSER(state, m, cok, cerr, eok, eerr) {
-    return cont(p, [state, m, cok, eerr, eok, eerr]);
-};
+var attemptParser = p ->
+    function ATTEMPT_PARSER(state, m, cok, cerr, eok, eerr) {
+        return cont(p, [state, m, cok, eerr, eok, eerr]);
+    };
 
 /**
  * Parser that consumes no input but returns what was parsed.
  */
-var lookaheadParser = p -> function LOOKAHEAD_PARSER(state, m, cok, cerr, eok, eerr) {
-    var ok = (item, _, m) -> eok(item, state, m);
-    return cont(p, [state, m, ok, cerr, eok, eerr]);
-};
+var lookaheadParser = p ->
+    function LOOKAHEAD_PARSER(state, m, cok, cerr, eok, eerr) {
+        var ok = (item, _, m) -> eok(item, state, m);
+        return cont(p, [state, m, ok, cerr, eok, eerr]);
+    };
 
 
 // Combinitorial Parsers
@@ -373,20 +385,22 @@ var lookaheadParser = p -> function LOOKAHEAD_PARSER(state, m, cok, cerr, eok, e
 /**
  * Parser that parses 'p', then 'q'. Return the 'q' value.
  */
-var nextParser = (p, q) -> bindParser(p, constant(q));
+var nextParser = (p, q) ->
+    bindParser(p, constant(q));
 
 /**
  * Parser that attempts p or q. If p succeeds, returns its value. Else, tries
  * to parse q.
  */
-var eitherParser = (p, q) -> function EITHER_PARSER(state, m, cok, cerr, eok, eerr) {
-    var peerr = function(errFromP, _, mFromP) {
-        var qeerr = (errFromQ, _, mFromQ) ->
-            eerr(new MultipleError(errFromP, errFromQ), state, mFromQ);
-        return cont(q, [state, mFromP, cok, cerr, eok, qeerr]);
+var eitherParser = (p, q) ->
+    function EITHER_PARSER(state, m, cok, cerr, eok, eerr) {
+        var peerr = function(errFromP, _, mFromP) {
+            var qeerr = (errFromQ, _, mFromQ) ->
+                eerr(new MultipleError(errFromP, errFromQ), state, mFromQ);
+            return cont(q, [state, mFromP, cok, cerr, eok, qeerr]);
+        };
+        return cont(p, [state, m, cok, cerr, eok, peerr]);
     };
-    return cont(p, [state, m, cok, cerr, eok, peerr]);
-};
 
 
 /**
@@ -396,9 +410,10 @@ var eitherParser = (p, q) -> function EITHER_PARSER(state, m, cok, cerr, eok, ee
 var choiceParser = (function(){
     var reducer = (p, c) -> eitherParser(c, p);
     
-    return (/*...*/) -> (arguments.length === 0 ?
-        neverParser :
-        reduceRight.call(arguments, reducer));
+    return (/*...*/) ->
+        (arguments.length === 0 ?
+            neverParser :
+            reduceRight.call(arguments, reducer));
 }());
 
 /**
@@ -409,7 +424,8 @@ var choiceParser = (function(){
  * 
  * @return Result of 'p' or default value.
  */
-var optionalParser = (p, def) -> eitherParser(p, alwaysParser(def));
+var optionalParser = (p, def) ->
+    eitherParser(p, alwaysParser(def));
 
 // Iterative Parsers
 ////////////////////////////////////////
@@ -421,7 +437,8 @@ var _joinParser = (joiner, p1, p2) ->
             alwaysParser(joiner(v1, v2))));
 
 
-var _optionalValueParser = p -> optionalParser(p, stream.end);
+var _optionalValueParser = p ->
+    optionalParser(p, stream.end);
 
 /**
  * Parser that cons the value result of 'valueParser' onto the stream result
@@ -447,7 +464,8 @@ var concatParser = curry(_joinParser, stream.concat);
 var sequenceParser = (function(){
     var cons = (p, q) -> consParser(q, p);
     
-    return (/*...*/) -> reduceRight.call(arguments, cons, _end);
+    return (/*...*/) ->
+        reduceRight.call(arguments, cons, _end);
 }());
 
 /**
@@ -477,7 +495,8 @@ var manyParser = (function(){
  * 
  * @return List of 'p' results.
  */
-var many1Parser = p -> consParser(p, manyParser(p));
+var many1Parser = p ->
+    consParser(p, manyParser(p));
 
 /**
  * Consume p 'n' times.
@@ -501,16 +520,18 @@ var timesParser = (n, p) -> (n <= 0 ?
  * @return List of 'p' results.
  */
 var betweenTimesParser = (function(){
-    var maxParser = (max, p) -> (max <= 0 ?
-        _end :
-        _optionalValueParser(
-            consParser(p, maxParser(max - 1, p))));
+    var maxParser = (max, p) ->
+        (max <= 0 ?
+            _end :
+            _optionalValueParser(
+                consParser(p, maxParser(max - 1, p))));
     
-    return (min, max, p) -> (max < min ?
-        neverParser :
-        concatParser(
-            timesParser(min, p),
-            maxParser(max - min, p)));
+    return (min, max, p) ->
+        (max < min ?
+            neverParser :
+            concatParser(
+                timesParser(min, p),
+                maxParser(max - min, p)));
 }());
 
 /**
@@ -527,7 +548,6 @@ var betweenParser = (open, close, p) ->
         bindParser(p, x ->
             nextParser(close, alwaysParser(x))));
 
-
 /**
  * Consume 'p' seperated by 'sep' one or more times.
  * 
@@ -543,7 +563,6 @@ var sepBy1Parser = (sep, p) ->
                 attemptParser(nextParser(sep, self)),
                 _end)));
 
-
 /**
  * Parser that consumes 'p' seperated by 'sep' zero or more times.
  * 
@@ -552,7 +571,8 @@ var sepBy1Parser = (sep, p) ->
  * 
  * @return List of 'p' results.
  */
-var sepByParser = (sep, p) -> _optionalValueParser(sepBy1Parser(sep, p));
+var sepByParser = (sep, p) ->
+    _optionalValueParser(sepBy1Parser(sep, p));
 
 // Token Parsers
 ////////////////////////////////////////
@@ -565,10 +585,6 @@ var sepByParser = (sep, p) -> _optionalValueParser(sepBy1Parser(sep, p));
  * @return Consumed token.
  */
 var tokenParser = (function(){
-    /**
- * @constructor
- * @implements {UnexpectError}
- */
     var UnexpectTokenError = function(pos, tok) {
         ParseError.call(this, pos);
         this.tok = tok;
@@ -581,18 +597,19 @@ var tokenParser = (function(){
         }
     });
     
-    return consume -> function TOKEN_PARSER(state, m, cok, cerr, eok, eerr) {
-        var pos = state.pos,
-            input = state.input;
-        if (!input) {
-            return eerr(new UnexpectError(pos, "end of input"), state, m);
-        } else {
-            var tok = stream.first(input);
-            return (consume(tok) ?
-                cok(tok, state.next(tok), m) :
-                eerr(new UnexpectTokenError(pos, tok), state, m));
-        }
-    };
+    return consume ->
+        function TOKEN_PARSER(state, m, cok, cerr, eok, eerr) {
+            var pos = state.pos,
+                input = state.input;
+            if (!input) {
+                return eerr(new UnexpectError(pos, "end of input"), state, m);
+            } else {
+                var tok = stream.first(input);
+                return (consume(tok) ?
+                    cok(tok, state.next(tok), m) :
+                    eerr(new UnexpectTokenError(pos, tok), state, m));
+            }
+        };
 }());
 
 
@@ -603,7 +620,8 @@ var tokenParser = (function(){
  */
 var anyTokenParser = tokenParser(constant(true));
 
-var _charParser = (pred, c) -> tokenParser(curry(pred, c));
+var _charParser = (pred, c) ->
+    tokenParser(curry(pred, c));
 
 /**
  * Parser that consumes a character based on a predicate.
@@ -612,7 +630,8 @@ var _charParser = (pred, c) -> tokenParser(curry(pred, c));
  * @param {function(Object, Object): boolean} [pred] Predicate function that
  *    compares two values. Returns if the parser should consume the character.
  */
-var charParser = (c, pred) -> _charParser((pred || eq), c);
+var charParser = (c, pred) ->
+    _charParser((pred || eq), c);
 
 /**
  * Parser that consumes a sequence of characters based on a predicate.
@@ -711,7 +730,8 @@ var runState = _makeParser(constant, throwConstant);
  * 
  * @return Result from the parser.
  */
-var runStream = (p, s) -> runState(p, new InputState(s, new Position(0)));
+var runStream = (p, s) ->
+    runState(p, new InputState(s, new Position(0)));
 
 /**
  * Run parser 'p' against an input string.
@@ -721,7 +741,8 @@ var runStream = (p, s) -> runState(p, new InputState(s, new Position(0)));
  * 
  * @return Result from the parser.
  */
-var run = (p, input) -> runStream(p, stream.from(input));
+var run = (p, input) ->
+    runStream(p, stream.from(input));
 
 /**
  * Run parser 'p' zero or more times to produce a lazy stream of results.
@@ -753,7 +774,8 @@ var runManyState = function(p, state) {
  *
  * @see runManyState
  */
-var runManyStream = (p, s) -> runManyState(p, new InputState(s, new Position(0)));
+var runManyStream = (p, s) ->
+    runManyState(p, new InputState(s, new Position(0)));
 
 /**
  * Run parser 'p' zero or more times against a input string to produce a lazy
@@ -764,7 +786,8 @@ var runManyStream = (p, s) -> runManyState(p, new InputState(s, new Position(0))
  *
  * @see runManyStream
  */
-var runMany = (p, input) -> runManyStream(p, stream.from(input));
+var runMany = (p, input) ->
+    runManyStream(p, stream.from(input));
 
 /**
  * Tests parser 'p' with a given state.
@@ -786,7 +809,8 @@ var testState = _makeParser(constant(constant(true)), constant(constant(false)))
  * 
  * @see testState
  */
-var testStream = (p, s) -> testState(p, new InputState(s, new Position(0)));
+var testStream = (p, s) ->
+    testState(p, new InputState(s, new Position(0)));
 
 /**
  * Tests parser 'p' against an input string.
@@ -796,7 +820,8 @@ var testStream = (p, s) -> testState(p, new InputState(s, new Position(0)));
  *
  * @see testStream
  */
-var test = (p, input) -> testStream(p, stream.from(input));
+var test = (p, input) ->
+    testStream(p, stream.from(input));
 
 
 /* Export
@@ -811,6 +836,7 @@ return {
 // Objects
     'InputState': InputState,
     'Position': Position,
+
 // Rec
     'rec': rec,
 

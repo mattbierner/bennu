@@ -19,24 +19,15 @@
             }
         });
         require(
-            ['parse/parse', 'testAlways', 'testBind', 'testNext', 'testNever',
+            ['testAlways', 'testBind', 'testNext', 'testNever',
                 'testEither', 'testAttempt', 'testToken', 'testMany', 'testMany1',
                 'testTimes', 'testBetweenTimes', 'testLookahead', 'testChoice',
                 'testChar', 'testString', 'testParse_string', 'testSepBy', 'testSequence',
                 'testRunMany', 'testMemo'],
-            function(parse, testAlways, testBind, testNext, testNever, testEither,
-                testAttempt, testToken, testMany, testMany1, testTimes, testBetweenTimes,
-                testLookahead, testChoice, testChar, testString, testParse_string,
-                testSepBy, testSequence, testRunMany, testMemo)
-            {
-                [testAlways, testBind, testNext, testNever, 
-                testEither, testAttempt, testToken, testMany, testMany1, testTimes,
-                testBetweenTimes, testLookahead, testChoice, testChar,
-                testString, testParse_string, testSepBy, testSequence, testRunMany,
-                testMemo].forEach(function(m){
+            function() {
+                Array.prototype.forEach.call(arguments, function(m){
                     m.module && module(m.module);
                     m.tests.forEach(function(e){ test.apply(this, e); });
-                console.profileEnd();
             });
         });
     </script>
