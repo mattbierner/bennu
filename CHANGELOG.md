@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 10.2.2 - March 25, 2013 ##
+* 'eof' also reports found item on expected error.
+* 'eof' uses correct stream operations.
+
 ## 10.2.1 - February 23, 2013 ##
 * 'binda' no longer passes state.
 

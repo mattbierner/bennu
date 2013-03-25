@@ -336,9 +336,9 @@ var bindaParser = (p, f) ->
  */
 var eofParser = () ->
     function EOF_PARSER(state, m, cok, cerr, eok, eerr) {
-        return (!state.input ?
-            eok(null, state, m) :
-            eerr(new ExpectError(state.pos, "end of input"), state, m));
+        return (stream.isEmpty(state.input) ?
+            eok(stream.end, state, m) :
+            eerr(new ExpectError(state.pos, "end of input, found:" + stream.first(state.input)), state, m));
     };
 
 
