@@ -580,25 +580,19 @@ var sepByParser = (sep, p) ->
  * Parser that consumes a single item from the head of the input if consume is
  * true. Fails to consume input if consume is false or input is empty.
  * 
- * @param {function(string): boolean} consume Function that tests if a character should be consumed.
+ * @param {function(string): boolean} consume Function that tests if a
+ *     character should be consumed.
+ * @param {function(object): Error} [errMsg] Optional function that returns
+ *    the error when consume fails. Passed the state position and tested token.
  * 
  * @return Consumed token.
  */
 var tokenParser = (function(){
-    var UnexpectTokenError = function(pos, tok) {
-        ParseError.call(this, pos);
-        this.tok = tok;
-    };
-    UnexpectTokenError.prototype = new UnexpectError;
-    UnexpectTokenError.prototype.constructor = UnexpectTokenError;
-    Object.defineProperty(UnexpectTokenError.prototype, 'message', {
-        'get': function() {
-            return "Unexpected " + this.tok;
-        }
-    });
+    var defaultErr = (pos, tok) -> new UnexpectError(pos, tok);
     
-    return consume ->
-        function TOKEN_PARSER(state, m, cok, cerr, eok, eerr) {
+    return (consume, err) -> {
+        err = (err || defaultErr);
+        return function TOKEN_PARSER(state, m, cok, cerr, eok, eerr) {
             var pos = state.pos,
                 input = state.input;
             if (!input) {
@@ -607,9 +601,10 @@ var tokenParser = (function(){
                 var tok = stream.first(input);
                 return (consume(tok) ?
                     cok(tok, state.next(tok), m) :
-                    eerr(new UnexpectTokenError(pos, tok), state, m));
+                    eerr(err(pos, tok), state, m));
             }
         };
+    };
 }());
 
 

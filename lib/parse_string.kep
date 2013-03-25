@@ -21,19 +21,7 @@ var eq = (a, b) -> a === b;
 
 var stringEq = (a, b) -> a.valueOf() === b.valueOf();
 
-var tokenParser = (consume, msg) ->
-    function TOKEN_PARSER(state, m, cok, cerr, eok, eerr) {
-        var pos = state.pos,
-            input = state.input;
-        if (!input) {
-            return eerr(new parse.UnexpectError(pos, "end of input"), state, m);
-        } else {
-            var tok = stream.first(input);
-            return (consume(tok) ?
-                cok(tok, state.next(tok), m) :
-                eerr(new parse.ExpectError(pos, msg + ' Found: "' + tok + '"'), state, m));
-        }
-    };
+var expectError = msg -> (pos, tok) -> new parse.ExpectError(pos, msg + ' Found: "' + tok + '"');
 
 /* Parsers
  ******************************************************************************/
@@ -45,7 +33,7 @@ var tokenParser = (consume, msg) ->
  * @param c The char to consume.
  */
 var charParser = c ->
-    tokenParser(stringEq.bind(undefined, c), '"' + c + '"');
+    parse.token(stringEq.bind(undefined, c), expectError('"' + c + '"'));
 
 /**
  * Parser that consumes a given string.
@@ -97,22 +85,22 @@ var trieParser = (function(){
 /**
  * Parser that consumes any character.
  */
-var anyCharParser = tokenParser(regExpTest.bind(/^.$/), "any character");
+var anyCharParser = parse.token(regExpTest.bind(/^.$/), expectError("any character"));
 
 /**
  * Parser that consumes any letter character.
  */
-var letterParser = tokenParser(regExpTest.bind(/^[a-z]$/i), "any letter character");
+var letterParser = parse.token(regExpTest.bind(/^[a-z]$/i), expectError("any letter character"));
 
 /**
  * Parser that consumes any space character.
  */
-var spaceParser = tokenParser(regExpTest.bind(/^\s$/i), "any space character");
+var spaceParser = parse.token(regExpTest.bind(/^\s$/i), expectError("any space character"));
 
 /**
  * Parser that consumes any number character.
  */
-var digitParser = tokenParser(regExpTest.bind(/^[0-9]$/i), "any digit character");
+var digitParser = parse.token(regExpTest.bind(/^[0-9]$/i), expectError("any digit character"));
 
 /* Export
  ******************************************************************************/
