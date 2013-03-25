@@ -188,7 +188,7 @@ MultipleError.prototype.name = "MultipleError";
 
 Object.defineProperty(MultipleError.prototype, 'messages', {
     'get': function() {
-        var e1Msg = this.e1.messsage;
+        var e1Msg = this.e1.message;
         return (e1Msg ?
             [e1Msg, this.e2.message]:
             [this.e2.message]);
@@ -236,7 +236,7 @@ ExpectError.prototype.name = "ExpectError";
  * For example, using a traditional definition the self reference to 'bs'
  * evaluates to undefined:
  * 
- *    var bs = parse.either(parse.character('b'), bs) -> parse.either(parse.character('b'), undefined)
+ *    var bs = parse.either(parse.character('b'), bs) => parse.either(parse.character('b'), undefined)
  * 
  * Using rec, we fix this.
  * 

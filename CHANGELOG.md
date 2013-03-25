@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 10.3.1 - March 25, 2013 ##
+* Fixed 'MultipleError' only listing the last error.
+
 ## 10.3.0 - March 25, 2013 ##
 * 'parse.token' takes on optional 'err' function to generate the error when
   consume fails.
