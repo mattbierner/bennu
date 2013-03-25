@@ -70,8 +70,8 @@
         });
         
         $(function(){
-            require(['parse/parse', 'parse/parse_string'],
-            function(parse, parse_string) {
+            require(['parse/parse', 'parse/parse_string', 'stream/stream'],
+            function(parse, parse_string, stream) {
                 $('button').click(function() {
                     var parser = eval($('.Parser textarea').val());
                     var input = $('.Text textarea').val();
@@ -82,7 +82,13 @@
                     
                     try {
                         var out = parse.run(parser, input);
-                        $('.ParseOut').append(out);
+                        if (stream.isStream(out)) {
+                            stream.forEach(out, function(x) {
+                                $('.ParseOut').append(x);
+                            });
+                        } else {
+                            $('.ParseOut').append(out);
+                        }
                     } catch (e) {
                         $('.ParseError').text(e);
                         return;

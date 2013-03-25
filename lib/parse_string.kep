@@ -21,8 +21,8 @@ var eq = (a, b) -> a === b;
 
 var stringEq = (a, b) -> a.valueOf() === b.valueOf();
 
-var tokenParser = (consume, msg) -> {
-    return function TOKEN_PARSER(state, m, cok, cerr, eok, eerr) {
+var tokenParser = (consume, msg) ->
+    function TOKEN_PARSER(state, m, cok, cerr, eok, eerr) {
         var pos = state.pos,
             input = state.input;
         if (!input) {
@@ -34,7 +34,6 @@ var tokenParser = (consume, msg) -> {
                 eerr(new parse.ExpectError(pos, msg + ' Found: "' + tok + '"'), state, m));
         }
     };
-};
 
 /* Parsers
  ******************************************************************************/
@@ -45,7 +44,8 @@ var tokenParser = (consume, msg) -> {
  * 
  * @param c The char to consume.
  */
-var charParser = c -> tokenParser(stringEq.bind(undefined, c), '"' + c + '"');
+var charParser = c ->
+    tokenParser(stringEq.bind(undefined, c), '"' + c + '"');
 
 /**
  * Parser that consumes a given string.
