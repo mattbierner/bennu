@@ -5,11 +5,15 @@ define(['parse/parse'], function(parse){
         'tests': [
             ["Simple Never",
             function(){
-                assert.throws(parse.run.bind(undefined, parse.never(), "abc"));
+                assert.throws(
+                    parse.run.bind(undefined, parse.never(), "abc"),
+                    parse.UnknownError);
             }],
             ["Empty Never", 
             function(){
-                assert.throws(parse.run.bind(undefined, parse.never(), ""));
+                assert.throws(
+                    parse.run.bind(undefined, parse.never(), ""),
+                    parse.UnknownError);
             }]
         ],
     };

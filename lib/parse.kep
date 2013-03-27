@@ -148,85 +148,107 @@ InputState.prototype.eq = state ->
 /* Errors
  ******************************************************************************/
 /**
- * Parser Error
  * @constructor
  * @implements {Error}
  * 
- * @param pos The Position of the first parser error.
- * @param {Array} messages Order collection of parser error messages.
+ * @param pos Position of error
  */
-var ParseError = function(pos, messages) {
-    this._messages = messages;
+var ParseError = function(pos, msg) {
     this.pos = pos;
+    this._msg = msg;
 };
 ParseError.prototype = new Error();
 ParseError.prototype.constructor = ParseError;
-ParseError.prototype.name = "ParseError";
+ParseError.prototype.name = 'ParseError';
+
 Object.defineProperties(ParseError.prototype, {
     'message': {
-        'get': function() {
-            var messages = this.messages;
-            return "At position:" + this.pos + " [" + (messages ? join.call(messages, ', ') : '') + ']';
-        }
+        'configurable': true,
+        'get': () ->
+            "At position:" + this.pos + " " + this.errorMessage
     },
-    'messages' : {
-        'get': () -> this._messages
+    'errorMessage': {
+        'configurable': true,
+        'get': () ->
+            (this._msg === undefined ? "" : this._msg)
     }
 });
 
 /**
- * Merges two ParserErrors into a single ParserError.
+ * Merges one or more ParserErrors into a single ParserError.
  */
-var MultipleError = function(e1, e2) {
-    this.e1 = e1;
-    this.e2 = e2;
+var MultipleError = function(e1 /*, ...*/) {
     ParseError.call(this, e1.pos);
+    this.errors = arguments;
 };
 MultipleError.prototype = new ParseError();
 MultipleError.prototype.constructor = MultipleError;
-MultipleError.prototype.name = "MultipleError";
+MultipleError.prototype.name = 'MultipleError';
 
-Object.defineProperty(MultipleError.prototype, 'messages', {
-    'get': function() {
-        var e1Msg = this.e1.message;
-        return (e1Msg ?
-            [e1Msg, this.e2.message]:
-            [this.e2.message]);
-    }
+Object.defineProperty(MultipleError.prototype, 'errorMessage', {
+    'get': () ->
+        "[" + map.call(this.errors, x -> x.message).join(", ") + "]"
 });
 
 /**
  * @constructor
  * @implements {ParseError}
+ * 
+ * @param pos Position of error.
  */
 var UnknownError = function(pos) {
-    ParseError.call(this, pos, ["Error"]);
+    ParseError.call(this, pos);
 };
 UnknownError.prototype = new ParseError();
 UnknownError.prototype.constructor = UnknownError;
-UnknownError.prototype.name = "UnknownError";
+UnknownError.prototype.name = 'UnknownError';
 
+Object.defineProperty(UnknownError.prototype, 'errorMessage', {
+    'value': "unknown error"
+});
 /**
  * @constructor
  * @implements {ParseError}
+ * 
+ * @param pos Position of error.
+ * @param unexpected Found value.
  */
-var UnexpectError = function(pos, msg) {
-    ParseError.call(this, pos, (msg ? ["Unexpected " + msg] : msg));
+var UnexpectError = function(pos, unexpected) {
+    ParseError.call(this, pos);
+    this.unexpected = unexpected;
 };
 UnexpectError.prototype = new ParseError();
 UnexpectError.prototype.constructor = UnexpectError;
-UnexpectError.prototype.name = "UnexpectError";
+UnexpectError.prototype.name = 'UnexpectError';
+
+Object.defineProperty(UnexpectError.prototype, 'errorMessage', {
+    'get': () ->
+        "Unexpected:" + this.unexpected
+});
 
 /**
  * @constructor
  * @implements {ParseError}
+ * 
+ * @param pos Position of error.
+ * @oaram expected Expected value.
+ * @param [found] Found value.
  */
-var ExpectError = function(pos, msg) {
-    ParseError.call(this, pos, ["Expected " + (msg || '')]);
+var ExpectError = function(pos, expected, found) {
+    ParseError.call(this, pos);
+    this.expected = expected;
+    this.found = found;
 };
 ExpectError.prototype = new ParseError();
 ExpectError.prototype.constructor = ExpectError;
 ExpectError.prototype.name = "ExpectError";
+
+Object.defineProperty(ExpectError.prototype, 'errorMessage', {
+    'get': () ->
+        "Expected:" + this.expected + (this.found ?
+            " Found:" + this.found :
+            "")
+});
 
 /* Rec
  ******************************************************************************/
@@ -302,11 +324,15 @@ var alwaysParser = x ->
 
 /**
  * Parser that always fails and consumes no input.
+ * 
+ * @param [msg] Message for error.
  */
-var neverParser = () ->
-    function NEVER_PARSER(state, m, cok, cerr, eok, eerr) {
-        return eerr(new UnknownError(state.pos), state, m);
+var neverParser = msg -> {
+    var e = (msg === undefined ? UnknownError : ParseError);
+    return function NEVER_PARSER(state, m, cok, cerr, eok, eerr) {
+        return eerr(new e(state.pos, msg), state, m);
     };
+};
 
 /**
  * Parser that parses 'p', passing the results to function 'f' which returns a

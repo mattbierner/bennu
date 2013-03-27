@@ -1,5 +1,18 @@
 # ChangeLog #
 
+## 10.4.0 - March 26, 2013 ##
+* Reworked error constructors. Should be more flexible and delay string
+  conversion as long as possible. 
+** 'ParseError' takes a message instead of an array of messages.
+** 'ParseError' calls 'errorMessage' to get the message to display.
+** 'ExpectError' takes two params, the expected value and an optional found value.
+  these may be objects.
+** 'UnexpectError' takes an unexpected value. This may be an object.
+** 'MultipleError' takes one or more errors instead of just two.
+* Builtin error messages have clearer message formatting.
+* Never allows an optional 'msg' value. If message is not provided, throws
+  'UnknownError'. Otherwise throws a ParseError with 'msg'. 
+
 ## 10.3.1 - March 25, 2013 ##
 * Fixed 'MultipleError' only listing the last error.
 

@@ -21,7 +21,7 @@ var eq = (a, b) -> a === b;
 
 var stringEq = (a, b) -> a.valueOf() === b.valueOf();
 
-var expectError = msg -> (pos, tok) -> new parse.ExpectError(pos, msg + ' Found: "' + tok + '"');
+var expectError = msg -> (pos, tok) -> new parse.ExpectError(pos, msg, tok);
 
 /* Parsers
  ******************************************************************************/
@@ -33,7 +33,7 @@ var expectError = msg -> (pos, tok) -> new parse.ExpectError(pos, msg + ' Found:
  * @param c The char to consume.
  */
 var charParser = c ->
-    parse.token(stringEq.bind(undefined, c), expectError('"' + c + '"'));
+    parse.token(stringEq.bind(undefined, c), expectError(c));
 
 /**
  * Parser that consumes a given string.
