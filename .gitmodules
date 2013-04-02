@@ -1,3 +1,0 @@
-[submodule "dependencies/stream"]
-	path = dependencies/stream
-	url = git://github.com/mattbierner/stream.js
