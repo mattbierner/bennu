@@ -21,8 +21,7 @@ can be written more quickly and integrate better with the host language.
 # Using parse.js #
 
 ## Dependencies ##
-parse.js depends on [stream.js][stream] internally and also uses stream.js 
-objects in the API.
+parse.js depends on [Nu][nu] internally and also uses Nu objects in the API.
 
 ## With AMD ##
 Include any AMD style module loader and load parse:
@@ -36,7 +35,7 @@ Include any AMD style module loader and load parse:
             requirejs.config({
                 paths: {
                     'parse': './lib',
-                    'stream': './dependencies/stream/lib/stream'
+                    'nu': './dependencies/nu/lib'
                 }
             });
             require(['parse/parse'], function(parse) {
@@ -76,4 +75,4 @@ generated from it.
 [Parsec]: http://legacy.cs.uu.nl/daan/parsec.html
 [parseecma]: https://github.com/mattbierner/parse-ecma
 [khepri]: https://github.com/mattbierner/khepri
-[stream]: https://github.com/mattbierner/stream.js
+[nu]: https://github.com/mattbierner/nu

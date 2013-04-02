@@ -2,7 +2,7 @@
  * @fileOverview Eager versions of iterative stream based parsers.
  */
 define(['parse/parse',
-        'stream/stream'],
+        'nu/stream'],
 function(parse,
         stream) {
 "use strict";

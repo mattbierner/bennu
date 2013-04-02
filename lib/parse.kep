@@ -1,7 +1,7 @@
 /**
  * @fileOverview Combinatorial Parsers for JavaScript.
  */
-define(['stream/stream'],
+define(['nu/stream'],
 function(stream) {
 "use strict";
 

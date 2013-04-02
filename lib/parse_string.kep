@@ -2,7 +2,7 @@
  * @fileOverview Parsers for use specifically with strings.
  */
 define(['parse/parse',
-        'stream/stream'],
+        'nu/stream'],
 function(parse,
         stream) {
 "use strict";
