@@ -480,7 +480,7 @@ var consParser = curry(_joinParser, stream.cons);
 /**
  * Parser that joins the results of two iterative Parsers
  */
-var concatParser = curry(_joinParser, stream.concat);
+var concatParser = curry(_joinParser, stream.append);
 
 /**
  * Consume a finite sequence of parsers, returning the results as a list.

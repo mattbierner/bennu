@@ -70,7 +70,7 @@
         });
         
         $(function(){
-            require(['parse/parse', 'parse/parse_string', 'stream/stream'],
+            require(['parse/parse', 'parse/parse_string', 'nu/stream'],
             function(parse, parse_string, stream) {
                 $('button').click(function() {
                     var parser = eval($('.Parser textarea').val());
