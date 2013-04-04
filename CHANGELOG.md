@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 10.4.1 - April 4, 2013 ##
+* Update to Nu 2.0.0
+
 ## 10.4.0 - March 26, 2013 ##
 * Reworked error constructors. Should be more flexible and delay string
   conversion as long as possible. 
