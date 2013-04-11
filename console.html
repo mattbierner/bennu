@@ -1,103 +1,73 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>Parse Console</title>
-    <style>
-        .content > * {
-            width: 50%;
-            float: left;
-            position: relative;
-        }
-        
-        .content > * > * {
-            padding: 0 2em;
-            display: block;
-        }
-        
-        .console textarea {
-            width: 100%;
-            box-sizing: border-box;
-        }
-        
-        .input textarea {
-            width: 100%;
-        }
-        
-        .output pre {
-            white-space: pre-wrap;
-        }
-        
-        .ParseError, .LexError {
-            color: red;
-        }
-    </style>
-</head>
-
-<body lang="en">
-    <div class="content">
-        <div class='input'>
-            <h2>Input</h2>
-            <div class='Parser'>
-                <h4>Parser</h4>
-                <textarea rows='10'></textarea>
-            </div>
-            <div class='Text'>
-                <h4>Text</h4>
-                <textarea rows='20'></textarea>
-            </div>
+---
+layout: base
+---
+<div id='console-input'>
+    <h1>Input</h2>
+    <div class='group'>
+        <div id='console-parser'>
             <div>
-                <button>Parse</button>
+                <h4>Parser</h4>
+                <textarea rows='6' placeholder="Parser to run. Has access to to 'parse' and 'parse.string'. i.g. parse_string.character('a')"></textarea>
             </div>
         </div>
-        <div class='output'>
-            <h2>Output</h2>
+        <div id='console-text'>
             <div>
-                <pre class='ParseError'></pre>
-                <pre class='ParseOut'></pre>
+                <h4>Text</h4>
+                <textarea rows='6' placeholder="Text to run the parser against"></textarea>
             </div>
         </div>
     </div>
+    <div>
+        <button>Parse</button>
+    </div>
+</div>
+
+<div class='console-output'>
+    <h1>Output</h1>
+    <div>
+        <pre class='ParseError'></pre>
+        <pre style='display: none;' class='ParseOut'></pre>
+    </div>
+</div>
+
+
+<script type="application/javascript" src="javascripts/require.js"></script>
+<script src="javascripts/jquery-1.8.3.min.js"></script>
+<script type="application/javascript">
+    requirejs.config({
+        paths: {
+            parse: 'lib',
+            nu: 'dependencies/nu/lib'
+        }
+    });
     
-    <script type="application/javascript" src="resources/require.js"></script>
-    <script src="resources/jquery-1.8.3.min.js"></script>
-    <script type="application/javascript">
-        requirejs.config({
-            paths: {
-                parse: 'lib',
-                nu: 'dependencies/nu/lib'
-            }
-        });
-        
-        $(function(){
-            require(['parse/parse', 'parse/parse_string', 'nu/stream'],
-            function(parse, parse_string, stream) {
-                $('button').click(function() {
-                    var parser = eval($('.Parser textarea').val());
-                    var input = $('.Text textarea').val();
-                    
-                    $('.ParseOut').children().remove();
-                    $('.ParseOut').text('');
-                    $('.ParseError').text('');
-                    
-                    try {
-                        var out = parse.run(parser, input);
-                        if (stream.isStream(out)) {
-                            stream.forEach(out, function(x) {
-                                $('.ParseOut').append(x);
-                            });
-                        } else {
-                            $('.ParseOut').append(out);
-                        }
-                    } catch (e) {
-                        $('.ParseError').text(e);
-                        return;
+    $(function(){
+        require(['parse/parse', 'parse/parse_string', 'nu/stream'],
+        function(parse, parse_string, stream) {
+            $('button').click(function() {
+                var parser = eval($('#console-parser textarea').val());
+                var input = $('#console-text textarea').val();
+                
+                $('.ParseOut').children().remove();
+                $('.ParseOut').text('');
+                $('.ParseError').text('');
+                
+                try {
+                    var out = parse.run(parser, input);
+                    if (stream.isStream(out)) {
+                        stream.forEach(out, function(x) {
+                            $('.ParseOut').append(x);
+                        });
+                    } else {
+                        $('.ParseOut').append(out);
                     }
-                });
+                    $('.ParseOut').show();
+                    $('.ParseError').hide();
+                } catch (e) {
+                    $('.ParseError').show().text(e);
+                    $('.ParseOut').hide();
+                }
             });
         });
-    </script>
-
-</body>
-    
-</html>
+    });
+</script>
