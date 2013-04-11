@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Parse Console</title>
+    <style>
+        .content > * {
+            width: 50%;
+            float: left;
+            position: relative;
+        }
+        
+        .content > * > * {
+            padding: 0 2em;
+            display: block;
+        }
+        
+        .console textarea {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .input textarea {
+            width: 100%;
+        }
+        
+        .output pre {
+            white-space: pre-wrap;
+        }
+        
+        .ParseError, .LexError {
+            color: red;
+        }
+    </style>
+</head>
+
+<body lang="en">
+    <div class="content">
+        <div class='input'>
+            <h2>Input</h2>
+            <div class='Parser'>
+                <h4>Parser</h4>
+                <textarea rows='10'></textarea>
+            </div>
+            <div class='Text'>
+                <h4>Text</h4>
+                <textarea rows='20'></textarea>
+            </div>
+            <div>
+                <button>Parse</button>
+            </div>
+        </div>
+        <div class='output'>
+            <h2>Output</h2>
+            <div>
+                <pre class='ParseError'></pre>
+                <pre class='ParseOut'></pre>
+            </div>
+        </div>
+    </div>
+    
+    <script type="application/javascript" src="resources/require.js"></script>
+    <script src="resources/jquery-1.8.3.min.js"></script>
+    <script type="application/javascript">
+        requirejs.config({
+            paths: {
+                parse: 'lib',
+                nu: 'dependencies/nu/lib'
+            }
+        });
+        
+        $(function(){
+            require(['parse/parse', 'parse/parse_string', 'nu/stream'],
+            function(parse, parse_string, stream) {
+                $('button').click(function() {
+                    var parser = eval($('.Parser textarea').val());
+                    var input = $('.Text textarea').val();
+                    
+                    $('.ParseOut').children().remove();
+                    $('.ParseOut').text('');
+                    $('.ParseError').text('');
+                    
+                    try {
+                        var out = parse.run(parser, input);
+                        if (stream.isStream(out)) {
+                            stream.forEach(out, function(x) {
+                                $('.ParseOut').append(x);
+                            });
+                        } else {
+                            $('.ParseOut').append(out);
+                        }
+                    } catch (e) {
+                        $('.ParseError').text(e);
+                        return;
+                    }
+                });
+            });
+        });
+    </script>
+
+</body>
+    
+</html>

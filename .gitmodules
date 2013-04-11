@@ -1,0 +1,3 @@
+[submodule "dependencies/nu"]
+	path = dependencies/nu
+	url = git://github.com/mattbierner/nu.git

@@ -1,0 +1,31 @@
+/**
+ * @fileOverview Eager versions of iterative stream based parsers.
+ */
+define(['parse/parse',
+        'nu/stream'],
+function(parse,
+        stream) {
+"use strict";
+
+/* Helpers
+ ******************************************************************************/
+var compose = (f, g) -> (/*...*/) -> f(g.apply(undefined, arguments));
+
+var toArrayParser = p ->
+    parse.bind(p, v ->
+        parse.always(stream.toArray(v)));
+
+/* Export
+ ******************************************************************************/
+return {
+    'sequence': compose(toArrayParser, parse.sequence),
+    'many': compose(toArrayParser, parse.many),
+    'many1': compose(toArrayParser, parse.many1),
+    'times': compose(toArrayParser, parse.times),
+    'betweenTimes': compose(toArrayParser, parse.betweenTimes),
+    
+    'sepBy1': compose(toArrayParser, parse.sepBy1),
+    'sepBy': compose(toArrayParser, parse.sepBy)
+};
+
+});
