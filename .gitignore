@@ -16,3 +16,8 @@ Thumbs.db
 *.orig
 *.cache
 *.log
+
+
+# Jekyll #
+##########
+_site/
