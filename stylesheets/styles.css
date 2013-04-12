@@ -537,10 +537,12 @@ header {
     margin-top: 2em;
     padding-bottom: 0.6em;
 }
+header > .group {
+    padding-bottom: 1.2em;
+}
 
 header #title {
     float: left;
-    padding-bottom: 1.2em;
 }
 
 header #links {
@@ -774,7 +776,7 @@ section #title .credits.right {
     color: red;
 }
 
-@media print, screen and (max-width: 720px) {
+@media print, screen and (max-width: 580px) {
   #title .credits {
     display: block;
     width: 100%;
@@ -789,17 +791,41 @@ section #title .credits.right {
     float: none;
     display: block;
   }
-}
-@media print, screen and (max-width: 480px) {
-  #header {
-    margin-top: -20px;
+  
+  header > .group {
+    padding-bottom: 0.2em;
   }
-
-  section {
-    margin-top: 40px;
-  }
-
-  nav {
-    display: none;
-  }
+  
+    header #title,
+    header #links {
+        width: 100%;
+    }
+    
+    header #title {
+        padding-bottom: 0.6em;
+    }
+    
+     header #links ul, header #links ul li > a {
+        width: 100%;
+     }
+     
+     header #links li {
+        width: 100%;
+        height: auto;
+        text-align: center;
+     }
+     
+     #link-zip,
+     #link-tar {
+        display: none;
+     }
+     
+     header #link-github a > span {
+        display: inline;
+     }
+     
+     header #link-github .download-title,
+     header #link-github .download-line {
+        margin-bottom: 0;
+     }
 }

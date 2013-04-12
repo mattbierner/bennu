@@ -24,6 +24,7 @@ layout: base
 
 <div class='console-output'>
     <h1>Output</h1>
+    <span>Automatically flattens streams</span>
     <div>
         <pre class='ParseError'></pre>
         <pre style='display: none;' class='ParseOut'></pre>
@@ -44,6 +45,14 @@ layout: base
     $(function(){
         require(['parse/parse', 'parse/parse_string', 'nu/stream'],
         function(parse, parse_string, stream) {
+            var flatten = function(s, c) {
+                if (stream.isStream(s)) {
+                    stream.forEach(s, function(x) { flatten(x, c); });
+                } else {
+                    c(s);
+                }
+            };
+        
             $('button').click(function() {
                 $('.ParseOut').children().remove();
                 $('.ParseOut').text('');
@@ -54,13 +63,9 @@ layout: base
                     var input = $('#console-text textarea').val();
                 
                     var out = parse.run(parser, input);
-                    if (stream.isStream(out)) {
-                        stream.forEach(out, function(x) {
-                            $('.ParseOut').append(x);
-                        });
-                    } else {
-                        $('.ParseOut').append(out);
-                    }
+                    flatten(out, function(x) {
+                        $('.ParseOut').append(x);
+                    });
                     $('.ParseOut').show();
                     $('.ParseError').hide();
                 } catch (e) {
