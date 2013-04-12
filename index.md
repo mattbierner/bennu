@@ -7,12 +7,14 @@ parse.js is a library for creating [combinatorial parsers][CombinatorialParsers]
 It is based on Nate Young's [Parsatron][Parsatron] which in turn is based on
 [Parsec][Parsec].
 
-Combinatorial parsers allow complex parsers to be created from a set of simple
+Combinatorial parsers allow complex parsers to be constructed from a set of simple
 building blocks. Compared to other parsing techniques, combinatorial parsers
 can be written more quickly and integrate better with the host language.
 
+
 ## Examples ##
 * [parse-ecma][parseecma] - Combinatory parsers for lexing and parsing ECMAScript 5.
+
 
 ## Modules ##
 All files live in the top level 'parse' module.

@@ -45,14 +45,14 @@ layout: base
         require(['parse/parse', 'parse/parse_string', 'nu/stream'],
         function(parse, parse_string, stream) {
             $('button').click(function() {
-                var parser = eval($('#console-parser textarea').val());
-                var input = $('#console-text textarea').val();
-                
                 $('.ParseOut').children().remove();
                 $('.ParseOut').text('');
                 $('.ParseError').text('');
                 
                 try {
+                    var parser = eval($('#console-parser textarea').val());
+                    var input = $('#console-text textarea').val();
+                
                     var out = parse.run(parser, input);
                     if (stream.isStream(out)) {
                         stream.forEach(out, function(x) {
