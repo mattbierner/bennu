@@ -13,7 +13,7 @@ var reduceRight = Array.prototype.reduceRight;
 
 /* Helpers
  ******************************************************************************/
-var curry = (f /*, ...*/) -> (arguments.length === 1 ? f : f.bind.apply(f, arguments));
+var curry = (f /*, ...*/) -> f.bind.apply(f, arguments);
 
 var identity = x -> x;
 
@@ -532,9 +532,10 @@ var many1Parser = p ->
  * 
  * @return List of 'p' results.
  */
-var timesParser = (n, p) -> (n <= 0 ?
-    _end : 
-    consParser(p, timesParser(n - 1, p)));
+var timesParser = (n, p) ->
+    (n <= 0 ?
+        _end : 
+        consParser(p, timesParser(n - 1, p)));
 
 /**
  * Consume 'p' between 'min' and 'max' times.
