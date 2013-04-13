@@ -283,23 +283,27 @@ var rec = def -> {
  * 
  * Attaches a name for debugging and a unique id for memoization.
  * 
+ * If parser is already named, wraps the parser in a new named parser.
+ * 
  * @param {string} name Human readable display name to give the Parser. Used for
  *     identifying a parser for debugging.
  * @param impl Implementation of the parser itself, not the parser's constructor.
  *
- *@return 
+ * @return 
  */
 var Parser = (name, impl) ->
-    Object.defineProperties(impl, {
-        'displayName': {
-            'value': name,
-            'writable': false
-        },
-        'parserId': {
-            'value': uniqueParserId(),
-            'writable': false
-        }
-    });
+    (impl.hasOwnProperty('parserId') ? 
+        Parser(name, (/*...*/) -> impl.apply(this, arguments)) :
+        Object.defineProperties(impl, {
+            'displayName': {
+                'value': name,
+                'writable': false
+            },
+            'parserId': {
+                'value': uniqueParserId(),
+                'writable': false
+            }
+        }));
 
 /**
  * Create a recursively defined parser.
@@ -428,7 +432,6 @@ var eitherParser = (p, q) ->
         return cont(p, [state, m, cok, cerr, eok, peerr]);
     };
 
-
 /**
  * Parser that attempts a variable number of parsers in order and returns
  * the value of the first one that succeeds.
@@ -480,7 +483,7 @@ var consParser = curry(_joinParser, stream.cons);
 /**
  * Parser that joins the results of two iterative Parsers
  */
-var concatParser = curry(_joinParser, stream.append);
+var appendParser = curry(_joinParser, stream.append);
 
 /**
  * Consume a finite sequence of parsers, returning the results as a list.
@@ -556,7 +559,7 @@ var betweenTimesParser = (function(){
     return (min, max, p) ->
         (max < min ?
             neverParser :
-            concatParser(
+            appendParser(
                 timesParser(min, p),
                 maxParser(max - min, p)));
 }());
@@ -884,8 +887,8 @@ return {
     'choice': choiceParser,
     'optional': optionalParser,
 
-    'consParser': consParser,
-    'concatParser': concatParser,
+    'cons': consParser,
+    'append': appendParser,
     'sequence': sequenceParser,
     'many': manyParser,
     'many1': many1Parser,
