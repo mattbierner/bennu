@@ -3,12 +3,13 @@
  */
 define(['nu/stream'],
 function(stream) {
-"use strict";
+//"use strict";
 
 /* Prototypes
  ******************************************************************************/
 var join = Array.prototype.join;
 var map = Array.prototype.map;
+var reduce = Array.prototype.reduce;
 var reduceRight = Array.prototype.reduceRight;
 
 /* Helpers
@@ -177,17 +178,19 @@ Object.defineProperties(ParseError.prototype, {
 /**
  * Merges one or more ParserErrors into a single ParserError.
  */
-var MultipleError = function(e1 /*, ...*/) {
-    ParseError.call(this, e1.pos);
-    this.errors = arguments;
+var MultipleError = function(errors) {
+    ParseError.call(this, errors[0].pos);
+    this.errors = errors;
 };
 MultipleError.prototype = new ParseError();
 MultipleError.prototype.constructor = MultipleError;
 MultipleError.prototype.name = 'MultipleError';
 
-Object.defineProperty(MultipleError.prototype, 'errorMessage', {
-    'get': () ->
-        "[" + map.call(this.errors, x -> x.message).join(", ") + "]"
+Object.defineProperties(MultipleError.prototype, {
+    'errorMessage': {
+        'get': () ->
+            "[" + map.call(this.errors, x -> x.message).join(", ") + "]"
+    }
 });
 
 /**
@@ -206,6 +209,7 @@ UnknownError.prototype.name = 'UnknownError';
 Object.defineProperty(UnknownError.prototype, 'errorMessage', {
     'value': "unknown error"
 });
+
 /**
  * @constructor
  * @implements {ParseError}
@@ -426,7 +430,7 @@ var eitherParser = (p, q) ->
     function EITHER_PARSER(state, m, cok, cerr, eok, eerr) {
         var peerr = function(errFromP, _, mFromP) {
             var qeerr = (errFromQ, _, mFromQ) ->
-                eerr(new MultipleError(errFromP, errFromQ), state, mFromQ);
+                eerr(new MultipleError([errFromP, errFromQ]), state, mFromQ);
             return cont(q, [state, mFromP, cok, cerr, eok, qeerr]);
         };
         return cont(p, [state, m, cok, cerr, eok, peerr]);
@@ -441,7 +445,7 @@ var choiceParser = (function(){
     
     return (/*...*/) ->
         (arguments.length === 0 ?
-            neverParser :
+            neverParser() :
             reduceRight.call(arguments, reducer));
 }());
 
@@ -464,7 +468,6 @@ var _joinParser = (joiner, p1, p2) ->
     bindParser(p1, v1 ->
         bindParser(p2, v2 ->
             alwaysParser(joiner(v1, v2))));
-
 
 var _optionalValueParser = p ->
     optionalParser(p, stream.end);
