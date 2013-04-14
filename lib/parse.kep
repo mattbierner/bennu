@@ -152,7 +152,25 @@ InputState.prototype.eq = state ->
  * @constructor
  * @implements {Error}
  * 
+ * Base Error for an error with the parsers themselves.
+ * 
  * @param pos Position of error
+ */
+var ParserError = function(msg) {
+    this.message = msg;
+};
+ParserError.prototype = new Error();
+ParserError.prototype.constructor = ParserError;
+ParserError.prototype.name = 'ParserError';
+
+/**
+ * @constructor
+ * @implements {Error}
+ * 
+ * Base Error for an error encountered during parsing.
+ * 
+ * @param pos Position of error
+ * @param [msg] Error message.
  */
 var ParseError = function(pos, msg) {
     this.pos = pos;
@@ -176,11 +194,14 @@ Object.defineProperties(ParseError.prototype, {
 });
 
 /**
- * Merges one or more ParserErrors into a single ParserError.
+ * Merges zero or more ParseErrors into a single ParseError.
+ * 
+ * @params pos Position of errors
+ * @params [errors] Array like object containing zero or more ParseErrors
  */
-var MultipleError = function(errors) {
-    ParseError.call(this, errors[0].pos);
-    this.errors = errors;
+var MultipleError = function(pos, errors) {
+    ParseError.call(this, pos);
+    this.errors = (errors || []);
 };
 MultipleError.prototype = new ParseError();
 MultipleError.prototype.constructor = MultipleError;
@@ -422,31 +443,40 @@ var lookaheadParser = p ->
 var nextParser = (p, q) ->
     bindParser(p, constant(q));
 
+var _eitherParser = e ->
+    (p, q) ->
+        function EITHER_PARSER(state, m, cok, cerr, eok, eerr) {
+            var pos = state.pos;
+            var peerr = function(errFromP, _, mFromP) {
+                var qeerr = (errFromQ, _, mFromQ) ->
+                    eerr(e(pos, errFromP, errFromQ), state, mFromQ);
+                return cont(q, [state, mFromP, cok, cerr, eok, qeerr]);
+            };
+            return cont(p, [state, m, cok, cerr, eok, peerr]);
+        };
+
 /**
  * Parser that attempts p or q. If p succeeds, returns its value. Else, tries
  * to parse q.
  */
-var eitherParser = (p, q) ->
-    function EITHER_PARSER(state, m, cok, cerr, eok, eerr) {
-        var peerr = function(errFromP, _, mFromP) {
-            var qeerr = (errFromQ, _, mFromQ) ->
-                eerr(new MultipleError([errFromP, errFromQ]), state, mFromQ);
-            return cont(q, [state, mFromP, cok, cerr, eok, qeerr]);
-        };
-        return cont(p, [state, m, cok, cerr, eok, peerr]);
-    };
+var eitherParser = _eitherParser((pos, pErr, qErr) -> new MultipleError(pos, [pErr, qErr]));
 
 /**
  * Parser that attempts a variable number of parsers in order and returns
  * the value of the first one that succeeds.
  */
 var choiceParser = (function(){
+    var eitherParser = _eitherParser((pos, pErr, qErr) -> new MultipleError(pos, [pErr].concat(qErr.errors)));
+        
     var reducer = (p, c) -> eitherParser(c, p);
+    
+    var end = (state, m, cok, cerr, eok, eerr) ->
+        eerr(new MultipleError(state.pos, []));
     
     return (/*...*/) ->
         (arguments.length === 0 ?
             neverParser() :
-            reduceRight.call(arguments, reducer));
+            reduceRight.call(arguments, reducer, end));
 }());
 
 /**
@@ -509,7 +539,7 @@ var sequenceParser = (function(){
  */
 var manyParser = (function(){
     var manyError = () -> {
-        throw new Error("Many parser applied to a parser that accepts an empty string");
+        throw new ParserError("Many parser applied to a parser that accepts an empty string");
     };
     
     return function MANY_PARSER(p) {

@@ -1,11 +1,24 @@
 # ChangeLog #
 
+## 11.0.0 - April 4, 2013 ##
+* Added new error object, 'ParserError' for errors with the parsers themselves.
+  Used by 'many' when passed infinite parser.
+* Renamed 'consParser' to 'cons' and 'concatParser' to 'append'. 
+* 'choice' parser now flattens errors into a single 'MultipleError'. Before it 
+  returned nested 'MultipleError's.
+* 'MultipleError' now takes two arguments, a position and an array of errors. 
+  This makes calling easier since Javascript does not support new with vargs well
+  and also allows the position of the error to differ from the errors it contains.
+* Creating named parsers with 'parse.Parser' now works correctly when passed an
+  existing named parser. Before it would throw an error strict mode or worse,
+  mutate the object silently. Now it wraps the parser in a named parser.
+
 ## 10.4.1 - April 4, 2013 ##
 * Update to Nu 2.0.0
 
 ## 10.4.0 - March 26, 2013 ##
 * Reworked error constructors. Should be more flexible and delay string
-  conversion as long as possible. 
+  conversion as long as possible.
 ** 'ParseError' takes a message instead of an array of messages.
 ** 'ParseError' calls 'errorMessage' to get the message to display.
 ** 'ExpectError' takes two params, the expected value and an optional found value.
