@@ -66,9 +66,9 @@ var trieParser = (function(){
         var choices = [];
         Object.keys(trie).forEach(n -> {
             if (n.length === 1) {
-                choices.push(parse.attempt(parse.next(
+                choices.push(parse.next(
                     charParser(n),
-                    _trie(trie[n], prefix + n))));
+                    _trie(trie[n], prefix + n)));
             }
         });
         

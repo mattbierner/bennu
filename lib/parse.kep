@@ -3,17 +3,18 @@
  */
 define(['nu/stream'],
 function(stream) {
-"use strict";
+//"use strict";
 
 /* Prototypes
  ******************************************************************************/
 var join = Array.prototype.join;
 var map = Array.prototype.map;
+var reduce = Array.prototype.reduce;
 var reduceRight = Array.prototype.reduceRight;
 
 /* Helpers
  ******************************************************************************/
-var curry = (f /*, ...*/) -> (arguments.length === 1 ? f : f.bind.apply(f, arguments));
+var curry = (f /*, ...*/) -> f.bind.apply(f, arguments);
 
 var identity = x -> x;
 
@@ -151,7 +152,25 @@ InputState.prototype.eq = state ->
  * @constructor
  * @implements {Error}
  * 
+ * Base Error for an error with the parsers themselves.
+ * 
  * @param pos Position of error
+ */
+var ParserError = function(msg) {
+    this.message = msg;
+};
+ParserError.prototype = new Error();
+ParserError.prototype.constructor = ParserError;
+ParserError.prototype.name = 'ParserError';
+
+/**
+ * @constructor
+ * @implements {Error}
+ * 
+ * Base Error for an error encountered during parsing.
+ * 
+ * @param pos Position of error
+ * @param [msg] Error message.
  */
 var ParseError = function(pos, msg) {
     this.pos = pos;
@@ -175,19 +194,24 @@ Object.defineProperties(ParseError.prototype, {
 });
 
 /**
- * Merges one or more ParserErrors into a single ParserError.
+ * Merges zero or more ParseErrors into a single ParseError.
+ * 
+ * @params pos Position of errors
+ * @params [errors] Array like object containing zero or more ParseErrors
  */
-var MultipleError = function(e1 /*, ...*/) {
-    ParseError.call(this, e1.pos);
-    this.errors = arguments;
+var MultipleError = function(pos, errors) {
+    ParseError.call(this, pos);
+    this.errors = (errors || []);
 };
 MultipleError.prototype = new ParseError();
 MultipleError.prototype.constructor = MultipleError;
 MultipleError.prototype.name = 'MultipleError';
 
-Object.defineProperty(MultipleError.prototype, 'errorMessage', {
-    'get': () ->
-        "[" + map.call(this.errors, x -> x.message).join(", ") + "]"
+Object.defineProperties(MultipleError.prototype, {
+    'errorMessage': {
+        'get': () ->
+            "[" + map.call(this.errors, x -> x.message).join(", ") + "]"
+    }
 });
 
 /**
@@ -206,6 +230,7 @@ UnknownError.prototype.name = 'UnknownError';
 Object.defineProperty(UnknownError.prototype, 'errorMessage', {
     'value': "unknown error"
 });
+
 /**
  * @constructor
  * @implements {ParseError}
@@ -283,23 +308,27 @@ var rec = def -> {
  * 
  * Attaches a name for debugging and a unique id for memoization.
  * 
+ * If parser is already named, wraps the parser in a new named parser.
+ * 
  * @param {string} name Human readable display name to give the Parser. Used for
  *     identifying a parser for debugging.
  * @param impl Implementation of the parser itself, not the parser's constructor.
  *
- *@return 
+ * @return 
  */
 var Parser = (name, impl) ->
-    Object.defineProperties(impl, {
-        'displayName': {
-            'value': name,
-            'writable': false
-        },
-        'parserId': {
-            'value': uniqueParserId(),
-            'writable': false
-        }
-    });
+    (impl.hasOwnProperty('parserId') ? 
+        Parser(name, (/*...*/) -> impl.apply(this, arguments)) :
+        Object.defineProperties(impl, {
+            'displayName': {
+                'value': name,
+                'writable': false
+            },
+            'parserId': {
+                'value': uniqueParserId(),
+                'writable': false
+            }
+        }));
 
 /**
  * Create a recursively defined parser.
@@ -414,32 +443,40 @@ var lookaheadParser = p ->
 var nextParser = (p, q) ->
     bindParser(p, constant(q));
 
+var _eitherParser = e ->
+    (p, q) ->
+        function EITHER_PARSER(state, m, cok, cerr, eok, eerr) {
+            var pos = state.pos;
+            var peerr = function(errFromP, _, mFromP) {
+                var qeerr = (errFromQ, _, mFromQ) ->
+                    eerr(e(pos, errFromP, errFromQ), state, mFromQ);
+                return cont(q, [state, mFromP, cok, cerr, eok, qeerr]);
+            };
+            return cont(p, [state, m, cok, cerr, eok, peerr]);
+        };
+
 /**
  * Parser that attempts p or q. If p succeeds, returns its value. Else, tries
  * to parse q.
  */
-var eitherParser = (p, q) ->
-    function EITHER_PARSER(state, m, cok, cerr, eok, eerr) {
-        var peerr = function(errFromP, _, mFromP) {
-            var qeerr = (errFromQ, _, mFromQ) ->
-                eerr(new MultipleError(errFromP, errFromQ), state, mFromQ);
-            return cont(q, [state, mFromP, cok, cerr, eok, qeerr]);
-        };
-        return cont(p, [state, m, cok, cerr, eok, peerr]);
-    };
-
+var eitherParser = _eitherParser((pos, pErr, qErr) -> new MultipleError(pos, [pErr, qErr]));
 
 /**
  * Parser that attempts a variable number of parsers in order and returns
  * the value of the first one that succeeds.
  */
 var choiceParser = (function(){
+    var eitherParser = _eitherParser((pos, pErr, qErr) -> new MultipleError(pos, [pErr].concat(qErr.errors)));
+        
     var reducer = (p, c) -> eitherParser(c, p);
+    
+    var end = (state, m, cok, cerr, eok, eerr) ->
+        eerr(new MultipleError(state.pos, []));
     
     return (/*...*/) ->
         (arguments.length === 0 ?
-            neverParser :
-            reduceRight.call(arguments, reducer));
+            neverParser() :
+            reduceRight.call(arguments, reducer, end));
 }());
 
 /**
@@ -462,7 +499,6 @@ var _joinParser = (joiner, p1, p2) ->
         bindParser(p2, v2 ->
             alwaysParser(joiner(v1, v2))));
 
-
 var _optionalValueParser = p ->
     optionalParser(p, stream.end);
 
@@ -480,7 +516,7 @@ var consParser = curry(_joinParser, stream.cons);
 /**
  * Parser that joins the results of two iterative Parsers
  */
-var concatParser = curry(_joinParser, stream.append);
+var appendParser = curry(_joinParser, stream.append);
 
 /**
  * Consume a finite sequence of parsers, returning the results as a list.
@@ -503,7 +539,7 @@ var sequenceParser = (function(){
  */
 var manyParser = (function(){
     var manyError = () -> {
-        throw new Error("Many parser applied to a parser that accepts an empty string");
+        throw new ParserError("Many parser applied to a parser that accepts an empty string");
     };
     
     return function MANY_PARSER(p) {
@@ -532,9 +568,10 @@ var many1Parser = p ->
  * 
  * @return List of 'p' results.
  */
-var timesParser = (n, p) -> (n <= 0 ?
-    _end : 
-    consParser(p, timesParser(n - 1, p)));
+var timesParser = (n, p) ->
+    (n <= 0 ?
+        _end : 
+        consParser(p, timesParser(n - 1, p)));
 
 /**
  * Consume 'p' between 'min' and 'max' times.
@@ -555,7 +592,7 @@ var betweenTimesParser = (function(){
     return (min, max, p) ->
         (max < min ?
             neverParser :
-            concatParser(
+            appendParser(
                 timesParser(min, p),
                 maxParser(max - min, p)));
 }());
@@ -883,8 +920,8 @@ return {
     'choice': choiceParser,
     'optional': optionalParser,
 
-    'consParser': consParser,
-    'concatParser': concatParser,
+    'cons': consParser,
+    'append': appendParser,
     'sequence': sequenceParser,
     'many': manyParser,
     'many1': many1Parser,
