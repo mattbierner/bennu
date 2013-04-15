@@ -194,6 +194,8 @@ Object.defineProperties(ParseError.prototype, {
 });
 
 /**
+ * @constructor
+ * @implements {ParseError}
  * Merges zero or more ParseErrors into a single ParseError.
  * 
  * @params pos Position of errors
@@ -207,11 +209,31 @@ MultipleError.prototype = new ParseError();
 MultipleError.prototype.constructor = MultipleError;
 MultipleError.prototype.name = 'MultipleError';
 
-Object.defineProperties(MultipleError.prototype, {
-    'errorMessage': {
-        'get': () ->
-            "[" + map.call(this.errors, x -> x.message).join(", ") + "]"
-    }
+Object.defineProperty(MultipleError.prototype, 'errorMessage', {
+    'get': () ->
+        "[" + map.call(this.errors, x -> x.message).join(", ") + "]"
+});
+
+
+/**
+ * @constructor
+ * @implements {MultipleError}
+ * Specific type of multiple errors used in internally for choices.
+ * 
+ * Defers merging errors until actually needed.
+ */
+var ChoiceError = function(pos, pErr, qErr) {
+    ParseError.call(this, pos);
+    this._pErr = pErr;
+    this._qErr = qErr;
+};
+ChoiceError.prototype = new MultipleError();
+ChoiceError.prototype.constructor = MultipleError;
+ChoiceError.prototype.name = 'ChoiceError';
+
+Object.defineProperty(ChoiceError.prototype, 'errors', {
+    'get': () ->
+        [this._pErr].concat(this._qErr.errors)
 });
 
 /**
@@ -466,7 +488,7 @@ var eitherParser = _eitherParser((pos, pErr, qErr) -> new MultipleError(pos, [pE
  * the value of the first one that succeeds.
  */
 var choiceParser = (function(){
-    var eitherParser = _eitherParser((pos, pErr, qErr) -> new MultipleError(pos, [pErr].concat(qErr.errors)));
+    var eitherParser = _eitherParser((pos, pErr, qErr) -> new ChoiceError(pos, pErr, qErr));
         
     var reducer = (p, c) -> eitherParser(c, p);
     
@@ -886,7 +908,10 @@ var test = (p, input) ->
  ******************************************************************************/
 return {
 // Errors
+    'ParserError': ParserError,
+    
     'ParseError': ParseError,
+    'MultipleError': MultipleError,
     'UnknownError': UnknownError,
     'UnexpectError': UnexpectError,
     'ExpectError': ExpectError,
