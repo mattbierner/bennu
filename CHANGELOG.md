@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 11.0.2 - April 15, 2013 ##
+* Fixed 'MultipleError' and 'ParserError' not being exported.
+* Made choice defer merging errors until needed.
+
 ## 11.0.1 - April 15, 2013 ##
 * Fixed 'choice' discarding memo table and state.
 
