@@ -1,6 +1,9 @@
 # ChangeLog #
 
-## 11.0.0 - April 4, 2013 ##
+## 11.0.1 - April 15, 2013 ##
+* Fixed 'choice' discarding memo table and state.
+
+## 11.0.0 - April 14, 2013 ##
 * Added new error object, 'ParserError' for errors with the parsers themselves.
   Used by 'many' when passed infinite parser.
 * Renamed 'consParser' to 'cons' and 'concatParser' to 'append'. 

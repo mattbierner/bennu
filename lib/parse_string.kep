@@ -17,8 +17,6 @@ var regExpTest = RegExp.prototype.test;
 
 /* Helpers
  ******************************************************************************/
-var eq = (a, b) -> a === b;
-
 var stringEq = (a, b) -> a.valueOf() === b.valueOf();
 
 var expectError = msg -> (pos, tok) -> new parse.ExpectError(pos, msg, tok);

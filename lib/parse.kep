@@ -471,7 +471,7 @@ var choiceParser = (function(){
     var reducer = (p, c) -> eitherParser(c, p);
     
     var end = (state, m, cok, cerr, eok, eerr) ->
-        eerr(new MultipleError(state.pos, []));
+        eerr(new MultipleError(state.pos, []), state, m);
     
     return (/*...*/) ->
         (arguments.length === 0 ?
