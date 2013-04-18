@@ -83,9 +83,9 @@
                     try {
                         var out = parse.run(parser, input);
                         if (stream.isStream(out)) {
-                            stream.forEach(out, function(x) {
+                            stream.forEach(function(x) {
                                 $('.ParseOut').append(x);
-                            });
+                            }, out);
                         } else {
                             $('.ParseOut').append(out);
                         }

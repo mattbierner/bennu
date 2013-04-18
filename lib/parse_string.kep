@@ -21,6 +21,14 @@ var stringEq = (a, b) -> a.valueOf() === b.valueOf();
 
 var expectError = msg -> (pos, tok) -> new parse.ExpectError(pos, msg, tok);
 
+var bindParser = (p, f) ->
+    function BIND_PARSER(state, m, cok, cerr, eok, eerr) {
+        var pcerr = (x, state, m) -> f(x, state, m)(state, m, cok, cerr, eok, eerr),
+            peerr = (x, state, m) -> f(x, state, m)(state, m, cok, cerr, eok, eerr);
+        return p(state, m, cok, pcerr, eok, peerr);
+    };
+
+
 /* Parsers
  ******************************************************************************/
 /**
@@ -40,10 +48,15 @@ var charParser = c ->
  */
 var stringParser = (function(){
     var reducer = (p, c) -> parse.next(c, p);
-    
+    var r = (so, s, f, fail) ->
+        (s.length === 0 ?
+           parse.always(so) :
+           bindParser(parse.bind(
+                   charParser(s[0]),
+                   x -> r(so, s.slice(1), f + x, fail)),
+               x-> parse.next(parse.always(), fail(f + x))));
     return s ->
-        map.call(s, charParser)
-            .reduceRight(reducer, parse.always(s));
+        r(s, s, "", str -> parse.never(new parse.ExpectError(null, s, str)));
 }());
 
 /**
