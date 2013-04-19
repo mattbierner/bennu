@@ -72,23 +72,27 @@
         $(function(){
             require(['parse/parse', 'parse/parse_string', 'nu/stream'],
             function(parse, parse_string, stream) {
+                var flatten = function(s, f) {
+                    if (stream.isStream(s)) {
+                        stream.forEach(function(x) {
+                            flatten(x, f);
+                        }, s);
+                    } else {
+                        f(s);
+                    }
+                };
                 $('button').click(function() {
-                    var parser = eval($('.Parser textarea').val());
-                    var input = $('.Text textarea').val();
-                    
                     $('.ParseOut').children().remove();
                     $('.ParseOut').text('');
                     $('.ParseError').text('');
                     
                     try {
-                        var out = parse.run(parser, input);
-                        if (stream.isStream(out)) {
-                            stream.forEach(function(x) {
-                                $('.ParseOut').append(x);
-                            }, out);
-                        } else {
-                            $('.ParseOut').append(out);
-                        }
+                        var parser = eval($('.Parser textarea').val());
+                        var input = $('.Text textarea').val();
+                        
+                        flatten(parse.run(parser, input), function(x) {
+                            $('.ParseOut').append(x + '');
+                        }); 
                     } catch (e) {
                         $('.ParseError').text(e);
                         return;

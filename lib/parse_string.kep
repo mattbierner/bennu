@@ -19,7 +19,9 @@ var regExpTest = RegExp.prototype.test;
  ******************************************************************************/
 var stringEq = (a, b) -> a.valueOf() === b.valueOf();
 
-var expectError = msg -> (pos, tok) -> new parse.ExpectError(pos, msg, tok);
+var expectError = msg ->
+    (pos, tok) ->
+        new parse.ExpectError(pos, msg, (tok === null ? "end of input": tok));
 
 /* Parsers
  ******************************************************************************/
@@ -37,20 +39,25 @@ var charParser = c ->
  * Parser that consumes a given string.
  * 
  * Unlike 'parse.string', this parses all or nothing. Either it matches the string
- * or it fails at the original location.
+ * or it fails at the starting location.
  * 
  * @param {String} s String to consume.
  */
 var stringParser = (function(){
-    var impl = (original, remaining, found) ->
+    var impl = (original, remaining, found, pos) ->
         (remaining.length === 0 ?
            parse.always(original) :
            parse.bind(
-               parse.token(stringEq.bind(undefined, remaining[0]), (pos, tok) -> new parse.ExpectError(pos, original, found + tok)),
-               x -> impl(original, remaining.slice(1), found + x)));
+               parse.token(
+                   stringEq.bind(undefined, remaining[0]),
+                   (_, tok) -> new parse.ExpectError(pos, original, (tok === null ? found : found + tok))),
+               x -> impl(original, remaining.slice(1), found + x, pos)));
     
     return s ->
-        parse.attempt(impl(s, s, ""));
+        parse.bind(
+            parse.getPosition(),
+            pos ->
+                parse.attempt(impl(s, s, "", pos)));
 }());
 
 /**

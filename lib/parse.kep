@@ -51,15 +51,15 @@ var trampoline = f -> {
  * or delegate to another match cell.
  * 
  */
-var Memoer = function(id, val, state, delegate) {
+var Memoer = function(id, state, val, delegate) {
     this.id = id;
-    this.val = val;
     this.state = state;
+    this.val = val;
     this.delegate = delegate;
 };
 
 /**
- * Lookup the value, if any, stored in a match cell for 'state'.
+ * Lookup a value, if any, stored in a match cell for 'state'.
  */
 Memoer.lookup = function(cell, id, state) {
     for (var m = cell; m; m = m.delegate) {
@@ -74,7 +74,7 @@ Memoer.lookup = function(cell, id, state) {
  * Create a new match cell storing 'val' for 'state' and including, delegating,
  * some cell 'm'.
  */
-Memoer.update = (m, id, val, state) -> new Memoer(id, val, state, m);
+Memoer.update = (m, id, state, val) -> new Memoer(id, state, val, m);
 
 /* Records
  ******************************************************************************/
@@ -110,7 +110,6 @@ Position.prototype.toString = () ->
  */
 Position.prototype.compare = pos ->
     this.index - pos.index;
-
 
 // ParserState
 ////////////////////////////////////////
@@ -183,8 +182,6 @@ ParserState.prototype.setUserState = userState ->
  * @implements {Error}
  * 
  * Base Error for an error with the parsers themselves.
- * 
- * @param pos Position of error
  */
 var ParserError = function(msg) {
     this.message = msg;
@@ -243,7 +240,6 @@ Object.defineProperty(MultipleError.prototype, 'errorMessage', {
     'get': () ->
         "[" + map.call(this.errors, x -> x.message).join(", ") + "]"
 });
-
 
 /**
  * @constructor
@@ -411,7 +407,7 @@ var always = x ->
 var never = msg -> {
     var e = (msg === undefined ? UnknownError : ParseError);
     return function NEVER_PARSER(state, m, cok, cerr, eok, eerr) {
-        return eerr(new e(state.pos, msg), state, m);
+        return eerr(new e(state.position, msg), state, m);
     };
 };
 
@@ -445,9 +441,8 @@ var eof = () ->
     function EOF_PARSER(state, m, cok, cerr, eok, eerr) {
         return (stream.isEmpty(state.input) ?
             eok(stream.end, state, m) :
-            eerr(new ExpectError(state.pos, "end of input, found:" + stream.first(state.input)), state, m));
+            eerr(new ExpectError(state.position, "end of input",  stream.first(state.input)), state, m));
     };
-
 
 // Parser State Interaction Parsers
 ////////////////////////////////////////
@@ -468,31 +463,33 @@ var extract = f ->
 var getParserState = constant(extract(identity));
 
 /**
- * Parser that modifies the current state using function 'f'.
+ * Parser that modifies the current parser state using function 'f'.
  * 
  *  @param {function(ParserState): *} f Function that transforms that current state.
  */
 var modifyParserState = f ->
-    function MODIFY_STATE(state, m, cok, cerr, eok /*, _*/) {
+    function MODIFY_PARSER_STATE(state, m, cok, cerr, eok /*, _*/) {
         var newState = f(state);
         return eok(newState, newState, m);
     };
 
 /**
+ * Parser that sets current parser state to 's'.
  * 
+ * @param s New parser state.
  */
 var setParserState = s ->
     modifyParserState(constant(s));
 
 /**
- * Parser that returns the current state.
+ * Parser that returns the current users state.
  */
 var getState = constant(extract(s -> s.userState));
 
 /**
- * Parser that modifies the current state using function 'f'.
+ * Parser that modifies the current user state using function 'f'.
  * 
- *  @param {function(ParserState): *} f Function that transforms that current state.
+ *  @param {function(ParserState): *} f Function that transforms that current user state.
  */
 var modifyState = f ->
     function MODIFY_STATE(state, m, cok, cerr, eok /*, _*/) {
@@ -501,30 +498,34 @@ var modifyState = f ->
     };
 
 /**
+ * Parser that sets current user parser state to 's'.
  * 
+ * @param s New user parser state.
  */
 var setState = s ->
     modifyState(constant(s));
     
 /**
- * 
+ * Parser that gets the current position.
  */
 var getPosition = constant(extract(s -> s.position));
 
 /**
- * 
+ * Parser that sets the current position
  */
-var setPosition = position -> modifyParserState(s -> s.setPosition(position));
+var setPosition = position ->
+    modifyParserState(s -> s.setPosition(position));
 
 /**
- * 
+  *Parser that gets the current input.
  */
 var getInput = constant(extract(s -> s.input));
 
 /**
- * 
+ * Parser that sets the current input.
  */
-var setInput = input -> modifyState(s -> s.setInput(input));
+var setInput = input ->
+    modifyState(s -> s.setInput(input));
 
 // Try Parsers
 ////////////////////////////////////////
@@ -544,7 +545,6 @@ var lookahead = p ->
         var ok = (item, _, m) -> eok(item, state, m);
         return cont(p, [state, m, ok, cerr, eok, eerr]);
     };
-
 
 // Combinitorial Parsers
 ////////////////////////////////////////
@@ -765,32 +765,32 @@ var sepBy = (sep, p) ->
  * @return Consumed token.
  */
 var token = (function(){
-    var defaultErr = (pos, tok) -> new UnexpectError(pos, tok);
+    var defaultErr = (pos, tok) ->
+        new UnexpectError(pos, (tok === null ? "end of input" : tok));
     
-    return (consume, err) -> {
-        err = (err || defaultErr);
+    return (consume, onErr) -> {
+        onErr = (onErr || defaultErr);
         return function TOKEN_PARSER(state, m, cok, cerr, eok, eerr) {
-            var pos = state.pos,
+            var pos = state.position,
                 input = state.input;
             if (!input) {
-                return eerr(new UnexpectError(pos, "end of input"), state, m);
+                return eerr(onErr(pos, null), state, m);
             } else {
                 var tok = stream.first(input);
                 return (consume(tok) ?
                     cok(tok, state.next(tok), m) :
-                    eerr(err(pos, tok), state, m));
+                    eerr(onErr(pos, tok), state, m));
             }
         };
     };
 }());
-
 
 /**
  * Parser that consumes any token.
  * 
  * @return Consumed token.
  */
-var anyToken = token(constant(true));
+var anyToken = constant(token(constant(true)));
 
 var _character = (pred, c) ->
     token(curry(pred, c));
@@ -847,26 +847,25 @@ var memo = function(p) {
             return cont(entry, [state, m, cok, cerr, eok, eerr]);
         }
         
-        var pcok = function(x, pstate, pm) {
-            var entry = (_, m, cok /*, cerr, eok, eerr*/) -> cok(x, pstate, m);
-            return cok(x, pstate, Memoer.update(pm, id, entry, state));
-        };
-        var pcerr = function(x, pstate, pm) {
-            var entry = (_, m, cok, cerr /*, eok, eerr*/) -> cerr(x, pstate, m);
-            return cerr(x, pstate, Memoer.update(pm, id, entry, state));
-        };
-        var peok = function(x, pstate, pm) {
-            var entry = (_, m, cok, cerr, eok /*, eerr*/) -> eok(x, pstate, m);
-            return eok(x, pstate, Memoer.update(pm, id, entry, state));
-        };
-        var peerr = function(x, pstate, pm) {
-            var entry = (_, m, cok, cerr, eok, eerr) -> eerr(x, pstate, pm);
-            return eerr(x, pstate, Memoer.update(m, id, entry, state));
-        };
+        var pcok = (x, pstate, pm) ->
+            cok(x, pstate,
+                Memoer.update(pm, id, state, (_, m, cok /*, cerr, eok, eerr*/) -> cok(x, pstate, m)));
+        
+        var pcerr = (x, pstate, pm) ->
+            cerr(x, pstate,
+                Memoer.update(pm, id, state, (_, m, cok, cerr /*, eok, eerr*/) -> cerr(x, pstate, m)));
+        
+        var peok = (x, pstate, pm) ->
+            eok(x, pstate,
+                Memoer.update(pm, id, state, (_, m, cok, cerr, eok /*, eerr*/) -> eok(x, pstate, m)));
+        
+        var peerr = (x, pstate, pm) ->
+            eerr(x, pstate,
+                Memoer.update(m, id, state, (_, m, cok, cerr, eok, eerr) -> eerr(x, pstate, pm)));
+        
         return cont(p, [state, m, pcok, pcerr, peok, peerr]);
     };
 };
-
 
 /* Running
  ******************************************************************************/
@@ -994,7 +993,6 @@ var testStream = (p, s) ->
  */
 var test = (p, input) ->
     testStream(p, stream.from(input));
-
 
 /* Export
  ******************************************************************************/

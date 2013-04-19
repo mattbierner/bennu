@@ -1,5 +1,19 @@
 # ChangeLog #
 
+## 12.0.0 - April 19, 2013 ##
+* Renamed 'InputState' to 'ParserState'
+** 'ParserState.pos' renamed to 'ParserState.position'.
+** 'ParserState' added 'userState' property for a user object that can be threaded
+  though the parsers.
+** 'ParserState' added methods for setting 'input', 'position', and 'userState'.
+  Any custom 'ParserState' must implement these.
+* Added parsers for getting, setting, and modifying input, position, parser state,
+  and user state.
+* Ensured that all parsers are functions ('anyToken' was the parser itself before).
+* Made 'parse_string.string' and 'parse_string.trie' parsers all or nothing. 
+** 'parse_string.string' produces better error messages detailing entire error.
+* 'parse.token' onError also called for end of input 
+
 ## 11.0.2 - April 15, 2013 ##
 * Fixed 'MultipleError' and 'ParserError' not being exported.
 * Made choice defer merging errors until needed.
