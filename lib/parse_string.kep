@@ -21,14 +21,6 @@ var stringEq = (a, b) -> a.valueOf() === b.valueOf();
 
 var expectError = msg -> (pos, tok) -> new parse.ExpectError(pos, msg, tok);
 
-var bindParser = (p, f) ->
-    function BIND_PARSER(state, m, cok, cerr, eok, eerr) {
-        var pcerr = (x, state, m) -> f(x, state, m)(state, m, cok, cerr, eok, eerr),
-            peerr = (x, state, m) -> f(x, state, m)(state, m, cok, cerr, eok, eerr);
-        return p(state, m, cok, pcerr, eok, peerr);
-    };
-
-
 /* Parsers
  ******************************************************************************/
 /**
@@ -44,19 +36,21 @@ var charParser = c ->
 /**
  * Parser that consumes a given string.
  * 
+ * Unlike 'parse.string', this parses all or nothing. Either it matches the string
+ * or it fails at the original location.
+ * 
  * @param {String} s String to consume.
  */
 var stringParser = (function(){
-    var reducer = (p, c) -> parse.next(c, p);
-    var r = (so, s, f, fail) ->
-        (s.length === 0 ?
-           parse.always(so) :
-           bindParser(parse.bind(
-                   charParser(s[0]),
-                   x -> r(so, s.slice(1), f + x, fail)),
-               x-> parse.next(parse.always(), fail(f + x))));
+    var impl = (original, remaining, found) ->
+        (remaining.length === 0 ?
+           parse.always(original) :
+           parse.bind(
+               parse.token(stringEq.bind(undefined, remaining[0]), (pos, tok) -> new parse.ExpectError(pos, original, found + tok)),
+               x -> impl(original, remaining.slice(1), found + x)));
+    
     return s ->
-        r(s, s, "", str -> parse.never(new parse.ExpectError(null, s, str)));
+        parse.attempt(impl(s, s, ""));
 }());
 
 /**
@@ -90,7 +84,7 @@ var trieParser = (function(){
         return parse.choice.apply(undefined, choices);
     };
     
-    return nodes -> _trie(makeTrie(nodes), '');
+    return nodes -> parse.attempt(_trie(makeTrie(nodes), ''));
 }());
 
 /**
