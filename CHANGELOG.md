@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 12.2.0 - April 20, 2013 ##
+* Added 'parse.then' as opposite of 'parse.next', parse p then q and return p result.
+
 ## 12.1.0 - April 20, 2013 ##
 * All run and runStream type functions take an optional user data object.
 * Added 'parse.expected' parser similar to <?> in parsec for better error 

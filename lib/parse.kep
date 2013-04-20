@@ -727,6 +727,13 @@ var betweenTimes = (function(){
 }());
 
 /**
+ * Parse 'p' then 'q', returning result from 'p'.
+ */
+var then = (p, q) ->
+    bind(p, x ->
+        next(q, always(x)));
+
+/**
  * Consume 'p' between 'open' and 'close', returning 'p' results.
  * 
  * @param open Parser to consume first, discarding results.
@@ -736,9 +743,7 @@ var betweenTimes = (function(){
  *@return Result of 'p'.
  */
 var between = (open, close, p) ->
-    next(open,
-        bind(p, x ->
-            next(close, always(x))));
+    next(open, then(p, close));
 
 /**
  * Consume 'p' seperated by 'sep' one or more times.
@@ -1026,25 +1031,25 @@ return {
     'UnknownError': UnknownError,
     'UnexpectError': UnexpectError,
     'ExpectError': ExpectError,
-
+    
 // Objects
     'ParserState': ParserState,
     'Position': Position,
-
+    
 // Rec
     'rec': rec,
-
+    
 // Parser Definition
     'Parser': Parser,
     'RecParser': RecParser,
-
+    
 // Parsers
     'always': always,
     'never': never,
     'bind': bind,
     'binda': binda,
     'eof': eof,
-
+    
     'extract': extract,
     'getParserState': getParserState,
     'setParserState': setParserState,
@@ -1062,7 +1067,7 @@ return {
     
     'attempt': attempt,
     'lookahead': lookahead,
-
+    
     'next': next,
     'either': either,
     'choice': choice,
@@ -1072,35 +1077,37 @@ return {
     'cons': consParser,
     'append': append,
     'sequence': sequence,
+    
     'many': many,
     'many1': many1,
     'times': times,
     'betweenTimes': betweenTimes,
-
+    
+    'then': then,
     'between': between,
     'sepBy1': sepBy1,
     'sepBy': sepBy,
-
+    
     'token': token,
     'anyToken': anyToken,
-
+    
     'character': character,
     'string': string,
-
+    
     'backtrack': backtrack,
     'memo': memo,
     
 // Running
     'exec': exec,
-
+    
     'runState': runState,
     'runStream': runStream,
     'run': run,
-
+    
     'runManyState': runManyState,
     'runManyStream': runManyStream,
     'runMany': runMany,
-
+    
     'testState': testState,
     'testStream': testStream,
     'test': test
