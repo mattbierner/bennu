@@ -12,15 +12,13 @@ define(['parse/parse', 'parse/parse_eager'], function(parse, parse_eager){
                 
                 assert.deepEqual(parse.run(a, ""), []);
             }],
-            ["sepBy trailing sep",
+            ["No backtracking",
             function(){
                 var a = parse_eager.sepBy(parse.character(','), parse.character('a'));
                 
-                assert.deepEqual(parse.run(a, "a,a,"), ['a', 'a']);
+                assert.throws(parse.run.bind(undefined, a, "a,a,z"), parse.UnexpectError);
                 
                 assert.deepEqual(parse.run(a, ","), []);
-                
-                assert.deepEqual(parse.run(parse.next(a, parse.character(',')) , "a,a,"), ',');
             }],
             
             ["Simple sepBy1",

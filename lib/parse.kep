@@ -748,17 +748,16 @@ var between = (open, close, p) ->
 /**
  * Consume 'p' seperated by 'sep' one or more times.
  * 
+ * If sep succeeds but p fails, does not backtrack.
+ * 
  * @param sep Parser to consume between instances of 'p', discarding results.
  * @param p Parser to consume seperated by 'sep'.
  * 
  * @return List of 'p' results.
  */
 var sepBy1 = (sep, p) -> 
-    rec(self ->
-        consParser(p,
-            either(
-                attempt(next(sep, self)),
-                _end)));
+    consParser(p,
+        many(next(sep, p)));
 
 /**
  * Parser that consumes 'p' seperated by 'sep' zero or more times.

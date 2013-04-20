@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 12.3.0 - April 20, 2013 ##
+* Clarified that 'parse.sepBy' should not backtrack.
+
 ## 12.2.0 - April 20, 2013 ##
 * Added 'parse.then' as opposite of 'parse.next', parse p then q and return p result.
 
