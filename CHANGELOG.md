@@ -1,5 +1,11 @@
 # ChangeLog #
 
+## 12.1.0 - April 20, 2013 ##
+* All run and runStream type functions take an optional user data object.
+* Added 'parse.expected' parser similar to <?> in parsec for better error 
+  messages. Displays an expected message when parser fails without consuming any
+  input.
+
 ## 12.0.0 - April 19, 2013 ##
 * Renamed 'InputState' to 'ParserState'
 ** 'ParserState.pos' renamed to 'ParserState.position'.

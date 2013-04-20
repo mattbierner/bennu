@@ -1,5 +1,7 @@
 /**
  * @fileOverview Combinatorial Parsers for JavaScript.
+ * 
+ * Unless otherwise noted, parses do not support backtracking by default.
  */
 define(['nu/stream'],
 function(stream) {
@@ -557,7 +559,7 @@ var next = (p, q) ->
 var _either = e ->
     (p, q) ->
         function EITHER_PARSER(state, m, cok, cerr, eok, eerr) {
-            var pos = state.pos;
+            var pos = state.position;
             var peerr = function(errFromP, _, mFromP) {
                 var qeerr = (errFromQ, _, mFromQ) ->
                     eerr(e(pos, errFromP, errFromQ), state, mFromQ);
@@ -582,7 +584,7 @@ var choice = (function(){
     var reducer = (p, c) -> either(c, p);
     
     var end = (state, m, cok, cerr, eok, eerr) ->
-        eerr(new MultipleError(state.pos, []), state, m);
+        eerr(new MultipleError(state.position, []), state, m);
     
     return (/*...*/) ->
         (arguments.length === 0 ?
@@ -601,14 +603,27 @@ var choice = (function(){
 var optional = (p, def) ->
     either(p, always(def));
 
+/**
+ * Parser that parses 'p' but if 'p' fails without consuming input, produces
+ * an ExpectError with 'msg'.
+ * 
+ * @param expect Expected value. 
+ * @param p Parser to attempt.
+ */
+var expected = (expect, p) ->
+    function EXPECTED_PARSER(state, m, cok, cerr, eok, eerr) {
+        return p(state, m, cok, cerr, eok, (x, state, m) -> eerr(new ExpectError(state.position, expect), state, m));
+    };
+
 // Iterative Parsers
 ////////////////////////////////////////
 var _end = always(stream.end);
 
-var _joinParser = (joiner, p1, p2) ->
-    bind(p1, v1 ->
-        bind(p2, v2 ->
-            always(joiner(v1, v2))));
+var _joinParser = joiner ->
+    (p1, p2) ->
+        bind(p1, v1 ->
+            bind(p2, v2 ->
+                always(joiner(v1, v2))));
 
 var _optionalValueParser = p ->
     optional(p, stream.end);
@@ -622,12 +637,12 @@ var _optionalValueParser = p ->
 
  * @return Stream with value from 'valueParser' consed on.
  */
-var consParser = curry(_joinParser, stream.cons);
+var consParser = _joinParser(stream.cons);
 
 /**
  * Parser that joins the results of two iterative Parsers
  */
-var append = curry(_joinParser, stream.append);
+var append = _joinParser(stream.append);
 
 /**
  * Consume a finite sequence of parsers, returning the results as a list.
@@ -898,22 +913,24 @@ var runState = _makeParser(constant, throwConstant);
  * 
  * @param p Parser to run.
  * @param s A stream.js style stream supporting first and rest.
+ * @param [ud] User data.
  * 
  * @return Result from the parser.
  */
-var runStream = (p, s) ->
-    runState(p, new ParserState(s, new Position(0), null));
+var runStream = (p, s, ud) ->
+    runState(p, new ParserState(s, new Position(0), (ud || null)));
 
 /**
  * Run parser 'p' against an input string.
  * 
  * @param p Parser to run.
  * @param input An array-like object of characters to run the parser against.
- * 
+ * @param [ud] User data.
+
  * @return Result from the parser.
  */
-var run = (p, input) ->
-    runStream(p, stream.from(input));
+var run = (p, input, ud) ->
+    runStream(p, stream.from(input), ud);
 
 /**
  * Run parser 'p' zero or more times to produce a lazy stream of results.
@@ -942,11 +959,12 @@ var runManyState = function(p, state) {
  * 
  * @param p Parser to run.
  * @param s stream.js style stream supporting first and rest.
+ * @param [ud] User data.
  *
  * @see runManyState
  */
-var runManyStream = (p, s) ->
-    runManyState(p, new ParserState(s, new Position(0), null));
+var runManyStream = (p, s, ud) ->
+    runManyState(p, new ParserState(s, new Position(0), ud));
 
 /**
  * Run parser 'p' zero or more times against a input string to produce a lazy
@@ -954,11 +972,12 @@ var runManyStream = (p, s) ->
  * 
  * @param p Parser to run.
  * @param input Array-like object of characters to run the parser against.
+ * @param [ud] User data.
  *
  * @see runManyStream
  */
-var runMany = (p, input) ->
-    runManyStream(p, stream.from(input));
+var runMany = (p, input, ud) ->
+    runManyStream(p, stream.from(input), ud);
 
 /**
  * Tests parser 'p' with a given state.
@@ -977,22 +996,24 @@ var testState = _makeParser(constant(constant(true)), constant(constant(false)))
  * 
  * @param p Parser to run.
  * @param s stream.js style stream supporting first and rest.
+ * @param [ud] User data.
  * 
  * @see testState
  */
-var testStream = (p, s) ->
-    testState(p, new ParserState(s, new Position(0), null));
+var testStream = (p, s, ud) ->
+    testState(p, new ParserState(s, new Position(0), ud));
 
 /**
  * Tests parser 'p' against an input string.
  * 
  * @param p Parser to run.
  * @param input Array-like object of characters to run the parser against.
+ * @param [ud] User data.
  *
  * @see testStream
  */
-var test = (p, input) ->
-    testStream(p, stream.from(input));
+var test = (p, input, ud) ->
+    testStream(p, stream.from(input), ud);
 
 /* Export
  ******************************************************************************/
@@ -1046,7 +1067,8 @@ return {
     'either': either,
     'choice': choice,
     'optional': optional,
-
+    'expected': expected,
+    
     'cons': consParser,
     'append': append,
     'sequence': sequence,
