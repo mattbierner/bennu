@@ -17,11 +17,11 @@ var regExpTest = RegExp.prototype.test;
 
 /* Helpers
  ******************************************************************************/
-var eq = (a, b) -> a === b;
-
 var stringEq = (a, b) -> a.valueOf() === b.valueOf();
 
-var expectError = msg -> (pos, tok) -> new parse.ExpectError(pos, msg, tok);
+var expectError = msg ->
+    (pos, tok) ->
+        new parse.ExpectError(pos, msg, (tok === null ? "end of input": tok));
 
 /* Parsers
  ******************************************************************************/
@@ -38,14 +38,27 @@ var charParser = c ->
 /**
  * Parser that consumes a given string.
  * 
+ * Unlike 'parse.string', this parses all or nothing. Either it matches the string
+ * or it fails at the starting location.
+ * 
  * @param {String} s String to consume.
  */
 var stringParser = (function(){
-    var reducer = (p, c) -> parse.next(c, p);
+    var impl = (original, remaining, found, pos) -> {
+        return (remaining.length === 0 ?
+            parse.always(original) :
+            parse.next(
+               parse.token(
+                   stringEq.bind(undefined, remaining[0]),
+                   (_, tok) -> new parse.ExpectError(pos, original, (tok === null ? found : found + tok))),
+               impl(original, remaining.slice(1), found + remaining[0], pos)));
+    };
     
     return s ->
-        map.call(s, charParser)
-            .reduceRight(reducer, parse.always(s));
+        parse.bind(
+            parse.getPosition(),
+            pos ->
+                parse.attempt(impl(s, s, "", pos)));
 }());
 
 /**
@@ -79,7 +92,7 @@ var trieParser = (function(){
         return parse.choice.apply(undefined, choices);
     };
     
-    return nodes -> _trie(makeTrie(nodes), '');
+    return nodes -> parse.attempt(_trie(makeTrie(nodes), ''));
 }());
 
 /**
