@@ -637,7 +637,7 @@ var _optionalValueParser = p ->
 
  * @return Stream with value from 'valueParser' consed on.
  */
-var consParser = _joinParser(stream.cons);
+var cons = _joinParser(stream.cons);
 
 /**
  * Parser that joins the results of two iterative Parsers
@@ -650,10 +650,10 @@ var append = _joinParser(stream.append);
  * @return Ordered list of results from each parsers.
  */
 var sequence = (function(){
-    var cons = (p, q) -> consParser(q, p);
+    var reducer = (p, q) -> cons(q, p);
     
     return (/*...*/) ->
-        reduceRight.call(arguments, cons, _end);
+        reduceRight.call(arguments, reducer, _end);
 }());
 
 /**
@@ -675,7 +675,7 @@ var many = (function(){
         var safeP = (state, m, cok, cerr, eok, eerr) ->
             cont(p, [state, m, cok, cerr, manyError, eerr]);
         
-        return rec(self -> _optionalValueParser(consParser(safeP, self)));
+        return rec(self -> _optionalValueParser(cons(safeP, self)));
     };
 }());
 
@@ -687,7 +687,7 @@ var many = (function(){
  * @return List of 'p' results.
  */
 var many1 = p ->
-    consParser(p, many(p));
+    cons(p, many(p));
 
 /**
  * Consume p 'n' times.
@@ -700,7 +700,7 @@ var many1 = p ->
 var times = (n, p) ->
     (n <= 0 ?
         _end : 
-        consParser(p, times(n - 1, p)));
+        cons(p, times(n - 1, p)));
 
 /**
  * Consume 'p' between 'min' and 'max' times.
@@ -716,7 +716,7 @@ var betweenTimes = (function(){
         (max <= 0 ?
             _end :
             _optionalValueParser(
-                consParser(p, maxParser(max - 1, p))));
+                cons(p, maxParser(max - 1, p))));
     
     return (min, max, p) ->
         (max < min ?
@@ -756,8 +756,7 @@ var between = (open, close, p) ->
  * @return List of 'p' results.
  */
 var sepBy1 = (sep, p) -> 
-    consParser(p,
-        many(next(sep, p)));
+    cons(p, many(next(sep, p)));
 
 /**
  * Parser that consumes 'p' seperated by 'sep' zero or more times.
@@ -1073,7 +1072,7 @@ return {
     'optional': optional,
     'expected': expected,
     
-    'cons': consParser,
+    'cons': cons,
     'append': append,
     'sequence': sequence,
     
