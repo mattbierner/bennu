@@ -9,8 +9,7 @@ function(stream) {
 
 /* Prototypes
  ******************************************************************************/
-var join = Array.prototype.join;
-var map = Array.prototype.map;
+var map = Function.prototype.call.bind(Array.prototype.map);
 var reduceRight = Array.prototype.reduceRight;
 
 /* Helpers
@@ -240,7 +239,7 @@ MultipleError.prototype.name = 'MultipleError';
 
 Object.defineProperty(MultipleError.prototype, 'errorMessage', {
     'get': () ->
-        "[" + map.call(this.errors, x -> x.message).join(", ") + "]"
+        "[" + map(this.errors, x -> x.message).join(", ") + "]"
 });
 
 /**
@@ -835,7 +834,7 @@ var string = (function(){
     var reducer = (p, c) -> next(c, p);
     
     return (s, pred) ->
-        map.call(s, curry(_character, (pred || eq)))
+        map(s, curry(_character, (pred || eq)))
             .reduceRight(reducer, always(s));
 }());
 

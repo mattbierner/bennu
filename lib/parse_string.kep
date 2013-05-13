@@ -9,9 +9,7 @@ function(parse,
 
 /* Prototypes
  ******************************************************************************/
-var map = Array.prototype.map;
 var reduce = Array.prototype.reduce;
-var reduceRight = Array.prototype.reduceRight;
 
 var regExpTest = RegExp.prototype.test;
 
