@@ -38,10 +38,7 @@ define(['parse/parse', 'parse/parse_eager'], function(parse, parse_eager){
              }],
              ["Consume Max lt Min",
              function(){
-                var a = parse_eager.betweenTimes(5, 1, parse.character('a'));
-                
-                assert.throws(parse.run.bind(undefined, a, "aa"));
-                assert.throws(parse.run.bind(undefined, a, ""));
+                assert.throws(function(){ parse_eager.betweenTimes(5, 1, parse.character('a')); }, parse.ParserError);
              }],
              ["Consume large input many",
              function(){

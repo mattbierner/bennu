@@ -529,7 +529,7 @@ var setInput = input ->
 /**
  * Parser that always fails with an error and consumes no input.
  * 
- * @param [msg] String message for error.
+ * @param {String} [msg] message for error.
  */
 var fail = msg ->
     let e = (msg ? ParseError : UnknownError) in
@@ -662,12 +662,10 @@ var append = _joinParser(stream.append);
 /**
  * Consume a finite sequence of parsers, returning the results as a stream.
  */
-var sequence = (function(){
-    var reducer = (p, q) -> cons(q, p);
-    
-    return (/*...*/) ->
-        reduceRight(arguments, reducer, _end);
-}());
+var sequence = 
+    let reducer = (p, q) -> cons(q, p) in
+        (/*...*/) ->
+            reduceRight(arguments, reducer, _end);
 
 /**
  * Consume 'p' zero or more times.
@@ -677,18 +675,16 @@ var sequence = (function(){
  * 
  * @param p Parser to consume zero or more times.
  */
-var many = (function(){
-    var manyError = () -> {
-        throw new ParserError("Many parser applied to a parser that accepts an empty string");
-    };
-    
-    return function MANY_PARSER(p) {
-        var safeP = (state, m, cok, cerr, eok, eerr) ->
-            cont(p, [state, m, cok, cerr, manyError, eerr]);
-        
-        return rec(self -> _optionalValueParser(cons(safeP, self)));
-    };
-}());
+var many =
+    let
+        manyError = throwConstant(
+            new ParserError("Many parser applied to a parser that accepts an empty string"))
+    in
+        function MANY_PARSER(p) {
+            var safeP = (state, m, cok, cerr, eok, eerr) ->
+                cont(p, [state, m, cok, cerr, manyError, eerr]);
+            return rec(self -> _optionalValueParser(cons(safeP, self)));
+        };
 
 /**
  * Consume 'p' 1 or more times.
@@ -723,12 +719,14 @@ var betweenTimes = (function(){
             _optionalValueParser(
                 cons(p, maxParser(max - 1, p))));
     
-    return (min, max, p) ->
-        (max < min ?
-            never :
-            append(
-                times(min, p),
-                maxParser(max - min, p)));
+    return (min, max, p) -> {
+        if (max < min) {
+            throw new ParserError("between max < min");
+        }
+        return append(
+            times(min, p),
+            maxParser(max - min, p));
+    };
 }());
 
 /**
@@ -826,13 +824,11 @@ var character = (c, pred) ->
  *    each character of sequence that compares two values. Returns if the parser
  *    should consume the character.
  **/
-var string = (function(){
-    var reducer = (p, c) -> next(c, p);
-    
-    return (s, pred) ->
-        map(s, curry(_character, (pred || eq)))
-            .reduceRight(reducer, always(s));
-}());
+var string = 
+    let reducer = (p, c) -> next(c, p) in
+        (s, pred) ->
+            map(s, curry(_character, (pred || eq)))
+                .reduceRight(reducer, always(s));
 
 /* Memo Parsers
  ******************************************************************************/
@@ -907,7 +903,7 @@ var perform = (p, state, ok, err) ->
  * @return Result from the parser.
  */
 var runState = (p, state) ->
-    exec(p, state, null, constant, throwConstant, constant, throwConstant);
+    _perform(p, state, constant, throwConstant);
 
 /**
  * Run parser 'p' against an input stream.

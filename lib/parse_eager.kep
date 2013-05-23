@@ -11,13 +11,9 @@ function(parse,
  ******************************************************************************/
 var compose = (f, g) -> (/*...*/) -> f(g.apply(undefined, arguments));
 
-var toArrayParser = (function(){
-    var toArray= x ->
-        parse.always(stream.toArray(x));
-        
-    return p ->
-        parse.bind(p, toArray);
-}());
+var toArrayParser =
+    let toArray = x -> parse.always(stream.toArray(x)) in
+        p -> parse.bind(p, toArray);
 
 /* Export
  ******************************************************************************/
