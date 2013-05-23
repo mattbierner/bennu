@@ -589,8 +589,8 @@ var choice = (function(){
         
     var reducer = (p, c) -> either(c, p);
     
-    var end = (state, m, cok, cerr, eok, eerr) ->
-        eerr(new MultipleError(state.position, []), state, m);
+    var end = bind(getPosition(), pos ->
+        never(new MultipleError(pos, [])));
     
     return (/*...*/) -> {
         if (!arguments.length) {

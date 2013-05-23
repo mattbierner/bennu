@@ -63,7 +63,7 @@ var then = (p, q) ->
  * @param p Parser to consume between 'open' and 'close'.
  */
 var between = (open, close, p) ->
-    parse.next(open, parse.then(p, close));
+    parse.next(open, then(p, close));
 
 /**
  * Consume 'p' separated by 'sep' one or more times.
