@@ -649,6 +649,7 @@ var eager =
 var binds = (p, f) ->
     bind(eager(p), x ->
         f.apply(undefined, x));
+
 /**
  * Parser that cons the value result of 'valueParser' onto the stream result
  * of 'streamParser'.
@@ -710,31 +711,30 @@ var many1 = p ->
  * @param {function(object): Error} [errMsg] Optional function that returns
  *    the error when consume fails. Passed the state position and tested token.
  */
-var token = (function(){
-    var defaultErr = (pos, tok) ->
-        new UnexpectError(pos, (tok === null ? "end of input" : tok));
-    
-    return (consume, onErr) -> {
-        onErr = (onErr || defaultErr);
-        return function TOKEN_PARSER(state, m, cok, cerr, eok, eerr) {
-            var pos = state.position,
-                input = state.input;
-            if (!input) {
-                return eerr(onErr(pos, null), state, m);
-            } else {
-                var tok = stream.first(input);
-                return (consume(tok) ?
-                    cok(tok, state.next(tok), m) :
-                    eerr(onErr(pos, tok), state, m));
-            }
+var token = let
+    defaultErr = (pos, tok) ->
+        new UnexpectError(pos, (tok === null ? "end of input" : tok))
+    in
+        (consume, onErr) -> {
+            onErr = (onErr || defaultErr);
+            return function TOKEN_PARSER(state, m, cok, cerr, eok, eerr) {
+                var pos = state.position,
+                    input = state.input;
+                if (!input) {
+                    return eerr(onErr(pos, null), state, m);
+                } else {
+                    var tok = stream.first(input);
+                    return (consume(tok) ?
+                        cok(tok, state.next(tok), m) :
+                        eerr(onErr(pos, tok), state, m));
+                }
+            };
         };
-    };
-}());
 
 /**
  * Parser that consumes any token.
  */
-var anyToken = constant(token(constant(true)));
+var anyToken = Parser('Any Token', token(constant(true)));
 
 var _character = (pred, c) ->
     token(curry(pred, c));

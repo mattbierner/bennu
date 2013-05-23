@@ -1,6 +1,6 @@
 # ChangeLog #
 
-## 13.0.0 - May 22, 2013 ##
+## 13.0.0 - May 23, 2013 ##
 * Removed 'parse_eager' module and replaced it with 'parse.eager' parser.
 ** 'parse.eager' takes a parser and flattens resulting stream into an array.
 * Added 'parse_lang' module for language type parsers.
@@ -13,6 +13,8 @@
   two levels 'exec' uses.
 * 'betweenTimes'and 'choice' throw 'ParserError' on construction if bad params
   supplied instead of at runtime.
+* 'anyToken' is object again instead of function.
+* 'Added ids to string character type parsers and 'anyToken'.
 
 ## 12.4.0 - May 20, 2013 ##
 * Added 'Position.initial' object for initial position instead of 'new Position(0)'.

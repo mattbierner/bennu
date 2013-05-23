@@ -15,7 +15,7 @@ var regExpTest = RegExp.prototype.test;
 
 /* Helpers
  ******************************************************************************/
-var stringEq = (a, b) -> a.valueOf() === b.valueOf();
+var stringEq = (a, b) -> (a.valueOf() === b.valueOf());
 
 var expectError = msg ->
     (pos, tok) ->
@@ -30,7 +30,7 @@ var expectError = msg ->
  * 
  * @param c The char to consume.
  */
-var charParser = c ->
+var character = c ->
     parse.token(stringEq.bind(undefined, c), expectError(c));
 
 /**
@@ -41,7 +41,7 @@ var charParser = c ->
  * 
  * @param {String} s String to consume.
  */
-var stringParser = (function(){
+var string = (function(){
     var impl = (original, remaining, found, pos) -> {
         return (remaining.length === 0 ?
             parse.always(original) :
@@ -62,10 +62,10 @@ var stringParser = (function(){
 /**
  * Parser that builds a parse trie from an array of strings.
  */
-var trieParser = (function(){
+var trie = (function(){
     var wordReduce = (parent, l) -> (parent[l] = (parent[l] || {}));
     
-    var wordsReduce = function(trie, word) {
+    var wordsReduce = (trie, word) -> {
         var node = reduce(word, wordReduce, trie);
         node[''] = null;
         return trie;
@@ -78,7 +78,7 @@ var trieParser = (function(){
         Object.keys(trie).forEach(n -> {
             if (n.length === 1) {
                 choices.push(parse.next(
-                    charParser(n),
+                    character(n),
                     _trie(trie[n], prefix + n)));
             }
         });
@@ -96,35 +96,39 @@ var trieParser = (function(){
 /**
  * Parser that consumes any character.
  */
-var anyCharParser = parse.token(regExpTest.bind(/^.$/), expectError("any character"));
+var anyChar = parse.Parser('Any Character',
+    parse.token(regExpTest.bind(/^.$/), expectError("any character")));
 
 /**
  * Parser that consumes any letter character.
  */
-var letterParser = parse.token(regExpTest.bind(/^[a-z]$/i), expectError("any letter character"));
+var letter = parse.Parser('Any Letter',
+    parse.token(regExpTest.bind(/^[a-z]$/i), expectError("any letter character")));
 
 /**
  * Parser that consumes any space character.
  */
-var spaceParser = parse.token(regExpTest.bind(/^\s$/i), expectError("any space character"));
+var space = parse.Parser('Any Whitespace',
+    parse.token(regExpTest.bind(/^\s$/i), expectError("any space character")));
 
 /**
  * Parser that consumes any number character.
  */
-var digitParser = parse.token(regExpTest.bind(/^[0-9]$/i), expectError("any digit character"));
+var digit = parse.Parser('Any Digit',
+    parse.token(regExpTest.bind(/^[0-9]$/i), expectError("any digit character")));
 
 /* Export
  ******************************************************************************/
 return {
 // Parsers
-    'character': charParser,
-    'string': stringParser,
-    'trie': trieParser,
+    'character': character,
+    'string': string,
+    'trie': trie,
     
-    'anyChar': anyCharParser,
-    'letter': letterParser,
-    'space': spaceParser,
-    'digit': digitParser
+    'anyChar': anyChar,
+    'letter': letter,
+    'space': space,
+    'digit': digit
 };
 
 });
