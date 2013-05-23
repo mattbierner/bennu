@@ -1,7 +1,7 @@
-define(['parse/parse'], function(parse){
-    
+define(['parse/parse'],
+function(parse){
     return {
-        'module': "Char Tests",
+        'module': "parse.character",
         'tests': [
             ["Simple Char",
             function(){

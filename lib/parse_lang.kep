@@ -9,6 +9,45 @@ function(stream,
 
 /* Parsers
  ******************************************************************************/
+var _end = parse.always(stream.end);
+
+var _optionalValueParser = parse.optional.bind(undefined, stream.end);
+
+/**
+ * Consume p 'n' times.
+ * 
+ * @param {Number} n Number of times to consume p.
+ * @param p Parser to consume 'n' times.
+ */
+var times = (n, p) ->
+    (n <= 0 ?
+        _end : 
+        parse.cons(p, times(n - 1, p)));
+
+/**
+ * Consume 'p' between 'min' and 'max' times.
+ * 
+ * @param {Number} min Minimum number of times to consume 'p'.
+ * @param {Number} max Maximum umber of times to consume 'p'.
+ * @param p Parser to consume.
+ */
+var betweenTimes = (function(){
+    var maxParser = (max, p) ->
+        (max <= 0 ?
+            _end :
+            _optionalValueParser(
+                parse.cons(p, maxParser(max - 1, p))));
+    
+    return (min, max, p) -> {
+        if (max < min) {
+            throw new parse.ParserError("between max < min");
+        }
+        return parse.append(
+            times(min, p),
+            maxParser(max - min, p));
+    };
+}());
+
 /**
  * Parse 'p' then 'q', returning result from 'p'.
  */
@@ -45,8 +84,8 @@ var sepBy = (sep, p) ->
  */
 var sepEndBy1 = (sep, p) ->
     parse.rec(self ->
-        parse.cons(p, parse.optional(stream.end,
-            parse.next(sep, parse.optional(stream.end, self)))));
+        parse.cons(p, _optionalValueParser(
+            parse.next(sep, _optionalValueParser(self)))));
 /**
  * Parser that consumes 'p' zero or more times separated and optional ended by 'sep'.
  */
@@ -98,7 +137,9 @@ var chainr1 = (op, p) ->
                 parse.bind(self, y -> parse.always(f(x, y)))))));
 
 /**
- * 
+ * Parser that consumes 'p' zero or more times separated by 'op' and returns 
+ * result of right associative application of resulting function from 'op' to 'p'
+ * values.
  */
 var chainr = (op, x, p) ->
     parse.optional(x, chainr1(op, p));
@@ -106,6 +147,9 @@ var chainr = (op, x, p) ->
 /* Export
  ******************************************************************************/
 return {
+    'times': times,
+    'betweenTimes': betweenTimes,
+    
     'then': then,
     'between': between,
     'sepBy1': sepBy1,

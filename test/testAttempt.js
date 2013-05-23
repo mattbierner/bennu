@@ -1,6 +1,7 @@
-define(['parse/parse'], function(parse){
+define(['parse/parse'],
+function(parse){
     return {
-        'module': "Attempt Tests",
+        'module': "parse.attempt",
         'tests': [
             ["Success",
             function(){

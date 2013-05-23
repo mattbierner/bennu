@@ -627,13 +627,13 @@ var expected = (expect, p) ->
 ////////////////////////////////////////
 var _end = always(stream.end);
 
+var _optionalValueParser = curry(optional, stream.end);
+
 var _joinParser = joiner ->
     (p1, p2) ->
         bind(p1, v1 ->
             bind(p2, v2 ->
                 always(joiner(v1, v2))));
-
-var _optionalValueParser = curry(optional, stream.end);
 
 /**
  * Parser that takes stream results from 'p' and turns eagerly turns them into
@@ -698,42 +698,6 @@ var many =
  */
 var many1 = p ->
     cons(p, many(p));
-
-/**
- * Consume p 'n' times.
- * 
- * @param {Number} n Number of times to consume p.
- * @param p Parser to consume 'n' times.
- */
-var times = (n, p) ->
-    (n <= 0 ?
-        _end : 
-        cons(p, times(n - 1, p)));
-
-/**
- * Consume 'p' between 'min' and 'max' times.
- * 
- * @param {Number} min Minimum number of times to consume 'p'.
- * @param {Number} max Maximum umber of times to consume 'p'.
- * @param p Parser to consume.
- */
-var betweenTimes = (function(){
-    var maxParser = (max, p) ->
-        (max <= 0 ?
-            _end :
-            _optionalValueParser(
-                cons(p, maxParser(max - 1, p))));
-    
-    return (min, max, p) -> {
-        if (max < min) {
-            throw new ParserError("between max < min");
-        }
-        return append(
-            times(min, p),
-            maxParser(max - min, p));
-    };
-}());
-
 
 // Token Parsers
 ////////////////////////////////////////
@@ -1045,8 +1009,6 @@ return {
     'sequence': sequence,
     'many': many,
     'many1': many1,
-    'times': times,
-    'betweenTimes': betweenTimes,
 
     'token': token,
     'anyToken': anyToken,

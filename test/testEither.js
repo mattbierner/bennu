@@ -1,7 +1,7 @@
-define(['parse/parse'], function(parse){
-    
+define(['parse/parse'],
+function(parse){
     return {
-        'module': "Either Tests",
+        'module': "parse.either",
         'tests': [
             ["P Either",
             function(){

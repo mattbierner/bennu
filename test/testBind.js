@@ -1,12 +1,13 @@
-define(['parse/parse'], function(parse){
+define(['parse/parse'],
+function(parse){
     
     var identity = function(v) { return v; };
     var constant = function(v) { return identity.bind(this, v); };
     
     return {
-        'module': "Bind Tests",
+        'module': "parse.bind",
         'tests': [
-            ["Simple Bind",
+            ["Simple bind",
             function(){
                 var result = parse.run(parse.bind(parse.always(3), function(x) {
                     return parse.always(x + 5);
@@ -17,6 +18,14 @@ define(['parse/parse'], function(parse){
             function(){
                 var result = parse.run(parse.bind(parse.always(3), constant(parse.always(5))), "abc");
                 assert.deepEqual(result, 5);
+            }],
+            ["fail Bind",
+            function(){
+                var result = parse.run(
+                    parse.either(
+                        parse.bind(parse.never(), constant(parse.always(5))),
+                        parse.always(10)), "abc");
+                assert.deepEqual(result, 10);
             }],
         ],
     };

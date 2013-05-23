@@ -1,5 +1,19 @@
 # ChangeLog #
 
+## 13.0.0 - May 22, 2013 ##
+* Removed 'parse_eager' module and replaced it with 'parse.eager' parser.
+** 'parse.eager' takes a parser and flattens resulting stream into an array.
+* Added 'parse_lang' module for language type parsers.
+** 'times', 'betweenTimes', 'sepBy', 'sepBy1', 'between', and 'then' and
+  then parsers all moved to 'parse_lang.'
+* Added 'sepEndBy', 'sepEndBy1', 'endBy', 'endBy1', 'chainr1', 'chainr',
+  'chainl1', 'chainl' parsers to 'parse_lang' to bring more in line with parsec.
+* Renamed 'binda' 'binds'.
+* Added 'perform' running function for simple, direct callbacks instead of the
+  two levels 'exec' uses.
+* 'betweenTimes'and 'choice' throw 'ParserError' on construction if bad params
+  supplied instead of at runtime.
+
 ## 12.4.0 - May 20, 2013 ##
 * Added 'Position.initial' object for initial position instead of 'new Position(0)'.
 

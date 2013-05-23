@@ -1,7 +1,7 @@
-define(['parse/parse'], function(parse){
-    
+define(['parse/parse'],
+function(parse){
     return {
-        'module': "Always Tests",
+        'module': "parse.always",
         'tests': [
             ["Simple Always",
             function(){

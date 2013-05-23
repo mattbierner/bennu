@@ -1,8 +1,9 @@
-define(['parse/parse'], function(parse){
+define(['parse/parse'],
+function(parse){
     return {
-        'module': "Choice Tests",
+        'module': "parse.choice",
         'tests': [
-            ["Succeed Choice",
+            ["Succeed",
             function(){
                 var a = parse.choice(
                     parse.character('a'),
@@ -15,11 +16,11 @@ define(['parse/parse'], function(parse){
                 
                 assert.deepEqual(parse.run(a, "cab"), 'c');
             }],
-            ["Zero Choice",
+            ["Zero choices construct error",
              function(){
                 assert.throws(function(){ parse.run(parse.choice(), "aa"); }, parse.ParserError);
             }],
-            ["Failed Choices To few",
+            ["Failed Choices",
             function(){
                 var a = parse.choice(
                     parse.character('a'),
