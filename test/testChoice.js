@@ -17,9 +17,7 @@ define(['parse/parse'], function(parse){
             }],
             ["Zero Choice",
              function(){
-                assert.throws(parse.run.bind(undefined, parse.choice(), "aa"));
-                
-                assert.throws(parse.run.bind(undefined, parse.choice(), ""));
+                assert.throws(function(){ parse.run(parse.choice(), "aa"); }, parse.ParserError);
             }],
             ["Failed Choices To few",
             function(){

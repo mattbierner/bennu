@@ -13,7 +13,7 @@ define(['parse/parse'], function(parse){
             ["Fail is same as never",
             function(){
                  assert.throws(parse.run.bind(undefined,
-                     parse.attempt(parse.never()),
+                     parse.attempt(parse.fail()),
                      "abc"
                  ));
                  var result = parse.run(

@@ -26,8 +26,8 @@ var eq = (x, y) -> x === y;
 
 var uniqueParserId = () -> Math.random();
 
-// Continuation
-////////////////////////////////////////
+/* Continuation
+ ******************************************************************************/
 var cont = (f, args) -> {
     var c = [f, args];
     c._next = true;
@@ -112,7 +112,7 @@ Position.prototype.toString = () ->
  * Compares two positions.
  * 
  * @returns Number less than, equal to, or greater than zero if this position is
- *   less than,equal to, or greater than 'pos'.
+ *   less than, equal to, or greater than 'pos'.
  */
 Position.prototype.compare = pos ->
     this.index - pos.index;
@@ -341,8 +341,8 @@ Object.defineProperty(ExpectError.prototype, 'errorMessage', {
  * 
  * Using rec, we fix this.
  * 
- *     var bs = rec(function(bs) {
- *         return parse.either(parse.character('b'), bs);
+ *     var bs = rec(function(self) {
+ *         return parse.either(parse.character('b'), self);
  *     });
  * 
  * @param def Factory function that is passed a reference to the parser being
@@ -398,7 +398,7 @@ var RecParser = (name, body) -> Parser(name, rec(body));
 /**
  * Parser that always succeeds with a given value and consumes no input.
  * 
- * @param x Value to yield.
+ * @param x Value to succeed with.
  */
 var always = x ->
     function ALWAYS_PARSER(state, m, cok, cerr, eok /*, _*/) {
@@ -408,14 +408,12 @@ var always = x ->
 /**
  * Parser that always fails and consumes no input.
  * 
- * @param [msg] Message for error.
+ * @param x Value to fail with.
  */
-var never = msg -> {
-    var e = (msg === undefined ? UnknownError : ParseError);
-    return function NEVER_PARSER(state, m, cok, cerr, eok, eerr) {
-        return eerr(new e(state.position, msg), state, m);
+var never = x ->
+    function NEVER_PARSER(state, m, cok, cerr, eok, eerr) {
+        return eerr(x, state, m);
     };
-};
 
 /**
  * Parser that parses 'p', passing the results to function 'f' which returns a
@@ -434,13 +432,6 @@ var bind = (p, f) ->
     };
 
 /**
- * Same as bind but calls apply on 'f' using results of 'p'.
- */
-var binda = (p, f) ->
-    bind(p, x ->
-        f.apply(undefined, stream.toArray(x)));
-
-/**
  * Parser that matches end of input. If end of input, succeeds with null.
  */
 var eof = () ->
@@ -450,7 +441,7 @@ var eof = () ->
             eerr(new ExpectError(state.position, "end of input",  stream.first(state.input)), state, m));
     };
 
-// Parser State Interaction Parsers
+// State Interaction Parsers
 ////////////////////////////////////////
 /**
  * Parser that extracts information from the Parser's current state.
@@ -533,8 +524,17 @@ var getInput = constant(extract(s -> s.input));
 var setInput = input ->
     modifyState(s -> s.setInput(input));
 
-// Try Parsers
+// 
 ////////////////////////////////////////
+/**
+ * Parser that always fails with an error and consumes no input.
+ * 
+ * @param [msg] String message for error.
+ */
+var fail = msg ->
+    let e = (msg ? ParseError : UnknownError) in
+        bind(getPosition(), pos -> never(new e(pos, msg)));
+
 /**
  * Parser that attempts to parse p. Upon failure, never consumes any input.
  */
@@ -581,6 +581,8 @@ var either = _either((pos, pErr, qErr) -> new MultipleError(pos, [pErr, qErr]));
 /**
  * Parser that attempts a variable number of parsers in order and returns
  * the value of the first one that succeeds.
+ * 
+ * Throws a ParserError if called with no arguments.
  */
 var choice = (function(){
     var either = _either((pos, pErr, qErr) -> new ChoiceError(pos, pErr, qErr));
@@ -590,10 +592,12 @@ var choice = (function(){
     var end = (state, m, cok, cerr, eok, eerr) ->
         eerr(new MultipleError(state.position, []), state, m);
     
-    return (/*...*/) ->
-        (arguments.length === 0 ?
-            never() :
-            reduceRight(arguments, reducer, end));
+    return (/*...*/) -> {
+        if (!arguments.length) {
+            throw new ParserError("choice called with no arguments");
+        }
+        return reduceRight(arguments, reducer, end);
+    };
 }());
 
 /**
@@ -633,6 +637,13 @@ var _optionalValueParser = p ->
     optional(p, stream.end);
 
 /**
+ * Same as bind but calls apply on 'f' using stream results of 'p'.
+ */
+var binda = (p, f) ->
+    bind(p, x ->
+        f.apply(undefined, stream.toArray(x)));
+
+/**
  * Parser that cons the value result of 'valueParser' onto the stream result
  * of 'streamParser'.
  * 
@@ -649,9 +660,7 @@ var cons = _joinParser(stream.cons);
 var append = _joinParser(stream.append);
 
 /**
- * Consume a finite sequence of parsers, returning the results as a list.
- * 
- * @return Ordered list of results from each parsers.
+ * Consume a finite sequence of parsers, returning the results as a stream.
  */
 var sequence = (function(){
     var reducer = (p, q) -> cons(q, p);
@@ -667,8 +676,6 @@ var sequence = (function(){
  * with the parser itself, this event breaks out of parsing.
  * 
  * @param p Parser to consume zero or more times.
- * 
- * @return List of 'p' results. May be empty if zero 'p' was consumed.
  */
 var many = (function(){
     var manyError = () -> {
@@ -687,8 +694,6 @@ var many = (function(){
  * Consume 'p' 1 or more times.
  * 
  * @param p Parser to consume one or more times.
- * 
- * @return List of 'p' results.
  */
 var many1 = p ->
     cons(p, many(p));
@@ -698,8 +703,6 @@ var many1 = p ->
  * 
  * @param {Number} n Number of times to consume p.
  * @param p Parser to consume 'n' times.
- * 
- * @return List of 'p' results.
  */
 var times = (n, p) ->
     (n <= 0 ?
@@ -712,8 +715,6 @@ var times = (n, p) ->
  * @param {Number} min Minimum number of times to consume 'p'.
  * @param {Number} max Maximum umber of times to consume 'p'.
  * @param p Parser to consume.
- * 
- * @return List of 'p' results.
  */
 var betweenTimes = (function(){
     var maxParser = (max, p) ->
@@ -743,8 +744,6 @@ var then = (p, q) ->
  * @param open Parser to consume first, discarding results.
  * @param close Parser to consume last, discarding results.
  * @param p Parser to consume between 'open' and 'close'.
- *
- *@return Result of 'p'.
  */
 var between = (open, close, p) ->
     next(open, then(p, close));
@@ -756,8 +755,6 @@ var between = (open, close, p) ->
  * 
  * @param sep Parser to consume between instances of 'p', discarding results.
  * @param p Parser to consume seperated by 'sep'.
- * 
- * @return List of 'p' results.
  */
 var sepBy1 = (sep, p) -> 
     cons(p, many(next(sep, p)));
@@ -767,8 +764,6 @@ var sepBy1 = (sep, p) ->
  * 
  * @param sep Parser to consume between instances of 'p', discarding results.
  * @param p Parser to consume seperated by 'sep'.
- * 
- * @return List of 'p' results.
  */
 var sepBy = (sep, p) ->
     _optionalValueParser(sepBy1(sep, p));
@@ -783,8 +778,6 @@ var sepBy = (sep, p) ->
  *     character should be consumed.
  * @param {function(object): Error} [errMsg] Optional function that returns
  *    the error when consume fails. Passed the state position and tested token.
- * 
- * @return Consumed token.
  */
 var token = (function(){
     var defaultErr = (pos, tok) ->
@@ -809,8 +802,6 @@ var token = (function(){
 
 /**
  * Parser that consumes any token.
- * 
- * @return Consumed token.
  */
 var anyToken = constant(token(constant(true)));
 
@@ -893,15 +884,19 @@ var memo = function(p) {
  ******************************************************************************/
 /**
  * Execute a given parser 'p', correctly extracting results.
- * 
- * Supplies an empty memo table.
  */
 var exec = (p, state, m, cok, cerr, eok, eerr) ->
     trampoline(p(state, m, cok, cerr, eok, eerr))();
 
-var _makeParser = (ok, err) ->
-    (p, state, m) ->
-        exec(p, state, (m || null), ok, err, ok, err);
+var _perform = (p, state, ok, err) ->
+    exec(p, state, null, ok, err, ok, err);
+
+/**
+ * Perform parser 'p' with state, returning result from callback 'ok' when 
+ * successful and from 'err' on error.
+ */
+var perform = (p, state, ok, err) ->
+    _perform(p, state, x -> () -> ok(x), x -> () -> err(x));
 
 /**
  * Run a given parser with a given state.
@@ -911,7 +906,8 @@ var _makeParser = (ok, err) ->
  * 
  * @return Result from the parser.
  */
-var runState = _makeParser(constant, throwConstant);
+var runState = (p, state) ->
+    exec(p, state, null, constant, throwConstant, constant, throwConstant);
 
 /**
  * Run parser 'p' against an input stream.
@@ -919,19 +915,19 @@ var runState = _makeParser(constant, throwConstant);
  * Supplies own state object.
  * 
  * @param p Parser to run.
- * @param s A stream.js style stream supporting first and rest.
+ * @param s Nu style stream supporting first and rest.
  * @param [ud] User data.
  * 
  * @return Result from the parser.
  */
 var runStream = (p, s, ud) ->
-    runState(p, new ParserState(s, Position.initial, (ud || null)));
+    runState(p, new ParserState(s, Position.initial, ud));
 
 /**
  * Run parser 'p' against an input string.
  * 
  * @param p Parser to run.
- * @param input An array-like object of characters to run the parser against.
+ * @param input Array-like object of characters to run the parser against.
  * @param [ud] User data.
 
  * @return Result from the parser.
@@ -942,7 +938,7 @@ var run = (p, input, ud) ->
 /**
  * Run parser 'p' zero or more times to produce a lazy stream of results.
  * 
- * Similar in operation to the 'many' parser, but lazy and not a
+ * Similar in operation to the 'many' parser, but lazy is not a
  * combinatorial parser.
  * 
  * Result may be an infinite stream.
@@ -965,7 +961,7 @@ var runManyState = function(p, state) {
  * Supplies own state.
  * 
  * @param p Parser to run.
- * @param s stream.js style stream supporting first and rest.
+ * @param s Nu style stream supporting first and rest.
  * @param [ud] User data.
  *
  * @see runManyState
@@ -974,7 +970,7 @@ var runManyStream = (p, s, ud) ->
     runManyState(p, new ParserState(s, Position.initial, ud));
 
 /**
- * Run parser 'p' zero or more times against a input string to produce a lazy
+ * Run parser 'p' zero or more times against an input string to produce a lazy
  * stream or results.
  * 
  * @param p Parser to run.
@@ -994,7 +990,8 @@ var runMany = (p, input, ud) ->
  *
  * @return Did the parser successfully run?
  */
-var testState = _makeParser(constant(constant(true)), constant(constant(false)));
+var testState = (p, state) ->
+    _perform(p, state, constant(constant(true)), constant(constant(false)));
 
  /**
  * Tests parser 'p' against a stream.
@@ -1002,7 +999,7 @@ var testState = _makeParser(constant(constant(true)), constant(constant(false)))
  * Supplies own state.
  * 
  * @param p Parser to run.
- * @param s stream.js style stream supporting first and rest.
+ * @param s Nu style stream supporting first and rest.
  * @param [ud] User data.
  * 
  * @see testState
@@ -1067,6 +1064,7 @@ return {
     'getPosition': getPosition,
     'setPosition': setPosition,
     
+    'fail': fail,
     'attempt': attempt,
     'lookahead': lookahead,
     
@@ -1101,6 +1099,8 @@ return {
     
 // Running
     'exec': exec,
+    
+    'perform': perform,
     
     'runState': runState,
     'runStream': runStream,

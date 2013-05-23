@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 12.4.0 - May 20, 2013 ##
+* Added 'Position.initial' object for initial position instead of 'new Position(0)'.
+
 ## 12.3.0 - April 20, 2013 ##
 * Clarified that 'parse.sepBy' should not backtrack.
 
