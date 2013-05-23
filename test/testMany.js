@@ -1,7 +1,7 @@
-define(['parse/parse', 'parse/parse_eager'], function(parse, parse_eager){
-    var ab = parse_eager.many(parse.either(
+define(['parse/parse'], function(parse){
+    var ab = parse.eager(parse.many(parse.either(
             parse.character('a'),
-            parse.character('b')));
+            parse.character('b'))));
     
     return {
         'module': "Many Tests",
@@ -20,15 +20,15 @@ define(['parse/parse', 'parse/parse_eager'], function(parse, parse_eager){
              }],
              ["Consume non string",
              function(){
-                 var pairs = parse_eager.many(parse.either(
+                 var pairs = parse.eager(parse.many(parse.either(
                          parse.character('ab'),
-                         parse.character('cd')));
+                         parse.character('cd'))));
                  
                   assert.deepEqual(parse.run(pairs, ['ab', 'cd', 'ab', 'ca']), ['ab', 'cd', 'ab']);
               }],
               ["Consume large input many",
               function(){
-                  var a = parse_eager.many(parse.character('a'));
+                  var a = parse.eager(parse.many(parse.character('a')));
                   
                   var input = (new Array(1000 + 1)).join('a');
                   

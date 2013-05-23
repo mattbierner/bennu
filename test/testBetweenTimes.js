@@ -1,4 +1,4 @@
-define(['parse/parse', 'parse/parse_eager'], function(parse, parse_eager){
+define(['parse/parse'], function(parse){
     var ab = parse.either(
         parse.attempt(parse.character('a')),
         parse.character('b')
@@ -9,7 +9,7 @@ define(['parse/parse', 'parse/parse_eager'], function(parse, parse_eager){
         'tests': [
             ["Greedy Consume Times items",
             function(){
-                var a = parse_eager.betweenTimes(1, 3, ab);
+                var a = parse.eager(parse.betweenTimes(1, 3, ab));
                 
                 assert.deepEqual(parse.run(a, "ab"), ['a', 'b']);
                 
@@ -23,7 +23,7 @@ define(['parse/parse', 'parse/parse_eager'], function(parse, parse_eager){
             }],
             ["Consume Zero times",
              function(){
-                var a = parse_eager.betweenTimes(0, 2, parse.character('a'));
+                var a = parse.eager(parse.betweenTimes(0, 2, parse.character('a')));
                  
                  assert.deepEqual(parse.run(a, "aaa"), ['a', 'a']);
                  
@@ -31,18 +31,18 @@ define(['parse/parse', 'parse/parse_eager'], function(parse, parse_eager){
             }],
             ["Consume Too few",
             function(){
-                var a = parse_eager.betweenTimes(3, 4, parse.character('a'));
+                var a = parse.eager(parse.betweenTimes(3, 4, parse.character('a')));
                 
                 assert.throws(parse.run.bind(undefined, a, "aa"), parse.UnexpectError);
                 assert.throws(parse.run.bind(undefined, a, ""), parse.UnexpectError);
              }],
              ["Consume Max lt Min",
              function(){
-                assert.throws(function(){ parse_eager.betweenTimes(5, 1, parse.character('a')); }, parse.ParserError);
+                assert.throws(function(){ parse.betweenTimes(5, 1, parse.character('a')); }, parse.ParserError);
              }],
              ["Consume large input many",
              function(){
-                 var a = parse_eager.betweenTimes(1000, 1500, parse.character('a'));
+                 var a = parse.eager(parse.betweenTimes(1000, 1500, parse.character('a')));
                
                  var input = (new Array(2000 + 1)).join('a');
                

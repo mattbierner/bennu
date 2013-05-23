@@ -603,13 +603,13 @@ var choice = (function(){
 /**
  * Consume 'p' either zero or one time.
  * 
+ * @param x Default value to return.
  * @param p Parser to consume zero or one times.
- * @param [def] Default value to return.
  * 
  * @return Result of 'p' or default value.
  */
-var optional = (p, def) ->
-    either(p, always(def));
+var optional = (x, p) ->
+    either(p, always(x));
 
 /**
  * Parser that parses 'p' but if 'p' fails without consuming input, produces
@@ -633,16 +633,22 @@ var _joinParser = joiner ->
             bind(p2, v2 ->
                 always(joiner(v1, v2))));
 
-var _optionalValueParser = p ->
-    optional(p, stream.end);
+var _optionalValueParser = curry(optional, stream.end);
 
+/**
+ * Parser that takes stream results from 'p' and turns eagerly turns them into
+ * an regular array.
+ */
+var eager =
+    let toArray = x -> always(stream.toArray(x)) in
+        p -> bind(p, toArray);
+        
 /**
  * Same as bind but calls apply on 'f' using stream results of 'p'.
  */
-var binda = (p, f) ->
-    bind(p, x ->
-        f.apply(undefined, stream.toArray(x)));
-
+var binds = (p, f) ->
+    bind(eager(p), x ->
+        f.apply(undefined, x));
 /**
  * Parser that cons the value result of 'valueParser' onto the stream result
  * of 'streamParser'.
@@ -664,8 +670,7 @@ var append = _joinParser(stream.append);
  */
 var sequence = 
     let reducer = (p, q) -> cons(q, p) in
-        (/*...*/) ->
-            reduceRight(arguments, reducer, _end);
+        (/*...*/) -> reduceRight(arguments, reducer, _end);
 
 /**
  * Consume 'p' zero or more times.
@@ -729,42 +734,6 @@ var betweenTimes = (function(){
     };
 }());
 
-/**
- * Parse 'p' then 'q', returning result from 'p'.
- */
-var then = (p, q) ->
-    bind(p, x ->
-        next(q, always(x)));
-
-/**
- * Consume 'p' between 'open' and 'close', returning 'p' results.
- * 
- * @param open Parser to consume first, discarding results.
- * @param close Parser to consume last, discarding results.
- * @param p Parser to consume between 'open' and 'close'.
- */
-var between = (open, close, p) ->
-    next(open, then(p, close));
-
-/**
- * Consume 'p' seperated by 'sep' one or more times.
- * 
- * If sep succeeds but p fails, does not backtrack.
- * 
- * @param sep Parser to consume between instances of 'p', discarding results.
- * @param p Parser to consume seperated by 'sep'.
- */
-var sepBy1 = (sep, p) -> 
-    cons(p, many(next(sep, p)));
-
-/**
- * Parser that consumes 'p' seperated by 'sep' zero or more times.
- * 
- * @param sep Parser to consume between instances of 'p', discarding results.
- * @param p Parser to consume seperated by 'sep'.
- */
-var sepBy = (sep, p) ->
-    _optionalValueParser(sepBy1(sep, p));
 
 // Token Parsers
 ////////////////////////////////////////
@@ -1042,7 +1011,6 @@ return {
     'always': always,
     'never': never,
     'bind': bind,
-    'binda': binda,
     'eof': eof,
     
     'extract': extract,
@@ -1070,20 +1038,16 @@ return {
     'optional': optional,
     'expected': expected,
     
+    'eager': eager,
+    'binds': binds,
     'cons': cons,
     'append': append,
     'sequence': sequence,
-    
     'many': many,
     'many1': many1,
     'times': times,
     'betweenTimes': betweenTimes,
-    
-    'then': then,
-    'between': between,
-    'sepBy1': sepBy1,
-    'sepBy': sepBy,
-    
+
     'token': token,
     'anyToken': anyToken,
     

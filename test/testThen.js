@@ -1,10 +1,10 @@
-define(['parse/parse'], function(parse){
+define(['parse/parse', 'parse/parse_lang'], function(parse, parse_lang){
     return {
         'module': "Then Tests",
         'tests': [
             ["Simple Then",
             function(){
-                var a = parse.then(parse.character('a'), parse.character('b'));
+                var a = parse_lang.then(parse.character('a'), parse.character('b'));
                 
                 assert.deepEqual(parse.run(a, "ab"), 'a');
                 
@@ -15,7 +15,7 @@ define(['parse/parse'], function(parse){
             ["P fail Then",
             function(){
                 var a = parse.either(
-                    parse.then(
+                    parse_lang.then(
                         parse.never(),
                         parse.character('b')),
                     parse.character('a'));
@@ -25,7 +25,7 @@ define(['parse/parse'], function(parse){
             ["Q fail Then",
             function(){
                 var a = parse.either(
-                    parse.attempt(parse.then(
+                    parse.attempt(parse_lang.then(
                         parse.character('a'),
                         parse.never('b'))),
                     parse.character('a'));

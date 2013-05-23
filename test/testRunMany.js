@@ -1,4 +1,4 @@
-define(['parse/parse', 'parse/parse_eager', 'nu/stream'], function(parse, parse_eager, stream){
+define(['parse/parse', 'nu/stream'], function(parse, stream){
     var ab = parse.either(
             parse.character('a'),
             parse.character('b'));

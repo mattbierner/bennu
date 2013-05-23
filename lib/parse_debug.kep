@@ -1,0 +1,34 @@
+/**
+ * @fileOverview Parsers for debugging and profiling parsers.
+ */
+define(['parse/parse',
+        'nu/stream'],
+function(parse,
+        stream) {
+"use strict";
+
+/* Helpers
+ ******************************************************************************/
+var compose = (f, g) -> (/*...*/) -> f(g.apply(undefined, arguments));
+
+var toArrayParser = (function(){
+    var toArray= x ->
+        parse.always(stream.toArray(x));
+        
+    return p ->
+        parse.bind(p, toArray);
+}());
+
+/* Parsers
+ ******************************************************************************/
+var memoParser = function(p) {
+
+};
+
+/* Export
+ ******************************************************************************/
+return {
+
+};
+
+});

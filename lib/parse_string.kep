@@ -9,7 +9,7 @@ function(parse,
 
 /* Prototypes
  ******************************************************************************/
-var reduce = Array.prototype.reduce;
+var reduce = Function.prototype.call.bind(Array.prototype.reduce);
 
 var regExpTest = RegExp.prototype.test;
 
@@ -66,12 +66,12 @@ var trieParser = (function(){
     var wordReduce = (parent, l) -> (parent[l] = (parent[l] || {}));
     
     var wordsReduce = function(trie, word) {
-        var node = reduce.call(word, wordReduce, trie);
+        var node = reduce(word, wordReduce, trie);
         node[''] = null;
         return trie;
     };
     
-    var makeTrie = words -> words.reduce(wordsReduce, {});
+    var makeTrie = words -> reduce(words, wordsReduce, {});
     
     var _trie = function(trie, prefix) {
         var choices = [];
