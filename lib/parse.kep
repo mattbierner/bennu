@@ -734,7 +734,8 @@ var token = let
 /**
  * Parser that consumes any token.
  */
-var anyToken = Parser('Any Token', token(constant(true)));
+var anyToken = Parser('Any Token',
+    token(constant(true)));
 
 var _character = (pred, c) ->
     token(curry(pred, c));
