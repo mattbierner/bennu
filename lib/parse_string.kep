@@ -15,10 +15,10 @@ var regExpTest = RegExp.prototype.test;
 
 /* Helpers
  ******************************************************************************/
-var stringEq = (a, b) -> (a.valueOf() === b.valueOf());
+var stringEq = \a, b -> (a.valueOf() === b.valueOf());
 
-var expectError = msg ->
-    (pos, tok) ->
+var expectError = \msg ->
+    \pos, tok ->
         new parse.ExpectError(pos, msg, (tok === null ? "end of input": tok));
 
 /* Parsers
@@ -30,7 +30,7 @@ var expectError = msg ->
  * 
  * @param c The char to consume.
  */
-var character = c ->
+var character = \c ->
     parse.token(stringEq.bind(undefined, c), expectError(c));
 
 /**
@@ -42,80 +42,77 @@ var character = c ->
  * @param {String} s String to consume.
  */
 var string = (function(){
-    var impl = (original, remaining, found, pos) -> {
+    var impl = \(original, remaining, found, pos) -> {
         return (remaining.length === 0 ?
             parse.always(original) :
             parse.next(
                parse.token(
                    stringEq.bind(undefined, remaining[0]),
-                   (_, tok) -> new parse.ExpectError(pos, original, (tok === null ? found : found + tok))),
+                   \(_, tok) -> new parse.ExpectError(pos, original, (tok === null ? found : found + tok))),
                impl(original, remaining.slice(1), found + remaining[0], pos)));
     };
     
-    return s ->
+    return \s ->
         parse.bind(
             parse.getPosition(),
-            pos ->
-                parse.attempt(impl(s, s, "", pos)));
+            \pos -> parse.attempt(impl(s, s, "", pos)));
 }());
 
 /**
  * Parser that builds a parse trie from an array of strings.
  */
-var trie = (function(){
-    var wordReduce = (parent, l) -> (parent[l] = (parent[l] || {}));
-    
-    var wordsReduce = (trie, word) -> {
-        var node = reduce(word, wordReduce, trie);
-        node[''] = null;
-        return trie;
-    };
-    
-    var makeTrie = words -> reduce(words, wordsReduce, {});
-    
-    var _trie = function(trie, prefix) {
-        var choices = [];
-        Object.keys(trie).forEach(n -> {
-            if (n.length === 1) {
-                choices.push(parse.next(
-                    character(n),
-                    _trie(trie[n], prefix + n)));
+var trie =
+    let
+        wordReduce = \parent, l -> (parent[l] = (parent[l] || {})),
+        wordsReduce = \trie, word -> {
+            var node = reduce(word, wordReduce, trie);
+            node[''] = null;
+            return trie;
+        },
+        makeTrie = \words -> reduce(words, wordsReduce, {}),
+        _trie = function(trie, prefix) {
+            var choices = [];
+            Object.keys(trie).forEach(\n -> {
+                if (n.length === 1) {
+                    choices.push(parse.next(
+                        character(n),
+                        _trie(trie[n], prefix + n)));
+                }
+            });
+            
+            if (trie.hasOwnProperty('')) {
+                choices.push(parse.always(prefix));
             }
-        });
-        
-        if (trie.hasOwnProperty('')) {
-            choices.push(parse.always(prefix));
+            
+            return parse.choice.apply(undefined, choices);
         }
-        
-        return parse.choice.apply(undefined, choices);
-    };
-    
-    return nodes -> parse.attempt(_trie(makeTrie(nodes), ''));
-}());
+    in
+        \nodes ->
+            parse.attempt(_trie(makeTrie(nodes), ''));
 
 /**
  * Parser that consumes any character.
  */
 var anyChar = parse.Parser('Any Character',
-    parse.token(regExpTest.bind(/^.$/), expectError("any character")));
+    parse.token(regExpTest.bind(`^.$`), expectError("any character")));
 
 /**
  * Parser that consumes any letter character.
  */
 var letter = parse.Parser('Any Letter',
-    parse.token(regExpTest.bind(/^[a-z]$/i), expectError("any letter character")));
+    parse.token(regExpTest.bind(`^[a-z]$`i), expectError("any letter character")));
 
 /**
  * Parser that consumes any space character.
  */
 var space = parse.Parser('Any Whitespace',
-    parse.token(regExpTest.bind(/^\s$/i), expectError("any space character")));
+    parse.token(regExpTest.bind(`^\s$`i), expectError("any space character")));
 
 /**
  * Parser that consumes any number character.
  */
 var digit = parse.Parser('Any Digit',
-    parse.token(regExpTest.bind(/^[0-9]$/i), expectError("any digit character")));
+    parse.token(regExpTest.bind(`^[0-9]$`i), expectError("any digit character")));
 
 /* Export
  ******************************************************************************/

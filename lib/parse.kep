@@ -14,27 +14,27 @@ var reduceRight = Function.prototype.call.bind(Array.prototype.reduceRight);
 
 /* Helpers
  ******************************************************************************/
-var curry = (f /*, ...*/) -> f.bind.apply(f, arguments);
+var curry = \f /*, ...*/ -> f.bind.apply(f, arguments);
 
-var identity = x -> x;
+var identity = \x -> x;
 
-var constant = x -> () -> x;
+var constant = \x -> \() -> x;
 
-var throwConstant = err -> () -> { throw err; };
+var throwConstant = \err -> \() -> { throw err; };
 
-var eq = (x, y) -> x === y;
+var eq = \x, y -> (x === y);
 
-var uniqueParserId = () -> Math.random();
+var uniqueParserId = \() -> Math.random();
 
 /* Continuation
  ******************************************************************************/
-var cont = (f, args) -> {
+var cont = \f, args -> {
     var c = [f, args];
     c._next = true;
     return c;
 };
 
-var trampoline = f -> {
+var trampoline = \f -> {
     var value = f;
     while (value && value._next) {
         value = value[0].apply(undefined, value[1]);
@@ -75,7 +75,7 @@ Memoer.lookup = function(cell, id, state) {
  * Create a new match cell storing 'val' for 'state' and including, delegating,
  * some cell 'm'.
  */
-Memoer.update = (m, id, state, val) -> new Memoer(id, state, val, m);
+Memoer.update = \m, id, state, val -> new Memoer(id, state, val, m);
 
 /* Records
  ******************************************************************************/
@@ -102,10 +102,10 @@ Position.initial = new Position(0);
  * 
  * @returns Position after 'tok'.
  */
-Position.prototype.increment = tok ->
+Position.prototype.increment = \tok ->
     new Position(this.index + 1);
 
-Position.prototype.toString = () ->
+Position.prototype.toString = \() ->
     '' + this.index;
 
 /**
@@ -114,7 +114,7 @@ Position.prototype.toString = () ->
  * @returns Number less than, equal to, or greater than zero if this position is
  *   less than, equal to, or greater than 'pos'.
  */
-Position.prototype.compare = pos ->
+Position.prototype.compare = \pos ->
     this.index - pos.index;
 
 // ParserState
@@ -139,7 +139,7 @@ var ParserState = function(input, position, userState) {
  * 
  * @returns New input state for next item in input.
  */
-ParserState.prototype.next = tok ->
+ParserState.prototype.next = \tok ->
     (this._next ||
         (this._next = new ParserState(stream.rest(this.input), this.position.increment(tok), this.userState)));
 
@@ -148,7 +148,7 @@ ParserState.prototype.next = tok ->
  * 
  * States are equal if their position's are equal.
  */
-ParserState.prototype.eq = state ->
+ParserState.prototype.eq = \state ->
     (this.position.compare(state.position) === 0);
 
 /**
@@ -158,7 +158,7 @@ ParserState.prototype.eq = state ->
  * 
  * @returns New input state with position.
  */
-ParserState.prototype.setInput = input ->
+ParserState.prototype.setInput = \input ->
     new ParserState(input, this.position, this.userState);
 
 /**
@@ -168,7 +168,7 @@ ParserState.prototype.setInput = input ->
  * 
  * @returns New input state with position.
  */
-ParserState.prototype.setPosition = position ->
+ParserState.prototype.setPosition = \position ->
     new ParserState(this.input, position, this.userState);
 
 /**
@@ -178,7 +178,7 @@ ParserState.prototype.setPosition = position ->
  * 
  * @returns New input state with position.
  */
-ParserState.prototype.setUserState = userState ->
+ParserState.prototype.setUserState = \userState ->
     new ParserState(this.input, this.position, userState);
 
 /* Errors
@@ -216,12 +216,12 @@ ParseError.prototype.name = 'ParseError';
 Object.defineProperties(ParseError.prototype, {
     'message': {
         'configurable': true,
-        'get': () ->
+        'get': \() ->
             "At position:" + this.position + " " + this.errorMessage
     },
     'errorMessage': {
         'configurable': true,
-        'get': () ->
+        'get': \() ->
             (this._msg === undefined ? "" : this._msg)
     }
 });
@@ -243,8 +243,8 @@ MultipleError.prototype.constructor = MultipleError;
 MultipleError.prototype.name = 'MultipleError';
 
 Object.defineProperty(MultipleError.prototype, 'errorMessage', {
-    'get': () ->
-        "[" + map(this.errors, x -> x.message).join(", ") + "]"
+    'get': \() ->
+        "[" + map(this.errors, \x -> x.message).join(", ") + "]"
 });
 
 /**
@@ -264,7 +264,7 @@ ChoiceError.prototype.constructor = MultipleError;
 ChoiceError.prototype.name = 'ChoiceError';
 
 Object.defineProperty(ChoiceError.prototype, 'errors', {
-    'get': () ->
+    'get': \() ->
         [this._pErr].concat(this._qErr.errors)
 });
 
@@ -301,7 +301,7 @@ UnexpectError.prototype.constructor = UnexpectError;
 UnexpectError.prototype.name = 'UnexpectError';
 
 Object.defineProperty(UnexpectError.prototype, 'errorMessage', {
-    'get': () ->
+    'get': \() ->
         "Unexpected:" + this.unexpected
 });
 
@@ -323,7 +323,7 @@ ExpectError.prototype.constructor = ExpectError;
 ExpectError.prototype.name = "ExpectError";
 
 Object.defineProperty(ExpectError.prototype, 'errorMessage', {
-    'get': () ->
+    'get': \() ->
         "Expected:" + this.expected + (this.found ?
             " Found:" + this.found :
             "")
@@ -350,9 +350,9 @@ Object.defineProperty(ExpectError.prototype, 'errorMessage', {
  * 
  * @return A parser.
  */
-var rec = def -> {
+var rec = \def -> {
     var value;
-    return (value = def((/*...*/) -> value.apply(this, arguments)));
+    return (value = def(\(/*...*/) -> value.apply(this, arguments)));
 };
 
 /* Parser definition
@@ -370,9 +370,9 @@ var rec = def -> {
  *
  * @return 
  */
-var Parser = (name, impl) ->
+var Parser = \name, impl ->
     (impl.hasOwnProperty('parserId') ? 
-        Parser(name, (/*...*/) -> impl.apply(this, arguments)) :
+        Parser(name, \(/*...*/) -> impl.apply(this, arguments)) :
         Object.defineProperties(impl, {
             'displayName': {
                 'value': name,
@@ -389,7 +389,7 @@ var Parser = (name, impl) ->
  * 
  * @param body The body of the parser.
  */
-var RecParser = (name, body) -> Parser(name, rec(body));
+var RecParser = \name, body -> Parser(name, rec(body));
 
 /* Parsers
  ******************************************************************************/
@@ -400,7 +400,7 @@ var RecParser = (name, body) -> Parser(name, rec(body));
  * 
  * @param x Value to succeed with.
  */
-var always = x ->
+var always = \x ->
     function ALWAYS_PARSER(state, m, cok, cerr, eok /*, _*/) {
         return eok(x, state, m);
     };
@@ -410,7 +410,7 @@ var always = x ->
  * 
  * @param x Value to fail with.
  */
-var never = x ->
+var never = \x ->
     function NEVER_PARSER(state, m, cok, cerr, eok, eerr) {
         return eerr(x, state, m);
     };
@@ -424,17 +424,17 @@ var never = x ->
  * 
  * @return Value from 'q' parser.
  */
-var bind = (p, f) ->
+var bind = \p, f ->
     function BIND_PARSER(state, m, cok, cerr, eok, eerr) {
-        var pcok = (x, state, m) -> cont(f(x, state, m), [state, m, cok, cerr, cok, cerr]),
-            peok = (x, state, m) -> cont(f(x, state, m), [state, m, cok, cerr, eok, eerr]);
+        var pcok = \x, state, m -> cont(f(x, state, m), [state, m, cok, cerr, cok, cerr]),
+            peok = \x, state, m -> cont(f(x, state, m), [state, m, cok, cerr, eok, eerr]);
         return cont(p, [state, m, pcok, cerr, peok, eerr]);
     };
 
 /**
  * Parser that matches end of input. If end of input, succeeds with null.
  */
-var eof = () ->
+var eof = \() ->
     function EOF_PARSER(state, m, cok, cerr, eok, eerr) {
         return (stream.isEmpty(state.input) ?
             eok(stream.end, state, m) :
@@ -449,7 +449,7 @@ var eof = () ->
  * @param {function(Object): *} f Function that extracts information from a 
  *     given state object.
  */
-var extract = f ->
+var extract = \f ->
     function EXTRACT_PARSER(state, m, cok, cerr, eok /*, _*/) {
         return eok(f(state), state, m);
     };
@@ -464,7 +464,7 @@ var getParserState = constant(extract(identity));
  * 
  *  @param {function(ParserState): *} f Function that transforms that current state.
  */
-var modifyParserState = f ->
+var modifyParserState = \f ->
     function MODIFY_PARSER_STATE(state, m, cok, cerr, eok /*, _*/) {
         var newState = f(state);
         return eok(newState, newState, m);
@@ -475,20 +475,20 @@ var modifyParserState = f ->
  * 
  * @param s New parser state.
  */
-var setParserState = s ->
+var setParserState = \s ->
     modifyParserState(constant(s));
 
 /**
  * Parser that returns the current users state.
  */
-var getState = constant(extract(s -> s.userState));
+var getState = constant(extract(\s -> s.userState));
 
 /**
  * Parser that modifies the current user state using function 'f'.
  * 
  *  @param {function(ParserState): *} f Function that transforms that current user state.
  */
-var modifyState = f ->
+var modifyState = \f ->
     function MODIFY_STATE(state, m, cok, cerr, eok /*, _*/) {
         var newState = state.setUserState(f(state.userState));
         return eok(newState, newState, m);
@@ -499,30 +499,30 @@ var modifyState = f ->
  * 
  * @param s New user parser state.
  */
-var setState = s ->
+var setState = \s ->
     modifyState(constant(s));
     
 /**
  * Parser that gets the current position.
  */
-var getPosition = constant(extract(s -> s.position));
+var getPosition = constant(extract(\s -> s.position));
 
 /**
  * Parser that sets the current position
  */
-var setPosition = position ->
-    modifyParserState(s -> s.setPosition(position));
+var setPosition = \position ->
+    modifyParserState(\s -> s.setPosition(position));
 
 /**
   *Parser that gets the current input.
  */
-var getInput = constant(extract(s -> s.input));
+var getInput = constant(extract(\s -> s.input));
 
 /**
  * Parser that sets the current input.
  */
-var setInput = input ->
-    modifyState(s -> s.setInput(input));
+var setInput = \input ->
+    modifyState(\s -> s.setInput(input));
 
 // 
 ////////////////////////////////////////
@@ -531,14 +531,14 @@ var setInput = input ->
  * 
  * @param {String} [msg] message for error.
  */
-var fail = msg ->
+var fail = \msg ->
     let e = (msg ? ParseError : UnknownError) in
-        bind(getPosition(), pos -> never(new e(pos, msg)));
+        bind(getPosition(), \pos -> never(new e(pos, msg)));
 
 /**
  * Parser that attempts to parse p. Upon failure, never consumes any input.
  */
-var attempt = p ->
+var attempt = \p ->
     function ATTEMPT_PARSER(state, m, cok, cerr, eok, eerr) {
         return cont(p, [state, m, cok, eerr, eok, eerr]);
     };
@@ -546,9 +546,9 @@ var attempt = p ->
 /**
  * Parser that consumes no input but returns what was parsed.
  */
-var lookahead = p ->
+var lookahead = \p ->
     function LOOKAHEAD_PARSER(state, m, cok, cerr, eok, eerr) {
-        var ok = (item, _, m) -> eok(item, state, m);
+        var ok = \item, _, m -> eok(item, state, m);
         return cont(p, [state, m, ok, cerr, eok, eerr]);
     };
 
@@ -557,15 +557,15 @@ var lookahead = p ->
 /**
  * Parser that parses 'p', then 'q'. Return the 'q' value.
  */
-var next = (p, q) ->
+var next = \p, q ->
     bind(p, constant(q));
 
-var _either = e ->
-    (p, q) ->
+var _either = \e ->
+    \p, q ->
         function EITHER_PARSER(state, m, cok, cerr, eok, eerr) {
             var pos = state.position;
             var peerr = function(errFromP, _, mFromP) {
-                var qeerr = (errFromQ, _, mFromQ) ->
+                var qeerr = \(errFromQ, _, mFromQ) ->
                     eerr(e(pos, errFromP, errFromQ), state, mFromQ);
                 return cont(q, [state, mFromP, cok, cerr, eok, qeerr]);
             };
@@ -576,7 +576,7 @@ var _either = e ->
  * Parser that attempts p or q. If p succeeds, returns its value. Else, tries
  * to parse q.
  */
-var either = _either((pos, pErr, qErr) -> new MultipleError(pos, [pErr, qErr]));
+var either = _either(\(pos, pErr, qErr) -> new MultipleError(pos, [pErr, qErr]));
 
 /**
  * Parser that attempts a variable number of parsers in order and returns
@@ -585,14 +585,14 @@ var either = _either((pos, pErr, qErr) -> new MultipleError(pos, [pErr, qErr]));
  * Throws a ParserError if called with no arguments.
  */
 var choice = (function(){
-    var either = _either((pos, pErr, qErr) -> new ChoiceError(pos, pErr, qErr));
+    var either = _either(\(pos, pErr, qErr) -> new ChoiceError(pos, pErr, qErr));
         
-    var reducer = (p, c) -> either(c, p);
+    var reducer = \p, c -> either(c, p);
     
-    var end = bind(getPosition(), pos ->
+    var end = bind(getPosition(), \pos ->
         never(new MultipleError(pos, [])));
     
-    return (/*...*/) -> {
+    return \(/*...*/) -> {
         if (!arguments.length) {
             throw new ParserError("choice called with no arguments");
         }
@@ -608,7 +608,7 @@ var choice = (function(){
  * 
  * @return Result of 'p' or default value.
  */
-var optional = (x, p) ->
+var optional = \x, p ->
     either(p, always(x));
 
 /**
@@ -618,9 +618,9 @@ var optional = (x, p) ->
  * @param expect Expected value. 
  * @param p Parser to attempt.
  */
-var expected = (expect, p) ->
+var expected = \expect, p ->
     function EXPECTED_PARSER(state, m, cok, cerr, eok, eerr) {
-        return p(state, m, cok, cerr, eok, (x, state, m) -> eerr(new ExpectError(state.position, expect), state, m));
+        return p(state, m, cok, cerr, eok, \(x, state, m) -> eerr(new ExpectError(state.position, expect), state, m));
     };
 
 // Iterative Parsers
@@ -629,10 +629,10 @@ var _end = always(stream.end);
 
 var _optionalValueParser = curry(optional, stream.end);
 
-var _joinParser = joiner ->
-    (p1, p2) ->
-        bind(p1, v1 ->
-            bind(p2, v2 ->
+var _joinParser = \joiner ->
+    \p1, p2 ->
+        bind(p1, \v1 ->
+            bind(p2, \v2 ->
                 always(joiner(v1, v2))));
 
 /**
@@ -640,14 +640,14 @@ var _joinParser = joiner ->
  * an regular array.
  */
 var eager =
-    let toArray = x -> always(stream.toArray(x)) in
-        p -> bind(p, toArray);
+    let toArray = \x -> always(stream.toArray(x)) in
+        \p -> bind(p, toArray);
         
 /**
  * Same as bind but calls apply on 'f' using stream results of 'p'.
  */
-var binds = (p, f) ->
-    bind(eager(p), x ->
+var binds = \p, f ->
+    bind(eager(p), \x ->
         f.apply(undefined, x));
 
 /**
@@ -670,8 +670,8 @@ var append = _joinParser(stream.append);
  * Consume a finite sequence of parsers, returning the results as a stream.
  */
 var sequence = 
-    let reducer = (p, q) -> cons(q, p) in
-        (/*...*/) -> reduceRight(arguments, reducer, _end);
+    let reducer = \p, q -> cons(q, p) in
+        \(/*...*/) -> reduceRight(arguments, reducer, _end);
 
 /**
  * Consume 'p' zero or more times.
@@ -687,9 +687,9 @@ var many =
             new ParserError("Many parser applied to a parser that accepts an empty string"))
     in
         function MANY_PARSER(p) {
-            var safeP = (state, m, cok, cerr, eok, eerr) ->
+            var safeP = \state, m, cok, cerr, eok, eerr ->
                 cont(p, [state, m, cok, cerr, manyError, eerr]);
-            return rec(self -> _optionalValueParser(cons(safeP, self)));
+            return rec(\self -> _optionalValueParser(cons(safeP, self)));
         };
 
 /**
@@ -697,7 +697,7 @@ var many =
  * 
  * @param p Parser to consume one or more times.
  */
-var many1 = p ->
+var many1 = \p ->
     cons(p, many(p));
 
 // Token Parsers
@@ -712,10 +712,10 @@ var many1 = p ->
  *    the error when consume fails. Passed the state position and tested token.
  */
 var token = let
-    defaultErr = (pos, tok) ->
+    defaultErr = \pos, tok ->
         new UnexpectError(pos, (tok === null ? "end of input" : tok))
     in
-        (consume, onErr) -> {
+        \consume, onErr -> {
             onErr = (onErr || defaultErr);
             return function TOKEN_PARSER(state, m, cok, cerr, eok, eerr) {
                 var pos = state.position,
@@ -737,7 +737,7 @@ var token = let
 var anyToken = Parser('Any Token',
     token(constant(true)));
 
-var _character = (pred, c) ->
+var _character = \pred, c ->
     token(curry(pred, c));
 
 /**
@@ -747,7 +747,7 @@ var _character = (pred, c) ->
  * @param {function(Object, Object): boolean} [pred] Predicate function that
  *    compares two values. Returns if the parser should consume the character.
  */
-var character = (c, pred) ->
+var character = \c, pred ->
     _character((pred || eq), c);
 
 /**
@@ -759,8 +759,8 @@ var character = (c, pred) ->
  *    should consume the character.
  **/
 var string = 
-    let reducer = (p, c) -> next(c, p) in
-        (s, pred) ->
+    let reducer = \p, c -> next(c, p) in
+        \s, pred ->
             map(s, curry(_character, (pred || eq)))
                 .reduceRight(reducer, always(s));
 
@@ -769,13 +769,13 @@ var string =
 /**
  * Parse 'p' and continue with old memo table.
  */
-var backtrack = p ->
-    (state, m, cok, cerr, eok, eerr) ->
+var backtrack = \p ->
+    \state, m, cok, cerr, eok, eerr ->
         cont(p, [state, m,
-             (x, state /*, _*/) -> cok(x, state, m),
-             (x, state /*, _*/) -> cerr(x, state, m),
-             (x, state /*, _*/) -> eok(x, state, m), 
-             (x, state /*, _*/) -> eerr(x, state, m)]);
+             \x, state -> cok(x, state, m),
+             \x, state -> cerr(x, state, m),
+             \x, state -> eok(x, state, m), 
+             \x, state -> eerr(x, state, m)]);
 
 /**
  * Uses memoized result for 'p' or parse 'p' and store result in memo table.
@@ -790,21 +790,21 @@ var memo = function(p) {
             return cont(entry, [state, m, cok, cerr, eok, eerr]);
         }
         
-        var pcok = (x, pstate, pm) ->
+        var pcok = \x, pstate, pm ->
             cok(x, pstate,
-                Memoer.update(pm, id, state, (_, m, cok /*, cerr, eok, eerr*/) -> cok(x, pstate, m)));
+                Memoer.update(pm, id, state, \(_, m, cok /*, cerr, eok, eerr*/) -> cok(x, pstate, m)));
         
-        var pcerr = (x, pstate, pm) ->
+        var pcerr = \x, pstate, pm ->
             cerr(x, pstate,
-                Memoer.update(pm, id, state, (_, m, cok, cerr /*, eok, eerr*/) -> cerr(x, pstate, m)));
+                Memoer.update(pm, id, state, \(_, m, cok, cerr /*, eok, eerr*/) -> cerr(x, pstate, m)));
         
-        var peok = (x, pstate, pm) ->
+        var peok = \x, pstate, pm ->
             eok(x, pstate,
-                Memoer.update(pm, id, state, (_, m, cok, cerr, eok /*, eerr*/) -> eok(x, pstate, m)));
+                Memoer.update(pm, id, state, \(_, m, cok, cerr, eok /*, eerr*/) -> eok(x, pstate, m)));
         
-        var peerr = (x, pstate, pm) ->
+        var peerr = \x, pstate, pm ->
             eerr(x, pstate,
-                Memoer.update(m, id, state, (_, m, cok, cerr, eok, eerr) -> eerr(x, pstate, pm)));
+                Memoer.update(m, id, state, \(_, m, cok, cerr, eok, eerr) -> eerr(x, pstate, pm)));
         
         return cont(p, [state, m, pcok, pcerr, peok, peerr]);
     };
@@ -815,18 +815,18 @@ var memo = function(p) {
 /**
  * Execute a given parser 'p', correctly extracting results.
  */
-var exec = (p, state, m, cok, cerr, eok, eerr) ->
+var exec = \p, state, m, cok, cerr, eok, eerr ->
     trampoline(p(state, m, cok, cerr, eok, eerr))();
 
-var _perform = (p, state, ok, err) ->
+var _perform = \p, state, ok, err ->
     exec(p, state, null, ok, err, ok, err);
 
 /**
  * Perform parser 'p' with state, returning result from callback 'ok' when 
  * successful and from 'err' on error.
  */
-var perform = (p, state, ok, err) ->
-    _perform(p, state, x -> () -> ok(x), x -> () -> err(x));
+var perform = \p, state, ok, err ->
+    _perform(p, state, \x -> \() -> ok(x), \x -> \() -> err(x));
 
 /**
  * Run a given parser with a given state.
@@ -836,7 +836,7 @@ var perform = (p, state, ok, err) ->
  * 
  * @return Result from the parser.
  */
-var runState = (p, state) ->
+var runState = \p, state ->
     _perform(p, state, constant, throwConstant);
 
 /**
@@ -850,7 +850,7 @@ var runState = (p, state) ->
  * 
  * @return Result from the parser.
  */
-var runStream = (p, s, ud) ->
+var runStream = \p, s, ud ->
     runState(p, new ParserState(s, Position.initial, ud));
 
 /**
@@ -862,7 +862,7 @@ var runStream = (p, s, ud) ->
 
  * @return Result from the parser.
  */
-var run = (p, input, ud) ->
+var run = \p, input, ud ->
     runStream(p, stream.from(input), ud);
 
 /**
@@ -880,7 +880,7 @@ var run = (p, input, ud) ->
  */
 var runManyState = function(p, state) {
     var manyP = _optionalValueParser(
-        bind(p, (x, state, m) ->
+        bind(p, \(x, state, m) ->
             always(stream.memoStream(x, curry(runState, manyP, state, m)))));
     return runState(manyP, state);
 };
@@ -896,7 +896,7 @@ var runManyState = function(p, state) {
  *
  * @see runManyState
  */
-var runManyStream = (p, s, ud) ->
+var runManyStream = \p, s, ud ->
     runManyState(p, new ParserState(s, Position.initial, ud));
 
 /**
@@ -909,7 +909,7 @@ var runManyStream = (p, s, ud) ->
  *
  * @see runManyStream
  */
-var runMany = (p, input, ud) ->
+var runMany = \p, input, ud ->
     runManyStream(p, stream.from(input), ud);
 
 /**
@@ -920,7 +920,7 @@ var runMany = (p, input, ud) ->
  *
  * @return Did the parser successfully run?
  */
-var testState = (p, state) ->
+var testState = \p, state ->
     _perform(p, state, constant(constant(true)), constant(constant(false)));
 
  /**
@@ -934,7 +934,7 @@ var testState = (p, state) ->
  * 
  * @see testState
  */
-var testStream = (p, s, ud) ->
+var testStream = \p, s, ud ->
     testState(p, new ParserState(s, Position.initial, ud));
 
 /**
@@ -946,7 +946,7 @@ var testStream = (p, s, ud) ->
  *
  * @see testStream
  */
-var test = (p, input, ud) ->
+var test = \p, input, ud ->
     testStream(p, stream.from(input), ud);
 
 /* Export
