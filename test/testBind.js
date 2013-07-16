@@ -11,7 +11,7 @@ function(parse){
             function(){
                 var result = parse.run(parse.bind(parse.always(3), function(x) {
                     return parse.always(x + 5);
-                }, "abc"));
+                }), "abc");
                 assert.deepEqual(result, 8);
             }],
             ["Id Bind",
