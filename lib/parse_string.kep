@@ -1,6 +1,7 @@
 /**
  * @fileOverview Parsers for use specifically with strings.
  */
+static define;
 define(['parse/parse',
         'nu/stream'],
 function(parse,
@@ -63,14 +64,14 @@ var string = (function(){
  */
 var trie =
     let
-        wordReduce = \parent, l -> (parent[l] = (parent[l] || {})),
+        wordReduce = \parent, l -> { parent[l] = (parent[l] || {}); return parent[l]; },
         wordsReduce = \trie, word -> {
             var node = reduce(word, wordReduce, trie);
             node[''] = null;
             return trie;
         },
         makeTrie = \words -> reduce(words, wordsReduce, {}),
-        _trie = function(trie, prefix) {
+        _trie = function _trie(trie, prefix) {
             var choices = [];
             Object.keys(trie).forEach(\n -> {
                 if (n.length === 1) {

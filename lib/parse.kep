@@ -3,12 +3,11 @@
  * 
  * Unless otherwise noted, parses do not support backtracking by default.
  */
+static define;
 define(['nu/stream'],
 function(stream) {
 "use strict";
 
-/* Prototypes
- ******************************************************************************/
 var map = Function.prototype.call.bind(Array.prototype.map);
 var reduceRight = Function.prototype.call.bind(Array.prototype.reduceRight);
 
@@ -139,9 +138,15 @@ var ParserState = function(input, position, userState) {
  * 
  * @returns New input state for next item in input.
  */
-ParserState.prototype.next = \tok ->
-    (this._next ||
-        (this._next = new ParserState(stream.rest(this.input), this.position.increment(tok), this.userState)));
+ParserState.prototype.next = \tok -> {
+    if (!this._next) {
+        this._next = new ParserState(
+            stream.rest(this.input),
+            this.position.increment(tok),
+            this.userState);
+    }
+    return this._next;
+};
 
 /**
  * Are two states equal?
@@ -351,8 +356,8 @@ Object.defineProperty(ExpectError.prototype, 'errorMessage', {
  * @return A parser.
  */
 var rec = \def -> {
-    var value;
-    return (value = def(\(/*...*/) -> value.apply(this, arguments)));
+    var value = def(\(/*...*/) -> value.apply(this, arguments));
+    return value;
 };
 
 /* Parser definition
@@ -421,24 +426,12 @@ var never = \x ->
  * 
  * @param p Parser to run, passing results to f.
  * @param f Function called with result from 'p' and returns parser 'q'.
- * 
- * @return Value from 'q' parser.
  */
 var bind = \p, f ->
     function BIND_PARSER(state, m, cok, cerr, eok, eerr) {
         var pcok = \x, state, m -> cont(f(x, state, m), [state, m, cok, cerr, cok, cerr]),
             peok = \x, state, m -> cont(f(x, state, m), [state, m, cok, cerr, eok, eerr]);
         return cont(p, [state, m, pcok, cerr, peok, eerr]);
-    };
-
-/**
- * Parser that matches end of input. If end of input, succeeds with null.
- */
-var eof = \() ->
-    function EOF_PARSER(state, m, cok, cerr, eok, eerr) {
-        return (stream.isEmpty(state.input) ?
-            eok(stream.end, state, m) :
-            eerr(new ExpectError(state.position, "end of input",  stream.first(state.input)), state, m));
     };
 
 // State Interaction Parsers
@@ -526,6 +519,16 @@ var setInput = \input ->
 
 // 
 ////////////////////////////////////////
+/**
+ * Parser that matches end of input.
+ */
+var eof = \() ->
+    bind(getInput(), \input ->
+        (stream.isEmpty(input) ?
+            always(stream.end) :
+            bind(getPosition(), \pos ->
+                never(new ExpectError(pos, "end of input",  stream.first(input))))));
+
 /**
  * Parser that always fails with an error and consumes no input.
  * 
@@ -636,8 +639,8 @@ var _joinParser = \joiner ->
                 always(joiner(v1, v2))));
 
 /**
- * Parser that takes stream results from 'p' and turns eagerly turns them into
- * an regular array.
+ * Parser that takes stream results from 'p' and eagerly turns them into a
+ * regular array.
  */
 var eager =
     let toArray = \x -> always(stream.toArray(x)) in
@@ -656,8 +659,6 @@ var binds = \p, f ->
  * 
  * @param valueParser Parser that returns a value.
  * @param streamParser Parser that returns a stream.
-
- * @return Stream with value from 'valueParser' consed on.
  */
 var cons = _joinParser(stream.cons);
 
@@ -669,7 +670,7 @@ var append = _joinParser(stream.append);
 /**
  * Consume a finite sequence of parsers, returning the results as a stream.
  */
-var sequence = 
+var sequence =
     let reducer = \p, q -> cons(q, p) in
         \(/*...*/) -> reduceRight(arguments, reducer, _end);
 
@@ -711,22 +712,23 @@ var many1 = \p ->
  * @param {function(object): Error} [errMsg] Optional function that returns
  *    the error when consume fails. Passed the state position and tested token.
  */
-var token = let
-    defaultErr = \pos, tok ->
-        new UnexpectError(pos, (tok === null ? "end of input" : tok))
+var token =
+    let
+        defaultErr = \pos, tok ->
+            new UnexpectError(pos, (tok === null ? "end of input" : tok))
     in
         \consume, onErr -> {
-            onErr = (onErr || defaultErr);
+            var errorHandler = (onErr || defaultErr);
             return function TOKEN_PARSER(state, m, cok, cerr, eok, eerr) {
                 var pos = state.position,
                     input = state.input;
                 if (!input) {
-                    return eerr(onErr(pos, null), state, m);
+                    return eerr(errorHandler(pos, null), state, m);
                 } else {
                     var tok = stream.first(input);
                     return (consume(tok) ?
                         cok(tok, state.next(tok), m) :
-                        eerr(onErr(pos, tok), state, m));
+                        eerr(errorHandler(pos, tok), state, m));
                 }
             };
         };
@@ -868,7 +870,7 @@ var run = \p, input, ud ->
 /**
  * Run parser 'p' zero or more times to produce a lazy stream of results.
  * 
- * Similar in operation to the 'many' parser, but lazy is not a
+ * Similar in operation to the 'many' parser, but is not a
  * combinatorial parser.
  * 
  * Result may be an infinite stream.
@@ -920,13 +922,16 @@ var runMany = \p, input, ud ->
  *
  * @return Did the parser successfully run?
  */
-var testState = \p, state ->
-    _perform(p, state, constant(constant(true)), constant(constant(false)));
+var testState =
+    let
+        ok = constant(constant(true)),
+        err = constant(constant(false))
+    in
+        \p, state ->
+            _perform(p, state, ok, err);
 
  /**
- * Tests parser 'p' against a stream.
- * 
- * Supplies own state.
+ * Test parser 'p' against stream 's'.
  * 
  * @param p Parser to run.
  * @param s Nu style stream supporting first and rest.
@@ -938,7 +943,7 @@ var testStream = \p, s, ud ->
     testState(p, new ParserState(s, Position.initial, ud));
 
 /**
- * Tests parser 'p' against an input string.
+ * Test parser 'p' against 'input'.
  * 
  * @param p Parser to run.
  * @param input Array-like object of characters to run the parser against.

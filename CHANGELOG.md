@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 13.0.1 - July 16, 2013 ##
+* Fixed trie khepri related issue.
+
 ## 13.0.0 - May 23, 2013 ##
 * Removed 'parse_eager' module and replaced it with 'parse.eager' parser.
 ** 'parse.eager' takes a parser and flattens resulting stream into an array.
