@@ -93,7 +93,7 @@ var sepEndBy1 = \sep, p ->
 var sepEndBy = \sep, p ->
     parse.either(
         sepEndBy1(sep, p),
-        parse.next(parse.optional(null, sep), parse.always(stream.end)));
+        parse.next(parse.optional(stream.end, sep), parse.always(stream.end)));
 
 /**
  * Parser that consumes 'p' one or more times separated by 'sep' and ended by 'sep'.

@@ -587,21 +587,17 @@ var either = _either(\(pos, pErr, qErr) -> new MultipleError(pos, [pErr, qErr]))
  * 
  * Throws a ParserError if called with no arguments.
  */
-var choice = (function(){
-    var either = _either(\(pos, pErr, qErr) -> new ChoiceError(pos, pErr, qErr));
-        
-    var reducer = \p, c -> either(c, p);
-    
-    var end = bind(getPosition(), \pos ->
-        never(new MultipleError(pos, [])));
-    
-    return \... -> {
+var choice = let
+    either = _either(\(pos, pErr, qErr) -> new ChoiceError(pos, pErr, qErr)),
+    reducer = \p, c -> either(c, p),
+    end = bind(getPosition(), \pos -> never(new MultipleError(pos, [])))
+in
+    \... -> {
         if (!arguments.length) {
             throw new ParserError("choice called with no arguments");
         }
         return reduceRight(arguments, reducer, end);
     };
-}());
 
 /**
  * Consume 'p' either zero or one time.
@@ -642,10 +638,9 @@ var _joinParser = \joiner ->
  * Parser that takes stream results from 'p' and eagerly turns them into a
  * regular array.
  */
-var eager =
-    let toArray = \x -> always(stream.toArray(x)) in
-        \p -> bind(p, toArray);
-        
+var eager = let toArray = \x -> always(stream.toArray(x)) in
+    \p -> bind(p, toArray);
+
 /**
  * Same as bind but calls apply on 'f' using stream results of 'p'.
  */
@@ -670,9 +665,8 @@ var append = _joinParser(stream.append);
 /**
  * Consume a finite sequence of parsers, returning the results as a stream.
  */
-var sequence =
-    let reducer = \p, q -> cons(q, p) in
-        \... -> reduceRight(arguments, reducer, _end);
+var sequence = let reducer = \p, q -> cons(q, p) in
+    \... -> reduceRight(arguments, reducer, _end);
 
 /**
  * Consume 'p' zero or more times.
@@ -682,24 +676,22 @@ var sequence =
  * 
  * @param p Parser to consume zero or more times.
  */
-var many =
-    let
-        manyError = throwConstant(
-            new ParserError("Many parser applied to a parser that accepts an empty string"))
-    in
-        function MANY_PARSER(p) {
-            var safeP = \state, m, cok, cerr, eok, eerr ->
-                cont(p, [state, m, cok, cerr, manyError, eerr]);
-            return rec(\self -> _optionalValueParser(cons(safeP, self)));
-        };
+var many = let
+    manyError = throwConstant(
+        new ParserError("Many parser applied to a parser that accepts an empty string"))
+in
+    function MANY_PARSER(p) {
+        var safeP = \state, m, cok, cerr, eok, eerr ->
+            cont(p, [state, m, cok, cerr, manyError, eerr]);
+        return rec(\self -> _optionalValueParser(cons(safeP, self)));
+    };
 
 /**
  * Consume 'p' 1 or more times.
  * 
  * @param p Parser to consume one or more times.
  */
-var many1 = \p ->
-    cons(p, many(p));
+var many1 = \p -> cons(p, many(p));
 
 // Token Parsers
 ////////////////////////////////////////
@@ -712,26 +704,25 @@ var many1 = \p ->
  * @param {function(object): Error} [errMsg] Optional function that returns
  *    the error when consume fails. Passed the state position and tested token.
  */
-var token =
-    let
-        defaultErr = \pos, tok ->
-            new UnexpectError(pos, (tok === null ? "end of input" : tok))
-    in
-        \consume, onErr -> {
-            var errorHandler = (onErr || defaultErr);
-            return function TOKEN_PARSER(state, m, cok, cerr, eok, eerr) {
-                var pos = state.position,
-                    input = state.input;
-                if (!input) {
-                    return eerr(errorHandler(pos, null), state, m);
-                } else {
-                    var tok = stream.first(input);
-                    return (consume(tok) ?
-                        cok(tok, state.next(tok), m) :
-                        eerr(errorHandler(pos, tok), state, m));
-                }
-            };
+var token = let
+    defaultErr = \pos, tok ->
+        new UnexpectError(pos, (tok === null ? "end of input" : tok))
+in
+    \consume, onErr -> {
+        var errorHandler = (onErr || defaultErr);
+        return function TOKEN_PARSER(state, m, cok, cerr, eok, eerr) {
+            var pos = state.position,
+                input = state.input;
+            if (!input) {
+                return eerr(errorHandler(pos, null), state, m);
+            } else {
+                var tok = stream.first(input);
+                return (consume(tok) ?
+                    cok(tok, state.next(tok), m) :
+                    eerr(errorHandler(pos, tok), state, m));
+            }
         };
+    };
 
 /**
  * Parser that consumes any token.
@@ -739,8 +730,7 @@ var token =
 var anyToken = Parser('Any Token',
     token(constant(true)));
 
-var _character = \pred, c ->
-    token(curry(pred, c));
+var _character = \pred, c -> token(curry(pred, c));
 
 /**
  * Parser that consumes a character based on a predicate.
@@ -880,7 +870,7 @@ var run = \p, input, ud ->
  * 
  * @return Lazy stream of results.
  */
-var runManyState = function(p, state) {
+var runManyState = \p, state -> {
     var manyP = _optionalValueParser(
         bind(p, \(x, state, m) ->
             always(stream.memoStream(x, curry(runState, manyP, state, m)))));
@@ -922,13 +912,11 @@ var runMany = \p, input, ud ->
  *
  * @return Did the parser successfully run?
  */
-var testState =
-    let
-        ok = constant(constant(true)),
-        err = constant(constant(false))
-    in
-        \p, state ->
-            _perform(p, state, ok, err);
+var testState = let
+    ok = constant(constant(true)),
+    err = constant(constant(false))
+in
+    \p, state -> _perform(p, state, ok, err);
 
  /**
  * Test parser 'p' against stream 's'.
@@ -1042,4 +1030,5 @@ return {
     'testStream': testStream,
     'test': test
 };
+
 });

@@ -60,25 +60,23 @@ var string = let
 /**
  * Parser that builds a parse trie from an array of strings.
  */
-var trie =
-    let
-        wordReduce = \parent, l -> { parent[l] = (parent[l] || {}); return parent[l]; },
-        wordsReduce = \trie, word -> {
-            var node = reduce(word, wordReduce, trie);
-            node[''] = null;
-            return trie;
-        },
-        makeTrie = \words -> reduce(words, wordsReduce, {}),
-        _trie = \trie, prefix ->
-            parse.choice.apply(undefined, Object.keys(trie).map(\n -> {
-                return (n.length === 0 ?
-                    parse.always(prefix) :
-                    parse.next(
-                        character(n),
-                        _trie(trie[n], prefix + n)));
-            }))
-    in
-        \nodes -> parse.attempt(_trie(makeTrie(nodes), ''));
+var trie = let
+    wordReduce = \parent, l -> { parent[l] = (parent[l] || {}); return parent[l]; },
+    wordsReduce = \trie, word -> {
+        var node = reduce(word, wordReduce, trie);
+        node[''] = null;
+        return trie;
+    },
+    makeTrie = \words -> reduce(words, wordsReduce, {}),
+    _trie = \trie, prefix ->
+        parse.choice.apply(undefined, Object.keys(trie).map(\n ->
+            (n.length === 0 ?
+                parse.always(prefix) :
+                parse.next(
+                    character(n),
+                    _trie(trie[n], prefix + n)))))
+in
+    \nodes -> parse.attempt(_trie(makeTrie(nodes), ''));
 
 /**
  * Parser that consumes any character.
