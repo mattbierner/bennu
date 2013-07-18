@@ -42,22 +42,20 @@ var character = \c ->
  * 
  * @param {String} s String to consume.
  */
-var string = (function(){
-    var impl = \(original, remaining, found, pos) -> {
-        return (remaining.length === 0 ?
+var string = let
+    impl = \original, remaining, found, pos ->
+        (remaining.length === 0 ?
             parse.always(original) :
             parse.next(
                parse.token(
                    stringEq.bind(undefined, remaining[0]),
                    \(_, tok) -> new parse.ExpectError(pos, original, (tok === null ? found : found + tok))),
-               impl(original, remaining.slice(1), found + remaining[0], pos)));
-    };
-    
-    return \s ->
-        parse.bind(
-            parse.getPosition(),
-            \pos -> parse.attempt(impl(s, s, "", pos)));
-}());
+               impl(original, remaining.slice(1), found + remaining[0], pos)))
+    in
+        \s ->
+            parse.bind(
+                parse.getPosition(),
+                \pos -> parse.attempt(impl(s, s, "", pos)));
 
 /**
  * Parser that builds a parse trie from an array of strings.
@@ -71,25 +69,16 @@ var trie =
             return trie;
         },
         makeTrie = \words -> reduce(words, wordsReduce, {}),
-        _trie = function _trie(trie, prefix) {
-            var choices = [];
-            Object.keys(trie).forEach(\n -> {
-                if (n.length === 1) {
-                    choices.push(parse.next(
+        _trie = \trie, prefix ->
+            parse.choice.apply(undefined, Object.keys(trie).map(\n -> {
+                return (n.length === 0 ?
+                    parse.always(prefix) :
+                    parse.next(
                         character(n),
                         _trie(trie[n], prefix + n)));
-                }
-            });
-            
-            if (trie.hasOwnProperty('')) {
-                choices.push(parse.always(prefix));
-            }
-            
-            return parse.choice.apply(undefined, choices);
-        }
+            }))
     in
-        \nodes ->
-            parse.attempt(_trie(makeTrie(nodes), ''));
+        \nodes -> parse.attempt(_trie(makeTrie(nodes), ''));
 
 /**
  * Parser that consumes any character.

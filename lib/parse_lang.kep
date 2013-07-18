@@ -32,22 +32,22 @@ var times = \n, p ->
  * @param {Number} max Maximum number of times to consume 'p'.
  * @param p Parser to consume.
  */
-var betweenTimes = (function(){
-    var maxParser = \max, p ->
-        (max <= 0 ?
-            _end :
-            _optionalValueParser(
-                parse.cons(p, maxParser(max - 1, p))));
-    
-    return \min, max, p -> {
-        if (max < min) {
-            throw new parse.ParserError("between max < min");
-        }
-        return parse.append(
-            times(min, p),
-            maxParser(max - min, p));
-    };
-}());
+var betweenTimes =
+    let
+        maxParser = \max, p ->
+            (max <= 0 ?
+                _end :
+                _optionalValueParser(
+                    parse.cons(p, maxParser(max - 1, p))))
+    in
+        \min, max, p -> {
+            if (max < min) {
+                throw new parse.ParserError("between max < min");
+            }
+            return parse.append(
+                times(min, p),
+                maxParser(max - min, p));
+        };
 
 /**
  * Parse 'p' then 'q', returning result from 'p'.

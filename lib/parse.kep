@@ -13,7 +13,7 @@ var reduceRight = Function.prototype.call.bind(Array.prototype.reduceRight);
 
 /* Helpers
  ******************************************************************************/
-var curry = \f /*, ...*/ -> f.bind.apply(f, arguments);
+var curry = \f, ... -> f.bind.apply(f, arguments);
 
 var identity = \x -> x;
 
@@ -356,7 +356,7 @@ Object.defineProperty(ExpectError.prototype, 'errorMessage', {
  * @return A parser.
  */
 var rec = \def -> {
-    var value = def(\(/*...*/) -> value.apply(this, arguments));
+    var value = def(\... -> value.apply(this, arguments));
     return value;
 };
 
@@ -377,7 +377,7 @@ var rec = \def -> {
  */
 var Parser = \name, impl ->
     (impl.hasOwnProperty('parserId') ? 
-        Parser(name, \(/*...*/) -> impl.apply(this, arguments)) :
+        Parser(name, \... -> impl.apply(this, arguments)) :
         Object.defineProperties(impl, {
             'displayName': {
                 'value': name,
@@ -595,7 +595,7 @@ var choice = (function(){
     var end = bind(getPosition(), \pos ->
         never(new MultipleError(pos, [])));
     
-    return \(/*...*/) -> {
+    return \... -> {
         if (!arguments.length) {
             throw new ParserError("choice called with no arguments");
         }
@@ -672,7 +672,7 @@ var append = _joinParser(stream.append);
  */
 var sequence =
     let reducer = \p, q -> cons(q, p) in
-        \(/*...*/) -> reduceRight(arguments, reducer, _end);
+        \... -> reduceRight(arguments, reducer, _end);
 
 /**
  * Consume 'p' zero or more times.
