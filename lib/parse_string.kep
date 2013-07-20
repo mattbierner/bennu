@@ -51,11 +51,11 @@ var string = let
                    stringEq.bind(undefined, remaining[0]),
                    \(_, tok) -> new parse.ExpectError(pos, original, (tok === null ? found : found + tok))),
                impl(original, remaining.slice(1), found + remaining[0], pos)))
-    in
-        \s ->
-            parse.bind(
-                parse.getPosition(),
-                \pos -> parse.attempt(impl(s, s, "", pos)));
+in
+    \s ->
+        parse.bind(
+            parse.getPosition(),
+            \pos -> parse.attempt(impl(s, s, "", pos)));
 
 /**
  * Parser that builds a parse trie from an array of strings.

@@ -774,13 +774,13 @@ var backtrack = \p ->
  * 
  * Memoization is based on equal states, not equal inputs.
  */
-var memo = function(p) {
-    var id = (p.parserId || uniqueParserId());
-    return function(state, m, cok, cerr, eok, eerr) {
+var memo = \p -> let
+    id = (p.parserId || uniqueParserId())
+in
+    \state, m, cok, cerr, eok, eerr -> {
         var entry = Memoer.lookup(m, id, state);
-        if (entry) {
+        if (entry)
             return cont(entry, [state, m, cok, cerr, eok, eerr]);
-        }
         
         var pcok = \x, pstate, pm ->
             cok(x, pstate,
@@ -800,7 +800,6 @@ var memo = function(p) {
         
         return cont(p, [state, m, pcok, pcerr, peok, peerr]);
     };
-};
 
 /* Running
  ******************************************************************************/
