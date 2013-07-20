@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 13.0.2 - July 16, 2013 ##
+* Small formatting changes, updated Nu to V2.0.5.
+
 ## 13.0.1 - July 16, 2013 ##
 * Fixed trie khepri related issue.
 
