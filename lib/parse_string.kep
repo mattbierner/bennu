@@ -8,8 +8,6 @@ function(parse,
         stream) {
 "use strict";
 
-/* Prototypes
- ******************************************************************************/
 var reduce = Function.prototype.call.bind(Array.prototype.reduce);
 
 var regExpTest = RegExp.prototype.test;
@@ -58,7 +56,16 @@ in
             \pos -> parse.attempt(impl(s, s, "", pos)));
 
 /**
- * Parser that builds a parse trie from an array of strings.
+ * Parser that matches any string from an array of words using a trie.
+ * 
+ * In cases with many overlapping strings, this is more efficient than `parse.choice`
+ * as it avoids backtracking.
+ * 
+ * Matching is greedy and longest possible string is preferred. If no word matches,
+ * nothing is consumed.
+ * 
+ * 
+ * @param words 
  */
 var trie = let
     wordReduce = \parent, l -> { parent[l] = (parent[l] || {}); return parent[l]; },
@@ -69,14 +76,14 @@ var trie = let
     },
     makeTrie = \words -> reduce(words, wordsReduce, {}),
     _trie = \trie, prefix ->
-        parse.choice.apply(undefined, Object.keys(trie).map(\n ->
+        parse.choice.apply(undefined, Object.keys(trie).sort().reverse().map(\n ->
             (n.length === 0 ?
                 parse.always(prefix) :
-                parse.next(
+                parse.attempt(parse.next(
                     character(n),
-                    _trie(trie[n], prefix + n)))))
+                    _trie(trie[n], prefix + n))))))
 in
-    \nodes -> parse.attempt(_trie(makeTrie(nodes), ''));
+    \words -> parse.attempt(_trie(makeTrie(words), ''));
 
 /**
  * Parser that consumes any character.

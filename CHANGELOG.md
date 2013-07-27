@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 13.0.3 - July 27, 2013 ##
+* Fixed `trie` to always match longest and possibly backtrack and added trie
+  tests.
+
 ## 13.0.2 - July 16, 2013 ##
 * Small formatting changes, updated Nu to V2.0.5.
 
