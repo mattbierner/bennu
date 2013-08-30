@@ -61,11 +61,9 @@ var Memoer = function(id, state, val, delegate) {
  * Lookup a value, if any, stored in a match cell for 'state'.
  */
 Memoer.lookup = function(cell, id, state) {
-    for (var m = cell; m; m = m.delegate) {
-        if (m.id === id && m.state.eq(state)) {
+    for (var m = cell; m; m = m.delegate)
+        if (m.id === id && m.state.eq(state))
             return m.val;
-        }
-    }
     return null;
 };
 
@@ -149,8 +147,8 @@ ParserState.prototype.next = \tok -> {
  * 
  * States are equal if their position's are equal.
  */
-ParserState.prototype.eq = \state ->
-    (this.position.compare(state.position) === 0);
+ParserState.prototype.eq = \{'position': pos} ->
+    (this.position.compare(pos) === 0);
 
 /**
  * Create a new state with input.
@@ -575,7 +573,7 @@ var _either = \e ->
  * Parser that attempts p or q. If p succeeds, returns its value. Else, tries
  * to parse q.
  */
-var either = _either(\(pos, pErr, qErr) -> new MultipleError(pos, [pErr, qErr]));
+var either = _either(\pos, pErr, qErr -> new MultipleError(pos, [pErr, qErr]));
 
 /**
  * Parser that attempts a variable number of parsers in order and returns
@@ -584,14 +582,13 @@ var either = _either(\(pos, pErr, qErr) -> new MultipleError(pos, [pErr, qErr]))
  * Throws a ParserError if called with no arguments.
  */
 var choice = let
-    either = _either(\(pos, pErr, qErr) -> new ChoiceError(pos, pErr, qErr)),
+    either = _either(\pos, pErr, qErr -> new ChoiceError(pos, pErr, qErr)),
     reducer = \p, c -> either(c, p),
     end = bind(getPosition(), \pos -> never(new MultipleError(pos, [])))
 in
     \... -> {
-        if (!arguments.length) {
+        if (!arguments.length)
             throw new ParserError("choice called with no arguments");
-        }
         return reduceRight(arguments, reducer, end);
     };
 
@@ -706,9 +703,7 @@ var token = let
 in
     \consume, onErr -> {
         var errorHandler = (onErr || defaultErr);
-        return function TOKEN_PARSER(state, m, cok, cerr, eok, eerr) {
-            var pos = state.position,
-                input = state.input;
+        return function TOKEN_PARSER(state{'position': pos, 'input': input}, m, cok, cerr, eok, eerr) {
             if (!input) {
                 return eerr(errorHandler(pos, null), state, m);
             } else {
@@ -746,11 +741,12 @@ var character = \c, pred ->
  *    each character of sequence that compares two values. Returns if the parser
  *    should consume the character.
  **/
-var string = 
-    let reducer = \p, c -> next(c, p) in
-        \s, pred ->
-            map(s, curry(_character, (pred || eq)))
-                .reduceRight(reducer, always(s));
+var string = let
+    reducer = \p, c -> next(c, p)
+in
+    \s, pred ->
+        map(s, curry(_character, (pred || eq)))
+            .reduceRight(reducer, always(s));
 
 /* Memo Parsers
  ******************************************************************************/

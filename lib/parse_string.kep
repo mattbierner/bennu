@@ -64,7 +64,6 @@ in
  * Matching is greedy and longest possible string is preferred. If no word matches,
  * nothing is consumed.
  * 
- * 
  * @param words 
  */
 var trie = let

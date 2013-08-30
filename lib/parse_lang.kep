@@ -41,9 +41,8 @@ var betweenTimes =
                     parse.cons(p, maxParser(max - 1, p))))
     in
         \min, max, p -> {
-            if (max < min) {
+            if (max < min)
                 throw new parse.ParserError("between max < min");
-            }
             return parse.append(
                 times(min, p),
                 maxParser(max - min, p));
