@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 13.0.4 - August 29, 2013
+* Updated nu
+
 ## 13.0.3 - July 27, 2013 ##
 * Fixed `trie` to always match longest and possibly backtrack and added trie
   tests.
