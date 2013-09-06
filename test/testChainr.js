@@ -1,10 +1,10 @@
-define(['parse/parse', 'parse/lang', 'parse/string'],
-function(parse, parse_lang, parse_string){
-    var add = parse.next(parse_string.character('+'), parse.always(function(x, y){ return x + y; }));
-    var mul = parse.next(parse_string.character('*'), parse.always(function(x, y){ return x * y; }));
+define(['parse/parse', 'parse/lang', 'parse/text'],
+function(parse, parse_lang, parse_text){
+    var add = parse.next(parse_text.character('+'), parse.always(function(x, y){ return x + y; }));
+    var mul = parse.next(parse_text.character('*'), parse.always(function(x, y){ return x * y; }));
     var op = parse.either(add, mul);
     
-    var num = parse.bind(parse_string.digit, function(x){ return parse.always(parseInt(x)); });
+    var num = parse.bind(parse_text.digit, function(x){ return parse.always(parseInt(x)); });
     
     return {
         'module': "parse_lang.chainr*",

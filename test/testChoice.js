@@ -1,14 +1,14 @@
-define(['parse/parse', 'parse/string'],
-function(parse, parse_string){
+define(['parse/parse', 'parse/text'],
+function(parse, parse_text){
     return {
         'module': "parse.choice",
         'tests': [
             ["Succeed",
             function(){
                 var a = parse.choice(
-                    parse_string.character('a'),
-                    parse_string.character('b'),
-                    parse_string.character('c'));
+                    parse_text.character('a'),
+                    parse_text.character('b'),
+                    parse_text.character('c'));
                 
                 assert.deepEqual(parse.run(a, "abc"), 'a');
                 
@@ -23,9 +23,9 @@ function(parse, parse_string){
             ["Failed Choices",
             function(){
                 var a = parse.choice(
-                    parse_string.character('a'),
-                    parse_string.character('b'),
-                    parse_string.character('c'));
+                    parse_text.character('a'),
+                    parse_text.character('b'),
+                    parse_text.character('c'));
                 
                 assert.throws(parse.run.bind(undefined, a, "z"));
                 
@@ -34,15 +34,15 @@ function(parse, parse_string){
              ["Choice Order",
              function(){
                 var a = parse.choice(
-                    parse_string.string('a'),
-                    parse_string.string('aa'),
-                    parse_string.string('aaa'));
+                    parse_text.string('a'),
+                    parse_text.string('aa'),
+                    parse_text.string('aaa'));
                 assert.deepEqual(parse.run(a, "aaaa"), 'a');
                 
                 assert.deepEqual(parse.run(parse.choice(
-                    parse_string.string('aaa'),
-                    parse_string.string('aa'),
-                    parse_string.string('a')), 'aaaa'), 'aaa');
+                    parse_text.string('aaa'),
+                    parse_text.string('aa'),
+                    parse_text.string('a')), 'aaaa'), 'aaa');
             }]
         ],
     };

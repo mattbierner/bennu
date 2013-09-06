@@ -1,5 +1,5 @@
 /**
- * @fileOverview Parsers for use specifically with strings.
+ * @fileOverview Parsers for use specifically with text.
  */
 static define;
 define(['parse/parse',

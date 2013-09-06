@@ -1,7 +1,7 @@
-define(['parse/parse', 'parse/string', 'nu/stream'], function(parse, parse_string, stream){
+define(['parse/parse', 'parse/text', 'nu/stream'], function(parse, parse_text, stream){
     var ab = parse.either(
-            parse_string.character('a'),
-            parse_string.character('b'));
+            parse_text.character('a'),
+            parse_text.character('b'));
     
     return {
         'module': "Run Many Tests",
@@ -30,7 +30,7 @@ define(['parse/parse', 'parse/string', 'nu/stream'], function(parse, parse_strin
               function(){
                   var s = stream.stream('a', function(){ return s; });
                   
-                  var result = parse.runManyStream(parse_string.character('a'), s);
+                  var result = parse.runManyStream(parse_text.character('a'), s);
                   assert.ok(true);
               }]
         ],

@@ -1,14 +1,14 @@
 define(['parse/parse',
-        'parse/string'],
+        'parse/text'],
 function(parse,
-        parse_string){
+        parse_text){
     
     return {
         'module': "Trie",
         'tests': [
             ["Unique Tries",
             function(){
-                var p = parse_string.trie(['abc', 'xyz', 'def']);
+                var p = parse_text.trie(['abc', 'xyz', 'def']);
                 
                 assert.deepEqual(parse.run(p, "abc"), 'abc');
                 assert.deepEqual(parse.run(p, "abcd"), 'abc');
@@ -18,7 +18,7 @@ function(parse,
             }],
             ["Longest",
             function(){
-                var p = parse_string.trie(['a', 'ab', 'abc']);
+                var p = parse_text.trie(['a', 'ab', 'abc']);
                 
                 assert.deepEqual(parse.run(p, "a"), 'a');
                 assert.deepEqual(parse.run(p, "abc"), 'abc');
@@ -27,7 +27,7 @@ function(parse,
             }],
              ["Longest backtracking",
             function(){
-                var p = parse_string.trie(['a', 'abcd', 'abcz']);
+                var p = parse_text.trie(['a', 'abcd', 'abcz']);
                 
                 assert.deepEqual(parse.run(p, "a"), 'a');
                 assert.deepEqual(parse.run(p, "abc"), 'a');
@@ -35,14 +35,14 @@ function(parse,
             }],
             ["No match does not consume",
             function(){
-                var p = parse_string.trie(['abcd', 'abcz']);
+                var p = parse_text.trie(['abcd', 'abcz']);
                 
                 assert.deepEqual(parse.run(p, "abcd"), 'abcd');
                 assert.deepEqual(parse.run(p, "abcz"), 'abcz');
                 assert.deepEqual(parse.run(parse.either(p, parse.always('none')), "a"), 'none');
                 assert.deepEqual(parse.run(parse.next(
                     parse.optional(null, p),
-                    parse_string.string('xyz')), "xyz"), 'xyz');
+                    parse_text.string('xyz')), "xyz"), 'xyz');
             }]
            
         ],

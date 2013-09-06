@@ -1,4 +1,4 @@
-define(['parse/parse', 'parse/string'], function(parse, parse_string){
+define(['parse/parse', 'parse/text'], function(parse, parse_text){
     return {
         'module': "Memo Tests",
         'tests': [
@@ -6,7 +6,7 @@ define(['parse/parse', 'parse/string'], function(parse, parse_string){
             function(){
                 var g = 0;
                 
-                var a = parse.memo(parse.bind(parse_string.character('a'), function(x) {
+                var a = parse.memo(parse.bind(parse_text.character('a'), function(x) {
                     g++;
                     return parse.always(x);
                 }));
@@ -23,7 +23,7 @@ define(['parse/parse', 'parse/string'], function(parse, parse_string){
             function(){
                 var g = 0;
                 
-                var a = parse.Parser('a', parse.bind(parse_string.character('a'), function(x) {
+                var a = parse.Parser('a', parse.bind(parse_text.character('a'), function(x) {
                     g++;
                     return parse.always(x);
                 }));
@@ -40,7 +40,7 @@ define(['parse/parse', 'parse/string'], function(parse, parse_string){
             function(){
                 var g = 0;
                 
-                var a = parse.memo(parse.bind(parse_string.character('a'), function(x) {
+                var a = parse.memo(parse.bind(parse_text.character('a'), function(x) {
                     g++;
                     return parse.always(x);
                 }));
@@ -58,7 +58,7 @@ define(['parse/parse', 'parse/string'], function(parse, parse_string){
             ["Memo Backtracking discard",
             function(){
                 var g = 0;
-                var a = parse.memo(parse.bind(parse_string.character('a'), function(x) {
+                var a = parse.memo(parse.bind(parse_text.character('a'), function(x) {
                     g++;
                     return parse.always(x);
                 }));
