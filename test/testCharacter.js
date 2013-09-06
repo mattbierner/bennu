@@ -1,30 +1,14 @@
-define(['parse/parse'],
-function(parse){
+define(['parse/parse', 'parse/string'], function(parse, parse_string){
+    
     return {
-        'module': "parse.character",
+        'module': "parse_string.character",
         'tests': [
-            ["Simple Char",
+            ["String Object Char",
             function(){
-                var p = parse.character('a');
-                
-                assert.deepEqual(parse.run(p, "a"), 'a');
-                assert.deepEqual(parse.run(p, "ab"), 'a');
-                
-                assert.throws(parse.run.bind(undefined, p, ""), parse.UnexpectError);
-                
-                assert.throws(parse.run.bind(undefined, p, "z"), parse.UnexpectError);
-            }],
-            ["Multi Char",
-            function(){
-                 var p = parse.character('ab');
-                 
-                 assert.deepEqual(parse.run(p, ["ab"]), 'ab');
-                 assert.deepEqual(parse.run(p, ["ab", 'c']), 'ab');
-                 
-                 assert.throws(parse.run.bind(undefined, p, ""), parse.UnexpectError);
-                 assert.throws(parse.run.bind(undefined, p, "z"), parse.UnexpectError);
-             }],
-           
+                assert.deepEqual(parse.run(parse_string.character('a'), new String('a')), 'a');
+                assert.deepEqual(parse.run(parse_string.character(new String('a')), 'a'), 'a');
+                assert.deepEqual(parse.run(parse_string.character(new String('a')), new String('a')), 'a');
+            }]
         ],
     };
 });

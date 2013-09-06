@@ -11,8 +11,6 @@ function(stream) {
 var map = Function.prototype.call.bind(Array.prototype.map);
 var reduceRight = Function.prototype.call.bind(Array.prototype.reduceRight);
 
-/* Helpers
- ******************************************************************************/
 var curry = \f, ... -> f.bind.apply(f, arguments);
 
 var identity = \x -> x;
@@ -444,7 +442,7 @@ var extract = \f ->
 /**
  * Parser that returns the current state.
  */
-var getParserState = constant(extract(identity));
+var getParserState = extract(identity);
 
 /**
  * Parser that modifies the current parser state using function 'f'.
@@ -466,9 +464,9 @@ var setParserState = \s ->
     modifyParserState(constant(s));
 
 /**
- * Parser that returns the current users state.
+ * Parser that returns the current user state.
  */
-var getState = constant(extract(\s -> s.userState));
+var getState = extract(\s -> s.userState);
 
 /**
  * Parser that modifies the current user state using function 'f'.
@@ -476,10 +474,7 @@ var getState = constant(extract(\s -> s.userState));
  *  @param {function(ParserState): *} f Function that transforms that current user state.
  */
 var modifyState = \f ->
-    function MODIFY_STATE(state, m, cok, cerr, eok /*, _*/) {
-        var newState = state.setUserState(f(state.userState));
-        return eok(newState, newState, m);
-    };
+    modifyParserState(\state -> state.setUserState(f(state.userState)));
 
 /**
  * Parser that sets current user parser state to 's'.
@@ -488,11 +483,11 @@ var modifyState = \f ->
  */
 var setState = \s ->
     modifyState(constant(s));
-    
+
 /**
  * Parser that gets the current position.
  */
-var getPosition = constant(extract(\s -> s.position));
+var getPosition = extract(\s -> s.position);
 
 /**
  * Parser that sets the current position
@@ -503,7 +498,7 @@ var setPosition = \position ->
 /**
   *Parser that gets the current input.
  */
-var getInput = constant(extract(\s -> s.input));
+var getInput = extract(\s -> s.input);
 
 /**
  * Parser that sets the current input.
@@ -511,17 +506,19 @@ var getInput = constant(extract(\s -> s.input));
 var setInput = \input ->
     modifyState(\s -> s.setInput(input));
 
-// 
+//
 ////////////////////////////////////////
 /**
  * Parser that matches end of input.
  */
-var eof = \() ->
-    bind(getInput(), \input ->
+var eof = let
+    end = always(stream.end)
+in
+    bind(getInput, \input ->
         (stream.isEmpty(input) ?
-            always(stream.end) :
-            bind(getPosition(), \pos ->
-                never(new ExpectError(pos, "end of input",  stream.first(input))))));
+            end :
+            bind(getPosition, \pos ->
+                never(new ExpectError(pos, "end of input", stream.first(input))))));
 
 /**
  * Parser that always fails with an error and consumes no input.
@@ -530,7 +527,7 @@ var eof = \() ->
  */
 var fail = \msg ->
     let e = (msg ? ParseError : UnknownError) in
-        bind(getPosition(), \pos -> never(new e(pos, msg)));
+        bind(getPosition, \pos -> never(new e(pos, msg)));
 
 /**
  * Parser that attempts to parse p. Upon failure, never consumes any input.
@@ -557,12 +554,21 @@ var lookahead = \p ->
 var next = \p, q ->
     bind(p, constant(q));
 
+/**
+ * Consume a finite sequence of 1 or more parsers, returning result from last.
+ * 
+ * This may partially fail if any parser fails in the sequence. Wrap in attempt
+ * to prevent partial failures.
+ */
+var sequence = let reducer = \p, q -> next(q, p) in
+    \... -> reduceRight(arguments, reducer);
+
 var _either = \e ->
     \p, q ->
         function EITHER_PARSER(state, m, cok, cerr, eok, eerr) {
             var pos = state.position;
             var peerr = function(errFromP, _, mFromP) {
-                var qeerr = \(errFromQ, _, mFromQ) ->
+                var qeerr = \errFromQ, _, mFromQ ->
                     eerr(e(pos, errFromP, errFromQ), state, mFromQ);
                 return cont(q, [state, mFromP, cok, cerr, eok, qeerr]);
             };
@@ -584,7 +590,7 @@ var either = _either(\pos, pErr, qErr -> new MultipleError(pos, [pErr, qErr]));
 var choice = let
     either = _either(\pos, pErr, qErr -> new ChoiceError(pos, pErr, qErr)),
     reducer = \p, c -> either(c, p),
-    end = bind(getPosition(), \pos -> never(new MultipleError(pos, [])))
+    end = bind(getPosition, \pos -> never(new MultipleError(pos, [])))
 in
     \... -> {
         if (!arguments.length)
@@ -658,7 +664,7 @@ var append = _joinParser(stream.append);
 /**
  * Consume a finite sequence of parsers, returning the results as a stream.
  */
-var sequence = let reducer = \p, q -> cons(q, p) in
+var enumeration = let reducer = \p, q -> cons(q, p) in
     \... -> reduceRight(arguments, reducer, _end);
 
 /**
@@ -682,7 +688,7 @@ in
 /**
  * Consume 'p' 1 or more times.
  * 
- * @param p Parser to consume one or more times.
+ * @param p Parser to consume.
  */
 var many1 = \p -> cons(p, many(p));
 
@@ -720,33 +726,6 @@ in
  */
 var anyToken = Parser('Any Token',
     token(constant(true)));
-
-var _character = \pred, c -> token(curry(pred, c));
-
-/**
- * Parser that consumes a character based on a predicate.
- * 
- * @param c Object to test against.
- * @param {function(Object, Object): boolean} [pred] Predicate function that
- *    compares two values. Returns if the parser should consume the character.
- */
-var character = \c, pred ->
-    _character((pred || eq), c);
-
-/**
- * Parser that consumes a sequence of characters based on a predicate.
- * 
- * @param s Sequence of objects to test against.
- * @param {function(Object, Object): boolean} [pred] Predicate function called on
- *    each character of sequence that compares two values. Returns if the parser
- *    should consume the character.
- **/
-var string = let
-    reducer = \p, c -> next(c, p)
-in
-    \s, pred ->
-        map(s, curry(_character, (pred || eq)))
-            .reduceRight(reducer, always(s));
 
 /* Memo Parsers
  ******************************************************************************/
@@ -982,6 +961,7 @@ return {
     'lookahead': lookahead,
     
     'next': next,
+    'sequence': sequence,
     'either': either,
     'choice': choice,
     'optional': optional,
@@ -991,16 +971,13 @@ return {
     'binds': binds,
     'cons': cons,
     'append': append,
-    'sequence': sequence,
+    'enumeration': enumeration,
     'many': many,
     'many1': many1,
 
     'token': token,
     'anyToken': anyToken,
-    
-    'character': character,
-    'string': string,
-    
+
     'backtrack': backtrack,
     'memo': memo,
     

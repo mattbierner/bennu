@@ -1,18 +1,18 @@
-define(['parse/parse'], function(parse){
+define(['parse/parse', 'parse/string'], function(parse, parse_string){
     return {
         'module': "Lookahead Tests",
         'tests': [
             ["Success",
             function(){
                 assert.deepEqual(parse.run(
-                    parse.lookahead(parse.character('a')),
+                    parse.lookahead(parse_string.character('a')),
                     "a"),
                 'a');
                 
                 assert.deepEqual(parse.run(
                     parse.next(
-                        parse.lookahead(parse.character('a')),
-                        parse.character('a')),
+                        parse.lookahead(parse_string.character('a')),
+                        parse_string.character('a')),
                     "a"),
                 'a');
                 
@@ -20,7 +20,7 @@ define(['parse/parse'], function(parse){
             ["Fails",
             function(){
                 assert.throws(parse.run.bind(undefined,
-                    parse.lookahead(parse.character('a')),
+                    parse.lookahead(parse_string.character('a')),
                     "")
                 );
             }],

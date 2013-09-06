@@ -1,5 +1,5 @@
 define(['parse/parse',
-        'parse/parse_string'],
+        'parse/string'],
 function(parse,
         parse_string){
     
@@ -42,7 +42,7 @@ function(parse,
                 assert.deepEqual(parse.run(parse.either(p, parse.always('none')), "a"), 'none');
                 assert.deepEqual(parse.run(parse.next(
                     parse.optional(null, p),
-                    parse.string('xyz')), "xyz"), 'xyz');
+                    parse_string.string('xyz')), "xyz"), 'xyz');
             }]
            
         ],

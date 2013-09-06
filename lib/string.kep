@@ -9,6 +9,7 @@ function(parse,
 "use strict";
 
 var reduce = Function.prototype.call.bind(Array.prototype.reduce);
+var reduceRight = Function.prototype.call.bind(Array.prototype.reduceRight);
 
 var regExpTest = RegExp.prototype.test;
 
@@ -18,7 +19,7 @@ var stringEq = \a, b -> (a.valueOf() === b.valueOf());
 
 var expectError = \msg ->
     \pos, tok ->
-        new parse.ExpectError(pos, msg, (tok === null ? "end of input": tok));
+        new parse.ExpectError(pos, msg, (tok === null ? "end of input" : tok));
 
 /* Parsers
  ******************************************************************************/
@@ -35,26 +36,21 @@ var character = \c ->
 /**
  * Parser that consumes a given string.
  * 
- * Unlike 'parse.string', this parses all or nothing. Either it matches the string
- * or it fails at the starting location.
+ * This parses all or nothing. Either it matches the string or it fails at the
+ * starting location.
  * 
  * @param {String} s String to consume.
  */
 var string = let
-    impl = \original, remaining, found, pos ->
-        (remaining.length === 0 ?
-            parse.always(original) :
-            parse.next(
-               parse.token(
-                   stringEq.bind(undefined, remaining[0]),
-                   \(_, tok) -> new parse.ExpectError(pos, original, (tok === null ? found : found + tok))),
-               impl(original, remaining.slice(1), found + remaining[0], pos)))
+    reducer = \p, c, i, s ->
+       parse.next(
+           parse.token(
+               stringEq.bind(undefined, c),
+               \(pos, tok) -> new parse.ExpectError(pos, s, tok)),
+           p)
 in
     \s ->
-        parse.bind(
-            parse.getPosition(),
-            \pos -> parse.attempt(impl(s, s, "", pos)));
-
+        reduceRight(s, reducer, parse.always(s));
 /**
  * Parser that matches any string from an array of words using a trie.
  * 
@@ -67,7 +63,10 @@ in
  * @param words 
  */
 var trie = let
-    wordReduce = \parent, l -> { parent[l] = (parent[l] || {}); return parent[l]; },
+    wordReduce = \parent, l -> {
+        parent[l] = (parent[l] || {});
+        return parent[l];
+    },
     wordsReduce = \trie, word -> {
         var node = reduce(word, wordReduce, trie);
         node[''] = null;

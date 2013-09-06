@@ -1,26 +1,14 @@
-define(['parse/parse'], function(parse){
+define(['parse/parse', 'parse/string'], function(parse, parse_string){
     
     return {
-        'module': "String Tests",
+        'module': "parse_string.string",
         'tests': [
-            ["Simple String",
+            ["String Object String",
             function(){
-                var p = parse.string('abc');
-                
-                assert.deepEqual(parse.run(p, "abc"), 'abc');
-                assert.deepEqual(parse.run(p, "abcd"), 'abc');
-                
-                assert.throws(parse.run.bind(undefined, p, "ab"));
+                 assert.deepEqual(parse.run(parse_string.string('abc'), new String('abc')), 'abc');
+                 assert.deepEqual(parse.run(parse_string.string(new String('abc')), 'abc'), 'abc');
+                 assert.deepEqual(parse.run(parse_string.string(new String('abc')), new String('abc')), 'abc');
             }],
-            ["Char Array String",
-             function(){
-                 var p = parse.string('abc');
-                 
-                 assert.deepEqual(parse.run(p, ["a", "b", "c"]), 'abc');
-                 
-                 assert.throws(parse.run.bind(undefined, p, ["ab"], 'ab'));
-             }],
-           
         ],
     };
 });

@@ -1,24 +1,24 @@
-define(['parse/parse'], function(parse){
+define(['parse/parse', 'parse/string'], function(parse, parse_string){
     return {
         'module': "Sequence Tests",
         'tests': [
             ["Simple Sequence",
             function(){
-                var a = parse.eager(parse.sequence(parse.character('a'), parse.character('b')));
+                var a = parse.sequence(parse_string.character('a'), parse_string.character('b'));
                 
-                assert.deepEqual(parse.run(a, "ab"), ['a', 'b']);
+                assert.deepEqual(parse.run(a, "ab"), 'b');
              }],
              
             ["fail Sequence",
             function(){
                 assert.throws(parse.run.bind(undefined,
-                    parse.eager(parse.sequence(parse.character('a'), parse.fail(), parse.character('b')), "ab")));
+                    parse.sequence(parse_string.character('a'), parse.fail(), parse_string.character('b')), "ab"));
                 
                 assert.throws(parse.run.bind(undefined,
-                    parse.eager(parse.sequence(parse.character('a'), parse.character('b'), parse.fail()), "ab")));
+                    parse.sequence(parse_string.character('a'), parse_string.character('b'), parse.fail()), "ab"));
                 
                 assert.throws(parse.run.bind(undefined,
-                    parse.eager(parse.sequence(parse.fail(), parse.character('a'), parse.character('b')), "ab")));
+                    parse.sequence(parse.fail(), parse_string.character('a'), parse_string.character('b')), "ab"));
              }]
         ],
     };

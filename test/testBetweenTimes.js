@@ -1,8 +1,8 @@
-define(['parse/parse', 'parse/parse_lang'],
-function(parse, parse_lang){
+define(['parse/parse', 'parse/string', 'parse/lang'],
+function(parse, parse_string, parse_lang){
     var ab = parse.either(
-        parse.character('a'),
-        parse.character('b'));
+        parse_string.character('a'),
+        parse_string.character('b'));
     
     return {
         'module': "parse_lang.betweenTimes",
@@ -23,7 +23,7 @@ function(parse, parse_lang){
             }],
             ["Consume Zero times",
              function(){
-                var a = parse.eager(parse_lang.betweenTimes(0, 2, parse.character('a')));
+                var a = parse.eager(parse_lang.betweenTimes(0, 2, parse_string.character('a')));
                  
                  assert.deepEqual(parse.run(a, "aaa"), ['a', 'a']);
                  
@@ -31,18 +31,18 @@ function(parse, parse_lang){
             }],
             ["Consume Too few",
             function(){
-                var a = parse.eager(parse_lang.betweenTimes(3, 4, parse.character('a')));
-                
-                assert.throws(parse.run.bind(undefined, a, "aa"), parse.UnexpectError);
-                assert.throws(parse.run.bind(undefined, a, ""), parse.UnexpectError);
+                var a = parse.eager(parse_lang.betweenTimes(3, 4, parse_string.character('a')));
+
+                assert.throws(parse.run.bind(undefined, a, "aa"), parse.ExpectError);
+                assert.throws(parse.run.bind(undefined, a, ""), parse.ExpectError);
              }],
              ["Consume Max lt Min",
              function(){
-                assert.throws(function(){ parse_lang.betweenTimes(5, 1, parse.character('a')); }, parse.ParserError);
+                assert.throws(function(){ parse_lang.betweenTimes(5, 1, parse_string.character('a')); }, parse.ParserError);
              }],
              ["Consume large input many",
              function(){
-                 var a = parse.eager(parse_lang.betweenTimes(1000, 1500, parse.character('a')));
+                 var a = parse.eager(parse_lang.betweenTimes(1000, 1500, parse_string.character('a')));
                
                  var input = (new Array(2000 + 1)).join('a');
                

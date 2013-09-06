@@ -1,14 +1,14 @@
-define(['parse/parse'],
-function(parse){
+define(['parse/parse', 'parse/string'],
+function(parse, parse_string){
     return {
         'module': "parse.choice",
         'tests': [
             ["Succeed",
             function(){
                 var a = parse.choice(
-                    parse.character('a'),
-                    parse.character('b'),
-                    parse.character('c'));
+                    parse_string.character('a'),
+                    parse_string.character('b'),
+                    parse_string.character('c'));
                 
                 assert.deepEqual(parse.run(a, "abc"), 'a');
                 
@@ -23,9 +23,9 @@ function(parse){
             ["Failed Choices",
             function(){
                 var a = parse.choice(
-                    parse.character('a'),
-                    parse.character('b'),
-                    parse.character('c'));
+                    parse_string.character('a'),
+                    parse_string.character('b'),
+                    parse_string.character('c'));
                 
                 assert.throws(parse.run.bind(undefined, a, "z"));
                 
@@ -34,15 +34,15 @@ function(parse){
              ["Choice Order",
              function(){
                 var a = parse.choice(
-                    parse.string('a'),
-                    parse.string('aa'),
-                    parse.string('aaa'));
+                    parse_string.string('a'),
+                    parse_string.string('aa'),
+                    parse_string.string('aaa'));
                 assert.deepEqual(parse.run(a, "aaaa"), 'a');
                 
                 assert.deepEqual(parse.run(parse.choice(
-                    parse.string('aaa'),
-                    parse.string('aa'),
-                    parse.string('a')), 'aaaa'), 'aaa');
+                    parse_string.string('aaa'),
+                    parse_string.string('aa'),
+                    parse_string.string('a')), 'aaaa'), 'aaa');
             }]
         ],
     };

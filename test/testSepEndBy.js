@@ -1,7 +1,7 @@
-define(['parse/parse', 'parse/parse_lang'], function(parse, parse_lang){
-    var sep = parse.character(',');
-    var p = parse.character('a');
-    var z = parse.character('z');
+define(['parse/parse', 'parse/string', 'parse/lang'], function(parse, parse_string, parse_lang){
+    var sep = parse_string.character(',');
+    var p = parse_string.character('a');
+    var z = parse_string.character('z');
     
     return {
         'module': "SepEndBy",

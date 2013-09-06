@@ -1,5 +1,5 @@
-define(['parse/parse'],
-function(parse){
+define(['parse/parse', 'parse/string'],
+function(parse, parse_string){
     return {
         'module': "parse.attempt",
         'tests': [
@@ -19,10 +19,10 @@ function(parse){
                  ));
                  var result = parse.run(
                      parse.either(
-                         parse.attempt(parse.next(parse.character('a'),
-                             parse.character('b'))),
-                         parse.next(parse.character('a'),
-                             parse.character('c'))
+                         parse.attempt(parse.next(parse_string.character('a'),
+                             parse_string.character('b'))),
+                         parse.next(parse_string.character('a'),
+                             parse_string.character('c'))
                      ),
                      'ac'
                  );

@@ -1,5 +1,13 @@
 # ChangeLog #
 
+## 14.0.0 - August 29, 2013
+* Changed `parse.sequence` to return last element from a set of 1 or more parser.
+* Added `parse.enumeration` to return stream of parser results.
+* Removed `parse.string` as it basically does the same thing as `parse.enumeration`
+  and the name is confusing when `parse_string.string` exists.
+* Removed `parse.character` as the name is confusing.
+* Changed `parse.getState`,  to be actual parsers and not functions.
+
 ## 13.0.4 - August 29, 2013
 * Updated nu
 
