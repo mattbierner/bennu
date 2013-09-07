@@ -55,24 +55,6 @@ define(['parse/parse', 'parse/text'], function(parse, parse_text){
                 
                 assert.deepEqual(g, 3);
             }],
-            ["Memo Backtracking discard",
-            function(){
-                var g = 0;
-                var a = parse.memo(parse.bind(parse_text.character('a'), function(x) {
-                    g++;
-                    return parse.always(x);
-                }));
-                
-                parse.run(
-                    parse.either(
-                        parse.attempt(parse.backtrack(parse.either(
-                            parse.attempt(parse.sequence(a, parse.never())),
-                            parse.sequence(a, a, a, parse.never())))),
-                        parse.sequence(a, a, a, a)),
-                    "aaaa");
-                
-                assert.deepEqual(g, 7);
-            }],
         ],
     };
 });

@@ -5,8 +5,11 @@
 * Added `parse.enumeration` to return stream of parser results.
 * Removed `parse.string` as it basically does the same thing as `parse.enumeration`
   and the name is confusing when `parse_string.string` exists.
-* Removed `parse.character` as the name is confusing.
-* Changed `parse.getState`,  to be actual parsers and not functions.
+* Removed `parse.character` as the name is confused with `parse_text.character`.
+* Changed state getters to be actual parsers and not functions.
+* Changed eof to be parser and not function.
+* Removed `ParserState.prototype.eq` as it generally does not do what is expected
+  and the logic it uses should not be exposed.
 
 ## 13.0.4 - August 29, 2013
 * Updated nu

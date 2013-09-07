@@ -6,7 +6,7 @@
 static define;
 define(['nu/stream'],
 function(stream) {
-"use strict";
+//"use strict";
 
 var map = Function.prototype.call.bind(Array.prototype.map);
 var reduceRight = Function.prototype.call.bind(Array.prototype.reduceRight);
@@ -46,30 +46,65 @@ var trampoline = \f -> {
  * Stores a value for a given state.
  * Can be asked to perform a lookup for a state, in which it may return 'val' 
  * or delegate to another match cell.
- * 
  */
-var Memoer = function(id, state, val, delegate) {
-    this.id = id;
-    this.state = state;
-    this.val = val;
-    this.delegate = delegate;
+var Memoer = {};
+
+Memoer.create = function(id, state, val, delegate, window) {
+    return {
+        'cell': {
+            'id': id,
+            'state': state,
+            'val': val,
+            'delegate': delegate
+        },
+        'window': window || []
+    };
 };
 
 /**
  * Lookup a value, if any, stored in a match cell for 'state'.
  */
-Memoer.lookup = function(cell, id, state) {
-    for (var m = cell; m; m = m.delegate)
-        if (m.id === id && m.state.eq(state))
-            return m.val;
+Memoer.lookup = function(m, id, state) {
+    for (var cell = m.cell; cell; cell = cell.delegate)
+        if (cell.id === id && cell.state.eq(state))
+            return cell.val;
     return null;
+};
+
+/**
+ */
+Memoer.prune = \m-> {
+    var cell = m.cell;
+    var i = 0;
+    while (cell && ((!m.window[0]) || m.window[0].compare(cell.state.position) < 0)) {
+        cell = cell.delegate;
+        i = i + 1;
+    }
+    static console;
+    console.log("pruned:" + i);
+    return {'cell': cell, 'window': m.window};
 };
 
 /**
  * Create a new match cell storing 'val' for 'state' and including, delegating,
  * some cell 'm'.
  */
-Memoer.update = \m, id, state, val -> new Memoer(id, state, val, m);
+Memoer.update = \m, id, state, val -> {
+    var cell = m.cell;
+    var i = 0;
+    while (cell && ((!m.window[0]) || m.window[0].compare(cell.state.position) < 0)) {
+        cell = cell.delegate;
+        i = i +1;
+    }
+    static console;
+    console.log("pruned:" + i);
+    return Memoer.create(id, state, val, cell, m.window);
+};
+
+Memoer.setWindow = \m, window ->
+    (!m.cell ?
+        {'window': window} :
+        Memoer.create(m.cell.id, m.cell.state, m.cell.val, m.cell.delegate, window));
 
 /* Records
  ******************************************************************************/
@@ -89,6 +124,8 @@ var Position = function(i) {
  */
 Position.initial = new Position(0);
 
+Position.prototype.toString = \() -> '' + this.index;
+
 /**
  * Advanced the position based on a consumed character.
  * 
@@ -97,8 +134,6 @@ Position.initial = new Position(0);
  * @returns Position after 'tok'.
  */
 Position.prototype.increment = \tok -> new Position(this.index + 1);
-
-Position.prototype.toString = \() -> '' + this.index;
 
 /**
  * Compares two positions.
@@ -421,9 +456,11 @@ var never = \x ->
  */
 var bind = \p, f ->
     function BIND_PARSER(state, m, cok, cerr, eok, eerr) {
-        var pcok = \x, state, m -> cont(f(x, state, m), [state, m, cok, cerr, cok, cerr]),
-            peok = \x, state, m -> cont(f(x, state, m), [state, m, cok, cerr, eok, eerr]);
-        return cont(p, [state, m, pcok, cerr, peok, eerr]);
+        return cont(p, [state, m,
+            \x, state, m -> cont(f(x, state, m), [state, m, cok, cerr, cok, cerr]),
+            cerr,
+            \x, state, m -> cont(f(x, state, m), [state, m, cok, cerr, eok, eerr]),
+            eerr]);
     };
 
 // State Interaction Parsers
@@ -508,6 +545,18 @@ var setInput = \input ->
 
 //
 ////////////////////////////////////////
+var _fail = \e ->
+    bind(getPosition, \pos -> never(e(pos)));
+
+/**
+ * Parser that always fails with an error and consumes no input.
+ * 
+ * @param {String} [msg] Message for error.
+ */
+var fail = \msg ->
+    let e = (msg ? ParseError : UnknownError) in
+        _fail(\pos -> new e(pos, msg));
+
 /**
  * Parser that matches end of input.
  */
@@ -517,24 +566,14 @@ in
     bind(getInput, \input ->
         (stream.isEmpty(input) ?
             end :
-            bind(getPosition, \pos ->
-                never(new ExpectError(pos, "end of input", stream.first(input))))));
+            _fail(\pos -> new ExpectError(pos, "end of input", stream.first(input)))));
 
 /**
- * Parser that always fails with an error and consumes no input.
- * 
- * @param {String} [msg] message for error.
- */
-var fail = \msg ->
-    let e = (msg ? ParseError : UnknownError) in
-        bind(getPosition, \pos -> never(new e(pos, msg)));
-
-/**
- * Parser that attempts to parse p. Upon failure, never consumes any input.
+ * Parser that attempts parser `p`. Upon failure, never consumes any input.
  */
 var attempt = \p ->
     function ATTEMPT_PARSER(state, m, cok, cerr, eok, eerr) {
-        return cont(p, [state, m, cok, eerr, eok, eerr]);
+        return cont(p, [state, Memoer.setWindow(m, [state.position]), cok, eerr, eok, eerr]);
     };
 
 /**
@@ -559,9 +598,16 @@ var next = \p, q ->
  * 
  * This may partially fail if any parser fails in the sequence. Wrap in attempt
  * to prevent partial failures.
+ * 
+ * @param arr Array of parsers to consume.
  */
-var sequence = let reducer = \p, q -> next(q, p) in
-    \... -> reduceRight(arguments, reducer);
+var sequencea = let reducer = \p, q -> next(q, p) in
+    \arr -> reduceRight(arr, reducer);
+
+/**
+ * Same as `sequencea` but gets parsers from arguments instead of array.
+ */
+var sequence = \... -> sequencea(arguments);
 
 var _either = \e ->
     \p, q ->
@@ -663,9 +709,16 @@ var append = _joinParser(stream.append);
 
 /**
  * Consume a finite sequence of parsers, returning the results as a stream.
+ * 
+ * @param arr Array of parsers to consume.
  */
-var enumeration = let reducer = \p, q -> cons(q, p) in
-    \... -> reduceRight(arguments, reducer, _end);
+var enumerationa = let reducer = \p, q -> cons(q, p) in
+    \arr -> reduceRight(arr, reducer, _end);
+
+/**
+ * Same as `enumerationa` but gets parsers from arguments.
+ */
+var enumeration = \... -> enumerationa(arguments);
 
 /**
  * Consume 'p' zero or more times.
@@ -730,18 +783,7 @@ var anyToken = Parser('Any Token',
 /* Memo Parsers
  ******************************************************************************/
 /**
- * Parse 'p' and continue with old memo table.
- */
-var backtrack = \p ->
-    \state, m, cok, cerr, eok, eerr ->
-        cont(p, [state, m,
-             \x, state -> cok(x, state, m),
-             \x, state -> cerr(x, state, m),
-             \x, state -> eok(x, state, m), 
-             \x, state -> eerr(x, state, m)]);
-
-/**
- * Uses memoized result for 'p' or parse 'p' and store result in memo table.
+ * Parser that uses memoized result for 'p' or parse 'p' and stores result in memo table.
  * 
  * Memoization is based on equal states, not equal inputs.
  */
@@ -753,23 +795,19 @@ in
         if (entry)
             return cont(entry, [state, m, cok, cerr, eok, eerr]);
         
-        var pcok = \x, pstate, pm ->
-            cok(x, pstate,
-                Memoer.update(pm, id, state, \(_, m, cok /*, cerr, eok, eerr*/) -> cok(x, pstate, m)));
-        
-        var pcerr = \x, pstate, pm ->
-            cerr(x, pstate,
-                Memoer.update(pm, id, state, \(_, m, cok, cerr /*, eok, eerr*/) -> cerr(x, pstate, m)));
-        
-        var peok = \x, pstate, pm ->
-            eok(x, pstate,
-                Memoer.update(pm, id, state, \(_, m, cok, cerr, eok /*, eerr*/) -> eok(x, pstate, m)));
-        
-        var peerr = \x, pstate, pm ->
-            eerr(x, pstate,
-                Memoer.update(m, id, state, \(_, m, cok, cerr, eok, eerr) -> eerr(x, pstate, pm)));
-        
-        return cont(p, [state, m, pcok, pcerr, peok, peerr]);
+        return cont(p, [state, m,
+            \x, pstate, pm ->
+                cok(x, pstate,
+                    Memoer.update(pm, id, state, \(_, m, cok /*, cerr, eok, eerr*/) -> cok(x, pstate, m))),
+            \x, pstate, pm ->
+                cerr(x, pstate,
+                    Memoer.update(pm, id, state, \(_, m, cok, cerr /*, eok, eerr*/) -> cerr(x, pstate, m))),
+            \x, pstate, pm ->
+                eok(x, pstate,
+                    Memoer.update(pm, id, state, \(_, m, cok, cerr, eok /*, eerr*/) -> eok(x, pstate, m))),
+            \x, pstate, pm ->
+                eerr(x, pstate,
+                    Memoer.update(m, id, state, \(_, m, cok, cerr, eok, eerr) -> eerr(x, pstate, pm)))]);
     };
 
 /* Running
@@ -781,7 +819,7 @@ var exec = \p, state, m, cok, cerr, eok, eerr ->
     trampoline(p(state, m, cok, cerr, eok, eerr))();
 
 var _perform = \p, state, ok, err ->
-    exec(p, state, null, ok, err, ok, err);
+    exec(p, state, {'window': []}, ok, err, ok, err);
 
 /**
  * Perform parser 'p' with state, returning result from callback 'ok' when 
@@ -978,7 +1016,6 @@ return {
     'token': token,
     'anyToken': anyToken,
 
-    'backtrack': backtrack,
     'memo': memo,
     
 // Running
