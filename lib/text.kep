@@ -2,36 +2,57 @@
  * @fileOverview Parsers for use specifically with text.
  */
 static define;
-define(['parse/parse',
-        'nu/stream'],
-function(parse,
-        stream) {
+define(['parse/parse'],
+function(parse) {
 "use strict";
 
 var reduce = Function.prototype.call.bind(Array.prototype.reduce);
 var reduceRight = Function.prototype.call.bind(Array.prototype.reduceRight);
 
-var regExpTest = RegExp.prototype.test;
-
-/* Helpers
- ******************************************************************************/
-var stringEq = \a, b -> (a.valueOf() === b.valueOf());
-
 var expectError = \msg ->
     \pos, tok ->
         new parse.ExpectError(pos, msg, (tok === null ? "end of input" : tok));
 
+/* Errors
+ ******************************************************************************/
+/**
+ * @constructor
+ * @implements {ExpectError}
+ * 
+ * @param position Position of error.
+ * @oaram expected Expected value.
+ * @param [found] Found value.
+ */
+var StringError = function(position, string, index, expected, found) {
+    parse.ExpectError.call(this, position, expected, found);
+    this.string = string;
+    this.index = index;
+};
+StringError.prototype = new parse.ExpectError;
+StringError.prototype.constructor = StringError;
+
+Object.defineProperty(StringError.prototype, 'errorMessage', {
+    'get': \() ->
+        "In string:'" + this.string + "' at index:" + this.index +
+        ", Expected:" + this.expected +
+        " Found:" + (this.found ? this.found :"end of input")
+});
+
 /* Parsers
  ******************************************************************************/
+var _character = let
+    pred = \l -> let x = l.valueOf() in \r -> (x === r.valueOf())
+in
+    \c, err -> parse.token(pred(c), err);
+
 /**
  * Parser that consumes a given character. 
  * 
- * Unboxes string Objects
+ * Attempts to unbox primitive object boxes.
  * 
  * @param c The char to consume.
  */
-var character = \c ->
-    parse.token(stringEq.bind(undefined, c), expectError(c));
+var character = \c -> _character(c, expectError(c));
 
 /**
  * Parser that consumes a given string.
@@ -44,13 +65,12 @@ var character = \c ->
 var string = let
     reducer = \p, c, i, s ->
        parse.next(
-           parse.token(
-               stringEq.bind(undefined, c),
-               \(pos, tok) -> new parse.ExpectError(pos, s, tok)),
+           _character(c,
+               \pos, tok -> new StringError(pos, s, i, c, tok)),
            p)
 in
-    \s ->
-        reduceRight(s, reducer, parse.always(s));
+    \s -> parse.attempt(reduceRight(s, reducer, parse.always(s)));
+
 /**
  * Parser that matches any string from an array of words using a trie.
  * 
@@ -84,28 +104,40 @@ in
     \words -> parse.attempt(_trie(makeTrie(words), ''));
 
 /**
+ * Parser that consumes input that matches a regular expression.
+ * 
+ * This is a character level operation. The regular expression is run against
+ * characters, not the stream.
+ * 
+ * @param pattern Regular expression to test characters against.
+ * @param {String} expected Human readable message of the expected value.
+ */
+var match = \pattern, expected ->
+    parse.token(RegExp.prototype.test.bind(pattern), expectError(expected));
+
+/**
  * Parser that consumes any character.
  */
 var anyChar = parse.Parser('Any Character',
-    parse.token(regExpTest.bind(`^.$`), expectError("any character")));
+    match(`^.$`, "any character"));
 
 /**
  * Parser that consumes any letter character.
  */
 var letter = parse.Parser('Any Letter',
-    parse.token(regExpTest.bind(`^[a-z]$`i), expectError("any letter character")));
+    match(`^[a-z]$`i, "any letter character"));
 
 /**
  * Parser that consumes any space character.
  */
 var space = parse.Parser('Any Whitespace',
-    parse.token(regExpTest.bind(`^\s$`i), expectError("any space character")));
+    match(`^\s$`i, "any space character"));
 
 /**
  * Parser that consumes any number character.
  */
 var digit = parse.Parser('Any Digit',
-    parse.token(regExpTest.bind(`^[0-9]$`i), expectError("any digit character")));
+    match(`^[0-9]$`i, "any digit character"));
 
 /* Export
  ******************************************************************************/
@@ -115,6 +147,7 @@ return {
     'string': string,
     'trie': trie,
     
+    'match': match,
     'anyChar': anyChar,
     'letter': letter,
     'space': space,

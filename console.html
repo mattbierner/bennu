@@ -70,8 +70,8 @@
         });
         
         $(function(){
-            require(['nu/stream', 'parse/parse', 'parse/string', 'parse/lang'],
-            function(stream, parse, parse_string, parse_lang) {
+            require(['nu/stream', 'parse/parse', 'parse/text', 'parse/lang'],
+            function(stream, parse, parse_text, parse_lang) {
                 var flatten = function(s, f) {
                     if (stream.isStream(s)) {
                         stream.forEach(function(x) {
