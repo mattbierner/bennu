@@ -4,8 +4,10 @@
  * Unless otherwise noted, parses do not support backtracking by default.
  */
 static define;
-define(['nu/stream'],
-function(stream) {
+define(['nu/stream',
+        'seshat'],
+function(stream,
+        seshat) {
 //"use strict";
 
 var map = Function.prototype.call.bind(Array.prototype.map);
@@ -41,70 +43,46 @@ var trampoline = \f -> {
 /* Memoization
  ******************************************************************************/
 /**
- * A match cell for memoization.
+ */
+var Memoer = function(memoer, frames) {
+    this.memoer = memoer;
+    this.frames = frames;
+};
+
+Memoer.create = \compare ->
+    new Memoer(
+        seshat.create(compare),
+        []);
+
+/**
  * 
- * Stores a value for a given state.
- * Can be asked to perform a lookup for a state, in which it may return 'val' 
- * or delegate to another match cell.
  */
-var Memoer = {};
-
-Memoer.create = function(id, state, val, delegate, window) {
-    return {
-        'cell': {
-            'id': id,
-            'state': state,
-            'val': val,
-            'delegate': delegate
-        },
-        'window': window || []
-    };
-};
+Memoer.pushWindow = \m, lower, upper ->
+    new Memoer(
+        m.memoer,
+        m.frames.concat([[lower, upper]]));
 
 /**
- * Lookup a value, if any, stored in a match cell for 'state'.
+ * 
  */
-Memoer.lookup = function(m, id, state) {
-    for (var cell = m.cell; cell; cell = cell.delegate)
-        if (cell.id === id && cell.state.eq(state))
-            return cell.val;
-    return null;
-};
+Memoer.popWindow = \m ->
+    new Memoer(
+        m.memoer,
+        m.frames.slice(m.frames.length - 1));
 
 /**
  */
-Memoer.prune = \m-> {
-    var cell = m.cell;
-    var i = 0;
-    while (cell && ((!m.window[0]) || m.window[0].compare(cell.state.position) < 0)) {
-        cell = cell.delegate;
-        i = i + 1;
-    }
-    static console;
-    console.log("pruned:" + i);
-    return {'cell': cell, 'window': m.window};
-};
+Memoer.lookup = \m, pos, id ->
+    seshat.lookup(m.memoer, pos, id);
 
 /**
- * Create a new match cell storing 'val' for 'state' and including, delegating,
- * some cell 'm'.
  */
-Memoer.update = \m, id, state, val -> {
-    var cell = m.cell;
-    var i = 0;
-    while (cell && ((!m.window[0]) || m.window[0].compare(cell.state.position) < 0)) {
-        cell = cell.delegate;
-        i = i +1;
-    }
-    static console;
-    console.log("pruned:" + i);
-    return Memoer.create(id, state, val, cell, m.window);
+Memoer.update = \m, pos, id, val -> {
+    var updated = seshat.update(m.memoer, pos, id, val);
+    return new Memoer(
+        (m.frames[0] ? seshat.prune(updated, m.frames[0][0], m.frames[0][1]) : updated),
+        m.frames);
 };
-
-Memoer.setWindow = \m, window ->
-    (!m.cell ?
-        {'window': window} :
-        Memoer.create(m.cell.id, m.cell.state, m.cell.val, m.cell.delegate, window));
 
 /* Records
  ******************************************************************************/
@@ -174,14 +152,6 @@ ParserState.prototype.next = \tok -> {
     }
     return this._next;
 };
-
-/**
- * Are two states equal?
- * 
- * States are equal if their position's are equal.
- */
-ParserState.prototype.eq = \{'position': pos} ->
-    (this.position.compare(pos) === 0);
 
 /**
  * Create a new state with input.
@@ -573,7 +543,7 @@ in
  */
 var attempt = \p ->
     function ATTEMPT_PARSER(state, m, cok, cerr, eok, eerr) {
-        return cont(p, [state, Memoer.setWindow(m, [state.position]), cok, eerr, eok, eerr]);
+        return cont(p, [state, Memoer.pushWindow(m, state.position), cok, eerr, eok, eerr]);
     };
 
 /**
@@ -790,24 +760,24 @@ var anyToken = Parser('Any Token',
 var memo = \p -> let
     id = (p.parserId || uniqueParserId())
 in
-    \state, m, cok, cerr, eok, eerr -> {
-        var entry = Memoer.lookup(m, id, state);
+    \state{'position': pos}, m, cok, cerr, eok, eerr -> {
+        var entry = Memoer.lookup(m, pos, id);
         if (entry)
             return cont(entry, [state, m, cok, cerr, eok, eerr]);
         
         return cont(p, [state, m,
             \x, pstate, pm ->
                 cok(x, pstate,
-                    Memoer.update(pm, id, state, \(_, m, cok /*, cerr, eok, eerr*/) -> cok(x, pstate, m))),
+                    Memoer.update(pm, pos, id, \(_, m, cok /*, cerr, eok, eerr*/) -> cok(x, pstate, m))),
             \x, pstate, pm ->
                 cerr(x, pstate,
-                    Memoer.update(pm, id, state, \(_, m, cok, cerr /*, eok, eerr*/) -> cerr(x, pstate, m))),
+                    Memoer.update(pm, pos, id, \(_, m, cok, cerr /*, eok, eerr*/) -> cerr(x, pstate, m))),
             \x, pstate, pm ->
                 eok(x, pstate,
-                    Memoer.update(pm, id, state, \(_, m, cok, cerr, eok /*, eerr*/) -> eok(x, pstate, m))),
+                    Memoer.update(pm, pos, id, \(_, m, cok, cerr, eok /*, eerr*/) -> eok(x, pstate, m))),
             \x, pstate, pm ->
                 eerr(x, pstate,
-                    Memoer.update(m, id, state, \(_, m, cok, cerr, eok, eerr) -> eerr(x, pstate, pm)))]);
+                    Memoer.update(m, pos, id, \(_, m, cok, cerr, eok, eerr) -> eerr(x, pstate, pm)))]);
     };
 
 /* Running
@@ -819,7 +789,7 @@ var exec = \p, state, m, cok, cerr, eok, eerr ->
     trampoline(p(state, m, cok, cerr, eok, eerr))();
 
 var _perform = \p, state, ok, err ->
-    exec(p, state, {'window': []}, ok, err, ok, err);
+    exec(p, state, Memoer.create(\p1, p2 -> p1.compare(p2)), ok, err, ok, err);
 
 /**
  * Perform parser 'p' with state, returning result from callback 'ok' when 

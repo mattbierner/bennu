@@ -10,6 +10,9 @@
 * Changed eof to be parser and not function.
 * Removed `ParserState.prototype.eq` as it generally does not do what is expected
   and the logic it uses should not be exposed.
+* Added concept of windows to memoization to automatically prune memoized results.
+* Removed parse.backtrack as it is not needed.
+* Added `parse_text.match` for a character level regular expression test.
 
 ## 13.0.4 - August 29, 2013
 * Updated nu
