@@ -20,8 +20,9 @@ can be written more quickly and integrate better with the host language.
 
 # Using parse.js #
 
-## Dependencies ##
-parse.js depends on [Nu][nu] internally and also uses Nu objects in the API.
+## Dependencies
+* [Nu][nu] - Small functional, lazy stream library.
+* [Seshat][seshat] - Functional memoization utility.
 
 ## With AMD ##
 Include any AMD style module loader and load parse:
@@ -35,7 +36,8 @@ Include any AMD style module loader and load parse:
             requirejs.config({
                 paths: {
                     'parse': './lib',
-                    'nu': './dependencies/nu/lib'
+                    'nu': './dependencies/nu/lib',
+                    'seshat': './dependencies/seshat/lib/seshat'
                 }
             });
             require(['parse/parse'], function(parse) {
@@ -51,12 +53,11 @@ All files live in the top level 'parse' module.
 Core functionality. Defines core parsers and data structures for creating and
 running parsers.
 
-### lib/parse_string - 'parse/parse_string' ###
-Parsers for working specifically with strings.
+### lib/text - 'parse/text' ###
+Parsers for working specifically with text.
 
-### lib/parse_eager - 'parse/parse_eager' ###
-Redefines iterative core parsers to return regular Javascript arrays instead
-of streams.
+### lib/lang - 'parse/lang' ###
+Combinatory parsers for ordering parsers, like found in a language.
 
 # Code #
 parse.js is written in Javascript / Khepri. [Khepri][khepri] is a ECMAScript subset

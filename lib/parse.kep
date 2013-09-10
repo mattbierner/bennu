@@ -8,7 +8,7 @@ define(['nu/stream',
         'seshat'],
 function(stream,
         seshat) {
-//"use strict";
+"use strict";
 
 var map = Function.prototype.call.bind(Array.prototype.map);
 var reduceRight = Function.prototype.call.bind(Array.prototype.reduceRight);
@@ -43,41 +43,58 @@ var trampoline = \f -> {
 /* Memoization
  ******************************************************************************/
 /**
+ * Structure used for memoization of parser results.
+ * 
+ * The memoer uses the concept of a window, a lower bound position, to designate
+ * reachable results in the stream. Memoized results for positions outside of the
+ * window will be automatically pruned when possible.
  */
 var Memoer = function(memoer, frames) {
     this.memoer = memoer;
     this.frames = frames;
 };
 
+/**
+ * Create an empty Memoer.
+ * 
+ * @param compare Function used for ordering position keys in memoization tree.
+ */
 Memoer.create = \compare ->
     new Memoer(
         seshat.create(compare),
         []);
 
 /**
- * 
+ * Push a new window onto the stack.
  */
-Memoer.pushWindow = \m, lower, upper ->
+Memoer.pushWindow = \m, lower ->
     new Memoer(
         m.memoer,
-        m.frames.concat([[lower, upper]]));
+        [lower].concat(m.frames));
 
 /**
+ * Pop the top most window.
  * 
+ * Prunes table when possible.
  */
 Memoer.popWindow = \m ->
     new Memoer(
-        (m.frames.length === 1 ?
-            seshat.prune(m.memoer, m.frames[0][0], m.frames[0][1]) :
+       (m.frames.length === 1 ?
+            seshat.prune(m.memoer, m.frames[0]) :
             m.memoer),
-        m.frames.slice(m.frames.length - 1));
+        m.frames.slice(1));
 
 /**
+ * Lookup memoized result at `pos` for parser `id`.
+ * 
+ * Return null if none.
  */
 Memoer.lookup = \m, pos, id ->
     seshat.lookup(m.memoer, pos, id);
 
 /**
+ * Update the memoization table to store `val` for result at `pos` from parser
+ * `id`.
  */
 Memoer.update = \m, pos, id, val ->
     new Memoer(
@@ -602,21 +619,28 @@ var _either = \e ->
 var either = _either(\pos, pErr, qErr -> new MultipleError(pos, [pErr, qErr]));
 
 /**
- * Parser that attempts a variable number of parsers in order and returns
+ * Parser that attempts a number of parsers in order and returns
  * the value of the first one that succeeds.
  * 
  * Throws a ParserError if called with no arguments.
+ * 
+ * @param arr Array of parsers to attempt.
  */
-var choice = let
+var choicea = let
     either = _either(\pos, pErr, qErr -> new ChoiceError(pos, pErr, qErr)),
     reducer = \p, c -> either(c, p),
     end = bind(getPosition, \pos -> never(new MultipleError(pos, [])))
 in
-    \... -> {
-        if (!arguments.length)
-            throw new ParserError("choice called with no arguments");
-        return reduceRight(arguments, reducer, end);
+    \arr -> {
+        if (!arr.length)
+            throw new ParserError("choice called no parsers");
+        return reduceRight(arr, reducer, end);
     };
+
+/**
+ * Same as choice but gets parsers from arguments.
+ */
+var choice = \... -> choicea(arguments);
 
 /**
  * Consume 'p' either zero or one time.
@@ -781,7 +805,7 @@ in
                     Memoer.update(pm, pos, id, \(_, m, cok, cerr, eok /*, eerr*/) -> eok(x, pstate, m))),
             \x, pstate, pm ->
                 eerr(x, pstate,
-                    Memoer.update(m, pos, id, \(_, m, cok, cerr, eok, eerr) -> eerr(x, pstate, pm)))]);
+                    Memoer.update(pm, pos, id, \(_, m, cok, cerr, eok, eerr) -> eerr(x, pstate, m)))]);
     };
 
 /* Running
@@ -973,8 +997,10 @@ return {
     'lookahead': lookahead,
     
     'next': next,
+    'sequencea': sequencea,
     'sequence': sequence,
     'either': either,
+    'choicea': choicea,
     'choice': choice,
     'optional': optional,
     'expected': expected,
@@ -983,6 +1009,7 @@ return {
     'binds': binds,
     'cons': cons,
     'append': append,
+    'enumerationa': enumerationa,
     'enumeration': enumeration,
     'many': many,
     'many1': many1,
