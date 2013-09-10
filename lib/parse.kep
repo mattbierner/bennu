@@ -67,7 +67,9 @@ Memoer.pushWindow = \m, lower, upper ->
  */
 Memoer.popWindow = \m ->
     new Memoer(
-        m.memoer,
+        (m.frames.length === 1 ?
+            seshat.prune(m.memoer, m.frames[0][0], m.frames[0][1]) :
+            m.memoer),
         m.frames.slice(m.frames.length - 1));
 
 /**
@@ -77,12 +79,10 @@ Memoer.lookup = \m, pos, id ->
 
 /**
  */
-Memoer.update = \m, pos, id, val -> {
-    var updated = seshat.update(m.memoer, pos, id, val);
-    return new Memoer(
-        (m.frames[0] ? seshat.prune(updated, m.frames[0][0], m.frames[0][1]) : updated),
+Memoer.update = \m, pos, id, val ->
+    new Memoer(
+        seshat.update(m.memoer, pos, id, val),
         m.frames);
-};
 
 /* Records
  ******************************************************************************/
@@ -543,7 +543,11 @@ in
  */
 var attempt = \p ->
     function ATTEMPT_PARSER(state, m, cok, cerr, eok, eerr) {
-        return cont(p, [state, Memoer.pushWindow(m, state.position), cok, eerr, eok, eerr]);
+        return cont(p, [state, Memoer.pushWindow(m, state.position),
+            \x, s, m -> cok(x, s, Memoer.popWindow(m)),
+            \x, s, m -> eerr(x, s, Memoer.popWindow(m)),
+            \x, s, m -> eok(x, s, Memoer.popWindow(m)),
+            \x, s, m -> eerr(x, s, Memoer.popWindow(m))]);
     };
 
 /**
