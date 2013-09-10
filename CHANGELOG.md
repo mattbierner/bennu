@@ -14,7 +14,7 @@
 * Removed `parse.backtrack` as it is not needed with windows.
 * Added `parse_text.match` for a character level regular expression test.
 * Added both array and argument versions of parsers that take a variable number
-  of parsers.
+  of parsers, `choice and choicea, sequence and sequencea, enumeration and enumerationa`
 
 ## 13.0.4 - August 29, 2013
 * Updated nu

@@ -453,22 +453,6 @@ var bind = \p, f ->
 // State Interaction Parsers
 ////////////////////////////////////////
 /**
- * Parser that extracts information from the Parser's current state.
- * 
- * @param {function(Object): *} f Function that extracts information from a 
- *     given state object.
- */
-var extract = \f ->
-    function EXTRACT_PARSER(state, m, cok, cerr, eok /*, _*/) {
-        return eok(f(state), state, m);
-    };
-
-/**
- * Parser that returns the current state.
- */
-var getParserState = extract(identity);
-
-/**
  * Parser that modifies the current parser state using function 'f'.
  * 
  *  @param {function(ParserState): *} f Function that transforms that current state.
@@ -480,17 +464,29 @@ var modifyParserState = \f ->
     };
 
 /**
+ * Parser that returns the current state.
+ */
+var getParserState = Parser('Get Parser State',
+    modifyParserState(identity));
+
+/**
  * Parser that sets current parser state to 's'.
  * 
  * @param s New parser state.
  */
 var setParserState = \s ->
     modifyParserState(constant(s));
-
+    
 /**
- * Parser that returns the current user state.
+ * Parser that extracts information from the Parser's current state.
+ * 
+ * @param {function(Object): *} f Function that extracts information from a 
+ *     given state object.
  */
-var getState = extract(\s -> s.userState);
+var extract = \f ->
+    function EXTRACT(state, m, cok, cerr, eok /*, _*/) {
+        return eok(f(state), state, m);
+    };
 
 /**
  * Parser that modifies the current user state using function 'f'.
@@ -499,6 +495,12 @@ var getState = extract(\s -> s.userState);
  */
 var modifyState = \f ->
     modifyParserState(\state -> state.setUserState(f(state.userState)));
+
+/**
+ * Parser that returns the current user state.
+ */
+var getState = Parser('Get State',
+    extract(\s -> s.userState));
 
 /**
  * Parser that sets current user parser state to 's'.
@@ -511,7 +513,8 @@ var setState = \s ->
 /**
  * Parser that gets the current position.
  */
-var getPosition = extract(\s -> s.position);
+var getPosition =  Parser('Get Position',
+    extract(\s -> s.position));
 
 /**
  * Parser that sets the current position
@@ -522,13 +525,14 @@ var setPosition = \position ->
 /**
   *Parser that gets the current input.
  */
-var getInput = extract(\s -> s.input);
+var getInput =  Parser('Get Input',
+    extract(\s -> s.input));
 
 /**
  * Parser that sets the current input.
  */
 var setInput = \input ->
-    modifyState(\s -> s.setInput(input));
+    modifyParserState(\s -> s.setInput(input));
 
 //
 ////////////////////////////////////////
@@ -550,10 +554,11 @@ var fail = \msg ->
 var eof = let
     end = always(stream.end)
 in
-    bind(getInput, \input ->
+    Parser('EOF',
+        bind(getInput, \input ->
         (stream.isEmpty(input) ?
             end :
-            _fail(\pos -> new ExpectError(pos, "end of input", stream.first(input)))));
+            _fail(\pos -> new ExpectError(pos, "end of input", stream.first(input))))));
 
 /**
  * Parser that attempts parser `p`. Upon failure, never consumes any input.
