@@ -21,8 +21,8 @@ can be written more quickly and integrate better with the host language.
 # Using parse.js #
 
 ## Dependencies
-* [Nu][nu] - Small functional, lazy stream library.
-* [Seshat][seshat] - Functional memoization utility.
+* [Nu][nu] 2.0.X - Small functional, lazy stream library.
+* [Seshat][seshat] 0.0.X - Functional memoization utility.
 
 ## With AMD ##
 Include any AMD style module loader and load parse:
@@ -49,15 +49,16 @@ Include any AMD style module loader and load parse:
 ## Modules ##
 All files live in the top level 'parse' module.
 
-### lib/parse - 'parse/parse' ###
+### lib/parse - 'parse/parse'
 Core functionality. Defines core parsers and data structures for creating and
 running parsers.
 
-### lib/text - 'parse/text' ###
+### lib/text - 'parse/text'
 Parsers for working specifically with text.
 
-### lib/lang - 'parse/lang' ###
+### lib/lang - 'parse/lang'
 Combinatory parsers for ordering parsers, like found in a language.
+
 
 # Code #
 parse.js is written in Javascript / Khepri. [Khepri][khepri] is a ECMAScript subset
@@ -70,10 +71,10 @@ but only Khepri sources will be developed and Javascript files will be
 generated from it.
 
 
-
 [CombinatorialParsers]: http://en.wikipedia.org/wiki/Parser_combinator
 [Parsatron]: https://github.com/youngnh/parsatron
 [Parsec]: http://legacy.cs.uu.nl/daan/parsec.html
 [parseecma]: https://github.com/mattbierner/parse-ecma
 [khepri]: https://github.com/mattbierner/khepri
 [nu]: https://github.com/mattbierner/nu
+[seshat]: https://github.com/mattbierner/seshat

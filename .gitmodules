@@ -1,3 +1,6 @@
 [submodule "dependencies/nu"]
 	path = dependencies/nu
 	url = git://github.com/mattbierner/nu.git
+[submodule "dependencies/seshat"]
+	path = dependencies/seshat
+	url = git://github.com/mattbierner/seshat.git

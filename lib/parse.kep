@@ -565,11 +565,12 @@ in
  */
 var attempt = \p ->
     function ATTEMPT_PARSER(state, m, cok, cerr, eok, eerr) {
+        var peerr = \x, s, m -> eerr(x, s, Memoer.popWindow(m));
         return cont(p, [state, Memoer.pushWindow(m, state.position),
             \x, s, m -> cok(x, s, Memoer.popWindow(m)),
-            \x, s, m -> eerr(x, s, Memoer.popWindow(m)),
+            peerr,
             \x, s, m -> eok(x, s, Memoer.popWindow(m)),
-            \x, s, m -> eerr(x, s, Memoer.popWindow(m))]);
+            peerr]);
     };
 
 /**

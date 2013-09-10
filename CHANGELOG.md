@@ -15,6 +15,7 @@
 * Added `parse_text.match` for a character level regular expression test.
 * Added both array and argument versions of parsers that take a variable number
   of parsers, `choice and choicea, sequence and sequencea, enumeration and enumerationa`
+* Refactored `parse_text.string` to generally improve performance.
 
 ## 13.0.4 - August 29, 2013
 * Updated nu
