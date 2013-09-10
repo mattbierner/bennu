@@ -7,7 +7,7 @@ layout: base
         <div id='console-parser'>
             <div>
                 <h4>Parser</h4>
-                <textarea rows='6' placeholder="Parser to run. Has access to to 'parse' and 'parse.string'. i.g. parse_string.character('a')"></textarea>
+                <textarea rows='6' placeholder="Parser to run. Has access modules using 'parse', 'parse_text', and 'parse_lang'"></textarea>
             </div>
         </div>
         <div id='console-text'>
@@ -38,13 +38,15 @@ layout: base
     requirejs.config({
         paths: {
             parse: 'lib',
-            nu: 'dependencies/nu/lib'
+            nu: 'dependencies/nu/lib',
+            seshat: 'dependencies/seshat/lib/seshat'
+            
         }
     });
     
     $(function(){
-        require(['parse/parse', 'parse/parse_string', 'nu/stream'],
-        function(parse, parse_string, stream) {
+        require(['parse/parse', 'parse/text', 'parse/lang', 'nu/stream'],
+        function(parse, parse_text, parse_lang, stream) {
             var flatten = function(s, c) {
                 if (stream.isStream(s)) {
                     stream.forEach(s, function(x) { flatten(x, c); });

@@ -15,33 +15,27 @@ can be written more quickly and integrate better with the host language.
 ## Examples ##
 * [parse-ecma][parseecma] - Combinatory parsers for lexing and parsing ECMAScript 5.
 
-
 ## Modules ##
 All files live in the top level 'parse' module.
 
-### parse/parse ###
+### lib/parse - 'parse/parse'
 Core functionality. Defines core parsers and data structures for creating and
 running parsers.
 
-### parse/parse_string ###
-Parsers for working specifically with strings.
+### lib/text - 'parse/text'
+Parsers for working specifically with text.
 
-### parse/parse_eager ###
-Redefines iterative core parsers to return regular Javascript arrays instead
-of Nu streams.
+### lib/lang - 'parse/lang'
+Combinatory parsers for ordering parsers, like found in a language.
 
 
-# Usage #
+# Usage
 
-## To clone ##
-    git clone https://github.com/mattbierner/parse.js parse
-    cd parse
-    git submodule update --init --recursive
+## Dependencies
+* [Nu][nu] 2.0.X - Small functional, lazy stream library.
+* [Seshat][seshat] 0.0.X - Functional memoization utility.
 
-## Dependencies ##
-parse.js depends on [Nu][nu] internally and also uses Nu objects in the API.
-
-## With AMD ##
+## With AMD
 Include any AMD style module loader and load parse:
 
     <!DOCTYPE html>
@@ -53,7 +47,8 @@ Include any AMD style module loader and load parse:
             requirejs.config({
                 paths: {
                     'parse': './lib',
-                    'nu': './dependencies/nu/lib'
+                    'nu': './dependencies/nu/lib',
+                    'seshat': './dependencies/seshat/lib/seshat'
                 }
             });
             require(['parse/parse'], function(parse) {
@@ -61,6 +56,11 @@ Include any AMD style module loader and load parse:
             });
         </script>
     </body>
+
+## To clone ##
+    git clone https://github.com/mattbierner/parse.js parse
+    cd parse
+    git submodule update --init --recursive
 
 # Code #
 parse.js is written in Javascript / Khepri. [Khepri][khepri] is a ECMAScript subset
@@ -80,3 +80,4 @@ generated from it.
 [parseecma]: https://github.com/mattbierner/parse-ecma
 [khepri]: https://github.com/mattbierner/khepri
 [nu]: https://github.com/mattbierner/nu
+[seshat]: https://github.com/mattbierner/seshat

@@ -1,0 +1,166 @@
+/**
+ * @fileOverview Combinatory parsers for ordering parses in a language.
+ */
+static define;
+define(['nu/stream',
+        'parse/parse'],
+function(stream,
+        parse) {
+"use strict";
+
+/* Parsers
+ ******************************************************************************/
+var _end = parse.always(stream.end);
+
+var _optionalValueParser = parse.optional.bind(undefined, stream.end);
+
+/**
+ * Consume p 'n' times.
+ * 
+ * @param {Number} n Number of times to consume p.
+ * @param p Parser to consume 'n' times.
+ */
+var times = \n, p ->
+    (n <= 0 ?
+        _end : 
+        parse.cons(p, times(n - 1, p)));
+
+/**
+ * Consume 'p' between 'min' and 'max' times.
+ * 
+ * @param {Number} min Minimum number of times to consume 'p'.
+ * @param {Number} max Maximum number of times to consume 'p'.
+ * @param p Parser to consume.
+ */
+var betweenTimes = let
+    maxParser = \max, p ->
+        (max <= 0 ?
+            _end :
+            _optionalValueParser(
+                parse.cons(p, maxParser(max - 1, p))))
+in
+    \min, max, p -> {
+        if (max < min)
+            throw new parse.ParserError("between max < min");
+        return parse.append(
+            times(min, p),
+            maxParser(max - min, p));
+    };
+
+/**
+ * Parse 'p' then 'q', returning result from 'p'.
+ */
+var then = \p, q ->
+    parse.bind(p, \x ->
+        parse.next(q, parse.always(x)));
+
+/**
+ * Consume 'p' between 'open' and 'close', returning 'p' results.
+ * 
+ * @param open Parser to consume first, discarding results.
+ * @param close Parser to consume last, discarding results.
+ * @param p Parser to consume between 'open' and 'close'.
+ */
+var between = \open, close, p ->
+    parse.next(open, then(p, close));
+
+/**
+ * Consume 'p' separated by 'sep' one or more times.
+ * 
+ * If sep succeeds but p fails, does not backtrack.
+ */
+var sepBy1 = \sep, p -> 
+    parse.cons(p, parse.many(parse.next(sep, p)));
+
+/**
+ * Parser that consumes 'p' separated by 'sep' zero or more times.
+ */
+var sepBy = \sep, p ->
+    parse.optional(stream.end, sepBy1(sep, p));
+
+/**
+ * Parser that consumes 'p' one or more times separated and optional ended by 'sep'.
+ */
+var sepEndBy1 = \sep, p ->
+    parse.rec(\self ->
+        parse.cons(p, _optionalValueParser(
+            parse.next(sep, _optionalValueParser(self)))));
+/**
+ * Parser that consumes 'p' zero or more times separated and optional ended by 'sep'.
+ */
+var sepEndBy = \sep, p ->
+    parse.either(
+        sepEndBy1(sep, p),
+        parse.next(parse.optional(null, sep), parse.always(stream.end)));
+
+/**
+ * Parser that consumes 'p' one or more times separated by 'sep' and ended by 'sep'.
+ */
+var endBy1 = \sep, p ->
+    parse.many1(then(p, sep));
+
+/**
+ * Parser that consumes 'p' one or more times separated by 'sep' and ended by 'sep'.
+ */
+var endBy = \sep, p ->
+    parse.many(then(p, sep));
+
+/**
+ * Parser that consumes 'p' one or more times separated by 'op' and returns 
+ * result of left associative application of resulting function from 'op' to 'p'
+ * values.
+ */
+var chainl1 = \op, p ->
+    parse.bind(p, parse.rec(\self ->
+        \x ->
+            parse.optional(x, parse.bind(op, \f ->
+                parse.bind(p, \y -> self(f(x, y)))))));
+
+/**
+ * Parser that consumes 'p' one or more times separated by 'op' and returns 
+ * result of left associative application of resulting function from 'op' to 'p'
+ * values.
+ */
+var chainl = \op, x, p ->
+    parse.optional(x, chainl1(op, p));
+
+/**
+ * Parser that consumes 'p' one or more times separated by 'op' and returns 
+ * result of right associative application of resulting function from 'op' to 'p'
+ * values.
+ */
+var chainr1 = \op, p ->
+    parse.rec(\self ->
+        parse.bind(p, \x ->
+            parse.optional(x, parse.bind(op, \f ->
+                parse.bind(self, \y -> parse.always(f(x, y)))))));
+
+/**
+ * Parser that consumes 'p' zero or more times separated by 'op' and returns 
+ * result of right associative application of resulting function from 'op' to 'p'
+ * values.
+ */
+var chainr = \op, x, p ->
+    parse.optional(x, chainr1(op, p));
+
+/* Export
+ ******************************************************************************/
+return {
+    'times': times,
+    'betweenTimes': betweenTimes,
+    
+    'then': then,
+    'between': between,
+    'sepBy1': sepBy1,
+    'sepBy': sepBy,
+    'sepEndBy1': sepEndBy1,
+    'sepEndBy': sepEndBy,
+    'endBy1': endBy1,
+    'endBy': endBy,
+    'chainl1': chainl1,
+    'chainl': chainl,
+    'chainr1': chainr1,
+    'chainr': chainr
+};
+
+});

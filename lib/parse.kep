@@ -3,80 +3,103 @@
  * 
  * Unless otherwise noted, parses do not support backtracking by default.
  */
-define(['nu/stream'],
-function(stream) {
+static define;
+define(['nu/stream',
+        'seshat'],
+function(stream,
+        seshat) {
 "use strict";
 
-/* Prototypes
+var map = Function.prototype.call.bind(Array.prototype.map);
+var reduceRight = Function.prototype.call.bind(Array.prototype.reduceRight);
+
+var curry = \f, ... -> f.bind.apply(f, arguments);
+
+var identity = \x -> x;
+
+var constant = \x -> \() -> x;
+
+var throwConstant = \err -> \() -> { throw err; };
+
+var eq = \x, y -> (x === y);
+
+var uniqueParserId = Math.random;
+
+/* Continuation
  ******************************************************************************/
-var join = Array.prototype.join;
-var map = Array.prototype.map;
-var reduceRight = Array.prototype.reduceRight;
-
-/* Helpers
- ******************************************************************************/
-var curry = (f /*, ...*/) -> f.bind.apply(f, arguments);
-
-var identity = x -> x;
-
-var constant = x -> () -> x;
-
-var throwConstant = err -> () -> { throw err; };
-
-var eq = (x, y) -> x === y;
-
-var uniqueParserId = () -> Math.random();
-
-// Continuation
-////////////////////////////////////////
-var cont = (f, args) -> {
+var cont = \f, args -> {
     var c = [f, args];
     c._next = true;
     return c;
 };
 
-var trampoline = f -> {
+var trampoline = \f -> {
     var value = f;
-    while (value && value._next) {
+    while (value && value._next)
         value = value[0].apply(undefined, value[1]);
-    }
     return value;
 };
 
 /* Memoization
  ******************************************************************************/
 /**
- * A match cell for memoization.
+ * Structure used for memoization of parser results.
  * 
- * Stores a value for a given state.
- * Can be asked to perform a lookup for a state, in which it may return 'val' 
- * or delegate to another match cell.
- * 
+ * The memoer uses the concept of a window, a lower bound position, to designate
+ * reachable results in the stream. Memoized results for positions outside of the
+ * window will be automatically pruned when possible.
  */
-var Memoer = function(id, state, val, delegate) {
-    this.id = id;
-    this.state = state;
-    this.val = val;
-    this.delegate = delegate;
+var Memoer = function(memoer, frames) {
+    this.memoer = memoer;
+    this.frames = frames;
 };
 
 /**
- * Lookup a value, if any, stored in a match cell for 'state'.
+ * Create an empty Memoer.
+ * 
+ * @param compare Function used for ordering position keys in memoization tree.
  */
-Memoer.lookup = function(cell, id, state) {
-    for (var m = cell; m; m = m.delegate) {
-        if (m.id === id && m.state.eq(state)) {
-            return m.val;
-        }
-    }
-    return null;
-};
+Memoer.create = \compare ->
+    new Memoer(
+        seshat.create(compare),
+        []);
 
 /**
- * Create a new match cell storing 'val' for 'state' and including, delegating,
- * some cell 'm'.
+ * Push a new window onto the stack.
  */
-Memoer.update = (m, id, state, val) -> new Memoer(id, state, val, m);
+Memoer.pushWindow = \m, lower ->
+    new Memoer(
+        m.memoer,
+        [lower].concat(m.frames));
+
+/**
+ * Pop the top most window.
+ * 
+ * Prunes table when possible.
+ */
+Memoer.popWindow = \m ->
+    new Memoer(
+       (m.frames.length === 1 ?
+            seshat.prune(m.memoer, m.frames[0]) :
+            m.memoer),
+        m.frames.slice(1));
+
+/**
+ * Lookup memoized result at `pos` for parser `id`.
+ * 
+ * Return null if none.
+ */
+Memoer.lookup = \m, pos, id ->
+    seshat.lookup(m.memoer, pos, id);
+
+/**
+ * Update the memoization table to store `val` for result at `pos` from parser
+ * `id`.
+ */
+Memoer.update = \m, pos, id, val ->
+    new Memoer(
+        seshat.update(m.memoer, pos, id, val),
+        m.frames);
 
 /* Records
  ******************************************************************************/
@@ -92,26 +115,28 @@ var Position = function(i) {
 };
 
 /**
+ * Initial position in a stream.
+ */
+Position.initial = new Position(0);
+
+Position.prototype.toString = \() -> '' + this.index;
+
+/**
  * Advanced the position based on a consumed character.
  * 
  * @param tok Token that was consumed.
  * 
  * @returns Position after 'tok'.
  */
-Position.prototype.increment = tok ->
-    new Position(this.index + 1);
-
-Position.prototype.toString = () ->
-    '' + this.index;
+Position.prototype.increment = \tok -> new Position(this.index + 1);
 
 /**
  * Compares two positions.
  * 
  * @returns Number less than, equal to, or greater than zero if this position is
- *   less than,equal to, or greater than 'pos'.
+ *   less than, equal to, or greater than 'pos'.
  */
-Position.prototype.compare = pos ->
-    this.index - pos.index;
+Position.prototype.compare = \pos -> (this.index - pos.index);
 
 // ParserState
 ////////////////////////////////////////
@@ -135,17 +160,15 @@ var ParserState = function(input, position, userState) {
  * 
  * @returns New input state for next item in input.
  */
-ParserState.prototype.next = tok ->
-    (this._next ||
-        (this._next = new ParserState(stream.rest(this.input), this.position.increment(tok), this.userState)));
-
-/**
- * Are two states equal?
- * 
- * States are equal if their position's are equal.
- */
-ParserState.prototype.eq = state ->
-    (this.position.compare(state.position) === 0);
+ParserState.prototype.next = \tok -> {
+    if (!this._next) {
+        this._next = new ParserState(
+            stream.rest(this.input),
+            this.position.increment(tok),
+            this.userState);
+    }
+    return this._next;
+};
 
 /**
  * Create a new state with input.
@@ -154,7 +177,7 @@ ParserState.prototype.eq = state ->
  * 
  * @returns New input state with position.
  */
-ParserState.prototype.setInput = input ->
+ParserState.prototype.setInput = \input ->
     new ParserState(input, this.position, this.userState);
 
 /**
@@ -164,7 +187,7 @@ ParserState.prototype.setInput = input ->
  * 
  * @returns New input state with position.
  */
-ParserState.prototype.setPosition = position ->
+ParserState.prototype.setPosition = \position ->
     new ParserState(this.input, position, this.userState);
 
 /**
@@ -174,7 +197,7 @@ ParserState.prototype.setPosition = position ->
  * 
  * @returns New input state with position.
  */
-ParserState.prototype.setUserState = userState ->
+ParserState.prototype.setUserState = \userState ->
     new ParserState(this.input, this.position, userState);
 
 /* Errors
@@ -212,12 +235,12 @@ ParseError.prototype.name = 'ParseError';
 Object.defineProperties(ParseError.prototype, {
     'message': {
         'configurable': true,
-        'get': () ->
+        'get': \() ->
             "At position:" + this.position + " " + this.errorMessage
     },
     'errorMessage': {
         'configurable': true,
-        'get': () ->
+        'get': \() ->
             (this._msg === undefined ? "" : this._msg)
     }
 });
@@ -239,8 +262,8 @@ MultipleError.prototype.constructor = MultipleError;
 MultipleError.prototype.name = 'MultipleError';
 
 Object.defineProperty(MultipleError.prototype, 'errorMessage', {
-    'get': () ->
-        "[" + map.call(this.errors, x -> x.message).join(", ") + "]"
+    'get': \() ->
+        "[" + map(this.errors, \x -> x.message).join(", ") + "]"
 });
 
 /**
@@ -260,7 +283,7 @@ ChoiceError.prototype.constructor = MultipleError;
 ChoiceError.prototype.name = 'ChoiceError';
 
 Object.defineProperty(ChoiceError.prototype, 'errors', {
-    'get': () ->
+    'get': \() ->
         [this._pErr].concat(this._qErr.errors)
 });
 
@@ -297,7 +320,7 @@ UnexpectError.prototype.constructor = UnexpectError;
 UnexpectError.prototype.name = 'UnexpectError';
 
 Object.defineProperty(UnexpectError.prototype, 'errorMessage', {
-    'get': () ->
+    'get': \() ->
         "Unexpected:" + this.unexpected
 });
 
@@ -319,7 +342,7 @@ ExpectError.prototype.constructor = ExpectError;
 ExpectError.prototype.name = "ExpectError";
 
 Object.defineProperty(ExpectError.prototype, 'errorMessage', {
-    'get': () ->
+    'get': \() ->
         "Expected:" + this.expected + (this.found ?
             " Found:" + this.found :
             "")
@@ -337,8 +360,8 @@ Object.defineProperty(ExpectError.prototype, 'errorMessage', {
  * 
  * Using rec, we fix this.
  * 
- *     var bs = rec(function(bs) {
- *         return parse.either(parse.character('b'), bs);
+ *     var bs = rec(function(self) {
+ *         return parse.either(parse.character('b'), self);
  *     });
  * 
  * @param def Factory function that is passed a reference to the parser being
@@ -346,9 +369,9 @@ Object.defineProperty(ExpectError.prototype, 'errorMessage', {
  * 
  * @return A parser.
  */
-var rec = def -> {
-    var value;
-    return (value = def((/*...*/) -> value.apply(this, arguments)));
+var rec = \def -> {
+    var value = def(\... -> value.apply(this, arguments));
+    return value;
 };
 
 /* Parser definition
@@ -366,9 +389,9 @@ var rec = def -> {
  *
  * @return 
  */
-var Parser = (name, impl) ->
+var Parser = \name, impl ->
     (impl.hasOwnProperty('parserId') ? 
-        Parser(name, (/*...*/) -> impl.apply(this, arguments)) :
+        Parser(name, \... -> impl.apply(this, arguments)) :
         Object.defineProperties(impl, {
             'displayName': {
                 'value': name,
@@ -385,7 +408,7 @@ var Parser = (name, impl) ->
  * 
  * @param body The body of the parser.
  */
-var RecParser = (name, body) -> Parser(name, rec(body));
+var RecParser = \name, body -> Parser(name, rec(body));
 
 /* Parsers
  ******************************************************************************/
@@ -394,9 +417,9 @@ var RecParser = (name, body) -> Parser(name, rec(body));
 /**
  * Parser that always succeeds with a given value and consumes no input.
  * 
- * @param x Value to yield.
+ * @param x Value to succeed with.
  */
-var always = x ->
+var always = \x ->
     function ALWAYS_PARSER(state, m, cok, cerr, eok /*, _*/) {
         return eok(x, state, m);
     };
@@ -404,14 +427,12 @@ var always = x ->
 /**
  * Parser that always fails and consumes no input.
  * 
- * @param [msg] Message for error.
+ * @param x Value to fail with.
  */
-var never = msg -> {
-    var e = (msg === undefined ? UnknownError : ParseError);
-    return function NEVER_PARSER(state, m, cok, cerr, eok, eerr) {
-        return eerr(new e(state.position, msg), state, m);
+var never = \x ->
+    function NEVER_PARSER(state, m, cok, cerr, eok, eerr) {
+        return eerr(x, state, m);
     };
-};
 
 /**
  * Parser that parses 'p', passing the results to function 'f' which returns a
@@ -419,132 +440,145 @@ var never = msg -> {
  * 
  * @param p Parser to run, passing results to f.
  * @param f Function called with result from 'p' and returns parser 'q'.
- * 
- * @return Value from 'q' parser.
  */
-var bind = (p, f) ->
+var bind = \p, f ->
     function BIND_PARSER(state, m, cok, cerr, eok, eerr) {
-        var pcok = (x, state, m) -> cont(f(x, state, m), [state, m, cok, cerr, cok, cerr]),
-            peok = (x, state, m) -> cont(f(x, state, m), [state, m, cok, cerr, eok, eerr]);
-        return cont(p, [state, m, pcok, cerr, peok, eerr]);
+        return cont(p, [state, m,
+            \x, state, m -> cont(f(x, state, m), [state, m, cok, cerr, cok, cerr]),
+            cerr,
+            \x, state, m -> cont(f(x, state, m), [state, m, cok, cerr, eok, eerr]),
+            eerr]);
     };
 
-/**
- * Same as bind but calls apply on 'f' using results of 'p'.
- */
-var binda = (p, f) ->
-    bind(p, x ->
-        f.apply(undefined, stream.toArray(x)));
-
-/**
- * Parser that matches end of input. If end of input, succeeds with null.
- */
-var eof = () ->
-    function EOF_PARSER(state, m, cok, cerr, eok, eerr) {
-        return (stream.isEmpty(state.input) ?
-            eok(stream.end, state, m) :
-            eerr(new ExpectError(state.position, "end of input",  stream.first(state.input)), state, m));
-    };
-
-// Parser State Interaction Parsers
+// State Interaction Parsers
 ////////////////////////////////////////
-/**
- * Parser that extracts information from the Parser's current state.
- * 
- * @param {function(Object): *} f Function that extracts information from a 
- *     given state object.
- */
-var extract = f ->
-    function EXTRACT_PARSER(state, m, cok, cerr, eok /*, _*/) {
-        return eok(f(state), state, m);
-    };
-
-/**
- * Parser that returns the current state.
- */
-var getParserState = constant(extract(identity));
-
 /**
  * Parser that modifies the current parser state using function 'f'.
  * 
  *  @param {function(ParserState): *} f Function that transforms that current state.
  */
-var modifyParserState = f ->
+var modifyParserState = \f ->
     function MODIFY_PARSER_STATE(state, m, cok, cerr, eok /*, _*/) {
         var newState = f(state);
         return eok(newState, newState, m);
     };
 
 /**
+ * Parser that returns the current state.
+ */
+var getParserState = Parser('Get Parser State',
+    modifyParserState(identity));
+
+/**
  * Parser that sets current parser state to 's'.
  * 
  * @param s New parser state.
  */
-var setParserState = s ->
+var setParserState = \s ->
     modifyParserState(constant(s));
-
+    
 /**
- * Parser that returns the current users state.
+ * Parser that extracts information from the Parser's current state.
+ * 
+ * @param {function(Object): *} f Function that extracts information from a 
+ *     given state object.
  */
-var getState = constant(extract(s -> s.userState));
+var extract = \f ->
+    function EXTRACT(state, m, cok, cerr, eok /*, _*/) {
+        return eok(f(state), state, m);
+    };
 
 /**
  * Parser that modifies the current user state using function 'f'.
  * 
  *  @param {function(ParserState): *} f Function that transforms that current user state.
  */
-var modifyState = f ->
-    function MODIFY_STATE(state, m, cok, cerr, eok /*, _*/) {
-        var newState = state.setUserState(f(state.userState));
-        return eok(newState, newState, m);
-    };
+var modifyState = \f ->
+    modifyParserState(\state -> state.setUserState(f(state.userState)));
+
+/**
+ * Parser that returns the current user state.
+ */
+var getState = Parser('Get State',
+    extract(\s -> s.userState));
 
 /**
  * Parser that sets current user parser state to 's'.
  * 
  * @param s New user parser state.
  */
-var setState = s ->
+var setState = \s ->
     modifyState(constant(s));
-    
+
 /**
  * Parser that gets the current position.
  */
-var getPosition = constant(extract(s -> s.position));
+var getPosition =  Parser('Get Position',
+    extract(\s -> s.position));
 
 /**
  * Parser that sets the current position
  */
-var setPosition = position ->
-    modifyParserState(s -> s.setPosition(position));
+var setPosition = \position ->
+    modifyParserState(\s -> s.setPosition(position));
 
 /**
   *Parser that gets the current input.
  */
-var getInput = constant(extract(s -> s.input));
+var getInput =  Parser('Get Input',
+    extract(\s -> s.input));
 
 /**
  * Parser that sets the current input.
  */
-var setInput = input ->
-    modifyState(s -> s.setInput(input));
+var setInput = \input ->
+    modifyParserState(\s -> s.setInput(input));
 
-// Try Parsers
+//
 ////////////////////////////////////////
+var _fail = \e ->
+    bind(getPosition, \pos -> never(e(pos)));
+
 /**
- * Parser that attempts to parse p. Upon failure, never consumes any input.
+ * Parser that always fails with an error and consumes no input.
+ * 
+ * @param {String} [msg] Message for error.
  */
-var attempt = p ->
+var fail = \msg ->
+    let e = (msg ? ParseError : UnknownError) in
+        _fail(\pos -> new e(pos, msg));
+
+/**
+ * Parser that matches end of input.
+ */
+var eof = let
+    end = always(stream.end)
+in
+    Parser('EOF',
+        bind(getInput, \input ->
+        (stream.isEmpty(input) ?
+            end :
+            _fail(\pos -> new ExpectError(pos, "end of input", stream.first(input))))));
+
+/**
+ * Parser that attempts parser `p`. Upon failure, never consumes any input.
+ */
+var attempt = \p ->
     function ATTEMPT_PARSER(state, m, cok, cerr, eok, eerr) {
-        return cont(p, [state, m, cok, eerr, eok, eerr]);
+        var peerr = \x, s, m -> eerr(x, s, Memoer.popWindow(m));
+        return cont(p, [state, Memoer.pushWindow(m, state.position),
+            \x, s, m -> cok(x, s, Memoer.popWindow(m)),
+            peerr,
+            \x, s, m -> eok(x, s, Memoer.popWindow(m)),
+            peerr]);
     };
 
 /**
  * Parser that consumes no input but returns what was parsed.
  */
-var lookahead = p ->
+var lookahead = \p ->
     function LOOKAHEAD_PARSER(state, m, cok, cerr, eok, eerr) {
-        var ok = (item, _, m) -> eok(item, state, m);
+        var ok = \item, _, m -> eok(item, state, m);
         return cont(p, [state, m, ok, cerr, eok, eerr]);
     };
 
@@ -553,15 +587,31 @@ var lookahead = p ->
 /**
  * Parser that parses 'p', then 'q'. Return the 'q' value.
  */
-var next = (p, q) ->
+var next = \p, q ->
     bind(p, constant(q));
 
-var _either = e ->
-    (p, q) ->
+/**
+ * Consume a finite sequence of 1 or more parsers, returning result from last.
+ * 
+ * This may partially fail if any parser fails in the sequence. Wrap in attempt
+ * to prevent partial failures.
+ * 
+ * @param arr Array of parsers to consume.
+ */
+var sequencea = let reducer = \p, q -> next(q, p) in
+    \arr -> reduceRight(arr, reducer);
+
+/**
+ * Same as `sequencea` but gets parsers from arguments instead of array.
+ */
+var sequence = \... -> sequencea(arguments);
+
+var _either = \e ->
+    \p, q ->
         function EITHER_PARSER(state, m, cok, cerr, eok, eerr) {
             var pos = state.position;
             var peerr = function(errFromP, _, mFromP) {
-                var qeerr = (errFromQ, _, mFromQ) ->
+                var qeerr = \errFromQ, _, mFromQ ->
                     eerr(e(pos, errFromP, errFromQ), state, mFromQ);
                 return cont(q, [state, mFromP, cok, cerr, eok, qeerr]);
             };
@@ -572,36 +622,42 @@ var _either = e ->
  * Parser that attempts p or q. If p succeeds, returns its value. Else, tries
  * to parse q.
  */
-var either = _either((pos, pErr, qErr) -> new MultipleError(pos, [pErr, qErr]));
+var either = _either(\pos, pErr, qErr -> new MultipleError(pos, [pErr, qErr]));
 
 /**
- * Parser that attempts a variable number of parsers in order and returns
+ * Parser that attempts a number of parsers in order and returns
  * the value of the first one that succeeds.
+ * 
+ * Throws a ParserError if called with no arguments.
+ * 
+ * @param arr Array of parsers to attempt.
  */
-var choice = (function(){
-    var either = _either((pos, pErr, qErr) -> new ChoiceError(pos, pErr, qErr));
-        
-    var reducer = (p, c) -> either(c, p);
-    
-    var end = (state, m, cok, cerr, eok, eerr) ->
-        eerr(new MultipleError(state.position, []), state, m);
-    
-    return (/*...*/) ->
-        (arguments.length === 0 ?
-            never() :
-            reduceRight.call(arguments, reducer, end));
-}());
+var choicea = let
+    either = _either(\pos, pErr, qErr -> new ChoiceError(pos, pErr, qErr)),
+    reducer = \p, c -> either(c, p),
+    end = bind(getPosition, \pos -> never(new MultipleError(pos, [])))
+in
+    \arr -> {
+        if (!arr.length)
+            throw new ParserError("choice called no parsers");
+        return reduceRight(arr, reducer, end);
+    };
+
+/**
+ * Same as choice but gets parsers from arguments.
+ */
+var choice = \... -> choicea(arguments);
 
 /**
  * Consume 'p' either zero or one time.
  * 
+ * @param x Default value to return.
  * @param p Parser to consume zero or one times.
- * @param [def] Default value to return.
  * 
  * @return Result of 'p' or default value.
  */
-var optional = (p, def) ->
-    either(p, always(def));
+var optional = \x, p ->
+    either(p, always(x));
 
 /**
  * Parser that parses 'p' but if 'p' fails without consuming input, produces
@@ -610,23 +666,36 @@ var optional = (p, def) ->
  * @param expect Expected value. 
  * @param p Parser to attempt.
  */
-var expected = (expect, p) ->
+var expected = \expect, p ->
     function EXPECTED_PARSER(state, m, cok, cerr, eok, eerr) {
-        return p(state, m, cok, cerr, eok, (x, state, m) -> eerr(new ExpectError(state.position, expect), state, m));
+        return p(state, m, cok, cerr, eok, \(x, state, m) -> eerr(new ExpectError(state.position, expect), state, m));
     };
 
 // Iterative Parsers
 ////////////////////////////////////////
 var _end = always(stream.end);
 
-var _joinParser = joiner ->
-    (p1, p2) ->
-        bind(p1, v1 ->
-            bind(p2, v2 ->
+var _optionalValueParser = curry(optional, stream.end);
+
+var _joinParser = \joiner ->
+    \p1, p2 ->
+        bind(p1, \v1 ->
+            bind(p2, \v2 ->
                 always(joiner(v1, v2))));
 
-var _optionalValueParser = p ->
-    optional(p, stream.end);
+/**
+ * Parser that takes stream results from 'p' and eagerly turns them into a
+ * regular array.
+ */
+var eager = let toArray = \x -> always(stream.toArray(x)) in
+    \p -> bind(p, toArray);
+
+/**
+ * Same as bind but calls apply on 'f' using stream results of 'p'.
+ */
+var binds = \p, f ->
+    bind(eager(p), \x ->
+        f.apply(undefined, x));
 
 /**
  * Parser that cons the value result of 'valueParser' onto the stream result
@@ -634,8 +703,6 @@ var _optionalValueParser = p ->
  * 
  * @param valueParser Parser that returns a value.
  * @param streamParser Parser that returns a stream.
-
- * @return Stream with value from 'valueParser' consed on.
  */
 var cons = _joinParser(stream.cons);
 
@@ -645,16 +712,17 @@ var cons = _joinParser(stream.cons);
 var append = _joinParser(stream.append);
 
 /**
- * Consume a finite sequence of parsers, returning the results as a list.
+ * Consume a finite sequence of parsers, returning the results as a stream.
  * 
- * @return Ordered list of results from each parsers.
+ * @param arr Array of parsers to consume.
  */
-var sequence = (function(){
-    var reducer = (p, q) -> cons(q, p);
-    
-    return (/*...*/) ->
-        reduceRight.call(arguments, reducer, _end);
-}());
+var enumerationa = let reducer = \p, q -> cons(q, p) in
+    \arr -> reduceRight(arr, reducer, _end);
+
+/**
+ * Same as `enumerationa` but gets parsers from arguments.
+ */
+var enumeration = \... -> enumerationa(arguments);
 
 /**
  * Consume 'p' zero or more times.
@@ -663,111 +731,23 @@ var sequence = (function(){
  * with the parser itself, this event breaks out of parsing.
  * 
  * @param p Parser to consume zero or more times.
- * 
- * @return List of 'p' results. May be empty if zero 'p' was consumed.
  */
-var many = (function(){
-    var manyError = () -> {
-        throw new ParserError("Many parser applied to a parser that accepts an empty string");
-    };
-    
-    return function MANY_PARSER(p) {
-        var safeP = (state, m, cok, cerr, eok, eerr) ->
+var many = let
+    manyError = throwConstant(
+        new ParserError("Many parser applied to a parser that accepts an empty string"))
+in
+    function MANY_PARSER(p) {
+        var safeP = \state, m, cok, cerr, eok, eerr ->
             cont(p, [state, m, cok, cerr, manyError, eerr]);
-        
-        return rec(self -> _optionalValueParser(cons(safeP, self)));
+        return rec(\self -> _optionalValueParser(cons(safeP, self)));
     };
-}());
 
 /**
  * Consume 'p' 1 or more times.
  * 
- * @param p Parser to consume one or more times.
- * 
- * @return List of 'p' results.
- */
-var many1 = p ->
-    cons(p, many(p));
-
-/**
- * Consume p 'n' times.
- * 
- * @param {Number} n Number of times to consume p.
- * @param p Parser to consume 'n' times.
- * 
- * @return List of 'p' results.
- */
-var times = (n, p) ->
-    (n <= 0 ?
-        _end : 
-        cons(p, times(n - 1, p)));
-
-/**
- * Consume 'p' between 'min' and 'max' times.
- * 
- * @param {Number} min Minimum number of times to consume 'p'.
- * @param {Number} max Maximum umber of times to consume 'p'.
  * @param p Parser to consume.
- * 
- * @return List of 'p' results.
  */
-var betweenTimes = (function(){
-    var maxParser = (max, p) ->
-        (max <= 0 ?
-            _end :
-            _optionalValueParser(
-                cons(p, maxParser(max - 1, p))));
-    
-    return (min, max, p) ->
-        (max < min ?
-            never :
-            append(
-                times(min, p),
-                maxParser(max - min, p)));
-}());
-
-/**
- * Parse 'p' then 'q', returning result from 'p'.
- */
-var then = (p, q) ->
-    bind(p, x ->
-        next(q, always(x)));
-
-/**
- * Consume 'p' between 'open' and 'close', returning 'p' results.
- * 
- * @param open Parser to consume first, discarding results.
- * @param close Parser to consume last, discarding results.
- * @param p Parser to consume between 'open' and 'close'.
- *
- *@return Result of 'p'.
- */
-var between = (open, close, p) ->
-    next(open, then(p, close));
-
-/**
- * Consume 'p' seperated by 'sep' one or more times.
- * 
- * If sep succeeds but p fails, does not backtrack.
- * 
- * @param sep Parser to consume between instances of 'p', discarding results.
- * @param p Parser to consume seperated by 'sep'.
- * 
- * @return List of 'p' results.
- */
-var sepBy1 = (sep, p) -> 
-    cons(p, many(next(sep, p)));
-
-/**
- * Parser that consumes 'p' seperated by 'sep' zero or more times.
- * 
- * @param sep Parser to consume between instances of 'p', discarding results.
- * @param p Parser to consume seperated by 'sep'.
- * 
- * @return List of 'p' results.
- */
-var sepBy = (sep, p) ->
-    _optionalValueParser(sepBy1(sep, p));
+var many1 = \p -> cons(p, many(p));
 
 // Token Parsers
 ////////////////////////////////////////
@@ -779,125 +759,78 @@ var sepBy = (sep, p) ->
  *     character should be consumed.
  * @param {function(object): Error} [errMsg] Optional function that returns
  *    the error when consume fails. Passed the state position and tested token.
- * 
- * @return Consumed token.
  */
-var token = (function(){
-    var defaultErr = (pos, tok) ->
-        new UnexpectError(pos, (tok === null ? "end of input" : tok));
-    
-    return (consume, onErr) -> {
-        onErr = (onErr || defaultErr);
-        return function TOKEN_PARSER(state, m, cok, cerr, eok, eerr) {
-            var pos = state.position,
-                input = state.input;
+var token = let
+    defaultErr = \pos, tok ->
+        new UnexpectError(pos, (tok === null ? "end of input" : tok))
+in
+    \consume, onErr -> {
+        var errorHandler = (onErr || defaultErr);
+        return function TOKEN_PARSER(state{'position': pos, 'input': input}, m, cok, cerr, eok, eerr) {
             if (!input) {
-                return eerr(onErr(pos, null), state, m);
+                return eerr(errorHandler(pos, null), state, m);
             } else {
                 var tok = stream.first(input);
                 return (consume(tok) ?
                     cok(tok, state.next(tok), m) :
-                    eerr(onErr(pos, tok), state, m));
+                    eerr(errorHandler(pos, tok), state, m));
             }
         };
     };
-}());
 
 /**
  * Parser that consumes any token.
- * 
- * @return Consumed token.
  */
-var anyToken = constant(token(constant(true)));
-
-var _character = (pred, c) ->
-    token(curry(pred, c));
-
-/**
- * Parser that consumes a character based on a predicate.
- * 
- * @param c Object to test against.
- * @param {function(Object, Object): boolean} [pred] Predicate function that
- *    compares two values. Returns if the parser should consume the character.
- */
-var character = (c, pred) ->
-    _character((pred || eq), c);
-
-/**
- * Parser that consumes a sequence of characters based on a predicate.
- * 
- * @param s Sequence of objects to test against.
- * @param {function(Object, Object): boolean} [pred] Predicate function called on
- *    each character of sequence that compares two values. Returns if the parser
- *    should consume the character.
- **/
-var string = (function(){
-    var reducer = (p, c) -> next(c, p);
-    
-    return (s, pred) ->
-        map.call(s, curry(_character, (pred || eq)))
-            .reduceRight(reducer, always(s));
-}());
+var anyToken = Parser('Any Token',
+    token(constant(true)));
 
 /* Memo Parsers
  ******************************************************************************/
 /**
- * Parse 'p' and continue with old memo table.
- */
-var backtrack = p ->
-    (state, m, cok, cerr, eok, eerr) ->
-        cont(p, [state, m,
-             (x, state /*, _*/) -> cok(x, state, m),
-             (x, state /*, _*/) -> cerr(x, state, m),
-             (x, state /*, _*/) -> eok(x, state, m), 
-             (x, state /*, _*/) -> eerr(x, state, m)]);
-
-/**
- * Uses memoized result for 'p' or parse 'p' and store result in memo table.
+ * Parser that uses memoized result for 'p' or parse 'p' and stores result in memo table.
  * 
  * Memoization is based on equal states, not equal inputs.
  */
-var memo = function(p) {
-    var id = (p.parserId || uniqueParserId());
-    return function(state, m, cok, cerr, eok, eerr) {
-        var entry = Memoer.lookup(m, id, state);
-        if (entry) {
+var memo = \p -> let
+    id = (p.parserId || uniqueParserId())
+in
+    \state{'position': pos}, m, cok, cerr, eok, eerr -> {
+        var entry = Memoer.lookup(m, pos, id);
+        if (entry)
             return cont(entry, [state, m, cok, cerr, eok, eerr]);
-        }
         
-        var pcok = (x, pstate, pm) ->
-            cok(x, pstate,
-                Memoer.update(pm, id, state, (_, m, cok /*, cerr, eok, eerr*/) -> cok(x, pstate, m)));
-        
-        var pcerr = (x, pstate, pm) ->
-            cerr(x, pstate,
-                Memoer.update(pm, id, state, (_, m, cok, cerr /*, eok, eerr*/) -> cerr(x, pstate, m)));
-        
-        var peok = (x, pstate, pm) ->
-            eok(x, pstate,
-                Memoer.update(pm, id, state, (_, m, cok, cerr, eok /*, eerr*/) -> eok(x, pstate, m)));
-        
-        var peerr = (x, pstate, pm) ->
-            eerr(x, pstate,
-                Memoer.update(m, id, state, (_, m, cok, cerr, eok, eerr) -> eerr(x, pstate, pm)));
-        
-        return cont(p, [state, m, pcok, pcerr, peok, peerr]);
+        return cont(p, [state, m,
+            \x, pstate, pm ->
+                cok(x, pstate,
+                    Memoer.update(pm, pos, id, \(_, m, cok /*, cerr, eok, eerr*/) -> cok(x, pstate, m))),
+            \x, pstate, pm ->
+                cerr(x, pstate,
+                    Memoer.update(pm, pos, id, \(_, m, cok, cerr /*, eok, eerr*/) -> cerr(x, pstate, m))),
+            \x, pstate, pm ->
+                eok(x, pstate,
+                    Memoer.update(pm, pos, id, \(_, m, cok, cerr, eok /*, eerr*/) -> eok(x, pstate, m))),
+            \x, pstate, pm ->
+                eerr(x, pstate,
+                    Memoer.update(pm, pos, id, \(_, m, cok, cerr, eok, eerr) -> eerr(x, pstate, m)))]);
     };
-};
 
 /* Running
  ******************************************************************************/
 /**
  * Execute a given parser 'p', correctly extracting results.
- * 
- * Supplies an empty memo table.
  */
-var exec = (p, state, m, cok, cerr, eok, eerr) ->
+var exec = \p, state, m, cok, cerr, eok, eerr ->
     trampoline(p(state, m, cok, cerr, eok, eerr))();
 
-var _makeParser = (ok, err) ->
-    (p, state, m) ->
-        exec(p, state, (m || null), ok, err, ok, err);
+var _perform = \p, state, ok, err ->
+    exec(p, state, Memoer.create(\p1, p2 -> p1.compare(p2)), ok, err, ok, err);
+
+/**
+ * Perform parser 'p' with state, returning result from callback 'ok' when 
+ * successful and from 'err' on error.
+ */
+var perform = \p, state, ok, err ->
+    _perform(p, state, \x -> \() -> ok(x), \x -> \() -> err(x));
 
 /**
  * Run a given parser with a given state.
@@ -907,7 +840,8 @@ var _makeParser = (ok, err) ->
  * 
  * @return Result from the parser.
  */
-var runState = _makeParser(constant, throwConstant);
+var runState = \p, state ->
+    _perform(p, state, constant, throwConstant);
 
 /**
  * Run parser 'p' against an input stream.
@@ -915,30 +849,30 @@ var runState = _makeParser(constant, throwConstant);
  * Supplies own state object.
  * 
  * @param p Parser to run.
- * @param s A stream.js style stream supporting first and rest.
+ * @param s Nu style stream supporting first and rest.
  * @param [ud] User data.
  * 
  * @return Result from the parser.
  */
-var runStream = (p, s, ud) ->
-    runState(p, new ParserState(s, new Position(0), (ud || null)));
+var runStream = \p, s, ud ->
+    runState(p, new ParserState(s, Position.initial, ud));
 
 /**
  * Run parser 'p' against an input string.
  * 
  * @param p Parser to run.
- * @param input An array-like object of characters to run the parser against.
+ * @param input Array-like object of characters to run the parser against.
  * @param [ud] User data.
 
  * @return Result from the parser.
  */
-var run = (p, input, ud) ->
+var run = \p, input, ud ->
     runStream(p, stream.from(input), ud);
 
 /**
  * Run parser 'p' zero or more times to produce a lazy stream of results.
  * 
- * Similar in operation to the 'many' parser, but lazy and not a
+ * Similar in operation to the 'many' parser, but is not a
  * combinatorial parser.
  * 
  * Result may be an infinite stream.
@@ -948,9 +882,9 @@ var run = (p, input, ud) ->
  * 
  * @return Lazy stream of results.
  */
-var runManyState = function(p, state) {
+var runManyState = \p, state -> {
     var manyP = _optionalValueParser(
-        bind(p, (x, state, m) ->
+        bind(p, \(x, state, m) ->
             always(stream.memoStream(x, curry(runState, manyP, state, m)))));
     return runState(manyP, state);
 };
@@ -961,16 +895,16 @@ var runManyState = function(p, state) {
  * Supplies own state.
  * 
  * @param p Parser to run.
- * @param s stream.js style stream supporting first and rest.
+ * @param s Nu style stream supporting first and rest.
  * @param [ud] User data.
  *
  * @see runManyState
  */
-var runManyStream = (p, s, ud) ->
-    runManyState(p, new ParserState(s, new Position(0), ud));
+var runManyStream = \p, s, ud ->
+    runManyState(p, new ParserState(s, Position.initial, ud));
 
 /**
- * Run parser 'p' zero or more times against a input string to produce a lazy
+ * Run parser 'p' zero or more times against an input string to produce a lazy
  * stream or results.
  * 
  * @param p Parser to run.
@@ -979,7 +913,7 @@ var runManyStream = (p, s, ud) ->
  *
  * @see runManyStream
  */
-var runMany = (p, input, ud) ->
+var runMany = \p, input, ud ->
     runManyStream(p, stream.from(input), ud);
 
 /**
@@ -990,24 +924,26 @@ var runMany = (p, input, ud) ->
  *
  * @return Did the parser successfully run?
  */
-var testState = _makeParser(constant(constant(true)), constant(constant(false)));
+var testState = let
+    ok = constant(constant(true)),
+    err = constant(constant(false))
+in
+    \p, state -> _perform(p, state, ok, err);
 
  /**
- * Tests parser 'p' against a stream.
- * 
- * Supplies own state.
+ * Test parser 'p' against stream 's'.
  * 
  * @param p Parser to run.
- * @param s stream.js style stream supporting first and rest.
+ * @param s Nu style stream supporting first and rest.
  * @param [ud] User data.
  * 
  * @see testState
  */
-var testStream = (p, s, ud) ->
-    testState(p, new ParserState(s, new Position(0), ud));
+var testStream = \p, s, ud ->
+    testState(p, new ParserState(s, Position.initial, ud));
 
 /**
- * Tests parser 'p' against an input string.
+ * Test parser 'p' against 'input'.
  * 
  * @param p Parser to run.
  * @param input Array-like object of characters to run the parser against.
@@ -1015,7 +951,7 @@ var testStream = (p, s, ud) ->
  *
  * @see testStream
  */
-var test = (p, input, ud) ->
+var test = \p, input, ud ->
     testStream(p, stream.from(input), ud);
 
 /* Export
@@ -1045,7 +981,6 @@ return {
     'always': always,
     'never': never,
     'bind': bind,
-    'binda': binda,
     'eof': eof,
     
     'extract': extract,
@@ -1063,40 +998,37 @@ return {
     'getPosition': getPosition,
     'setPosition': setPosition,
     
+    'fail': fail,
     'attempt': attempt,
     'lookahead': lookahead,
     
     'next': next,
+    'sequencea': sequencea,
+    'sequence': sequence,
     'either': either,
+    'choicea': choicea,
     'choice': choice,
     'optional': optional,
     'expected': expected,
     
+    'eager': eager,
+    'binds': binds,
     'cons': cons,
     'append': append,
-    'sequence': sequence,
-    
+    'enumerationa': enumerationa,
+    'enumeration': enumeration,
     'many': many,
     'many1': many1,
-    'times': times,
-    'betweenTimes': betweenTimes,
-    
-    'then': then,
-    'between': between,
-    'sepBy1': sepBy1,
-    'sepBy': sepBy,
-    
+
     'token': token,
     'anyToken': anyToken,
-    
-    'character': character,
-    'string': string,
-    
-    'backtrack': backtrack,
+
     'memo': memo,
     
 // Running
     'exec': exec,
+    
+    'perform': perform,
     
     'runState': runState,
     'runStream': runStream,
@@ -1110,4 +1042,5 @@ return {
     'testStream': testStream,
     'test': test
 };
+
 });
