@@ -55,13 +55,11 @@ var Memoer = function(memoer, frames) {
 /**
  * Empty Memoer.
  */
-Memoer.empty = let
-    compare = \x, y -> x.compare(y),
-    eq = \x, y -> (x.id === y.id && x.input === y.input)
-in
-    new Memoer(
-        seshat.create(compare, eq),
-        []);
+Memoer.empty = new Memoer(
+    seshat.create(
+        \x, y -> x.compare(y),
+        \x, y -> (x.id === y.id && (x.state === y.state || (x.state && x.state.eq(y.state))))),
+    []);
 
 /**
  * Push a new window onto the stack.
@@ -151,6 +149,27 @@ var ParserState = function(input, position, userState) {
     this.position = position;
     this.userState = userState;
 };
+
+/**
+ * Compares two states for memoization.
+ * 
+ * This is a part of the seshat id lookup process so the correct position has
+ * already been found when this is called.
+ */
+ParserState.prototype.eq = \other ->
+    other && this.input === other.input && this.userState === other.userState;
+
+/**
+ * Is the state's input empty.
+ */
+ParserState.prototype.isEmpty = \() ->
+    stream.isEmpty(this.input);
+
+/**
+ * Get the first item of the input.
+ */
+ParserState.prototype.first = \() ->
+    stream.first(this.input);
 
 /**
  * Get next state object for a given consumed token.
@@ -548,10 +567,10 @@ var eof = let
     end = always(stream.end)
 in
     Parser('EOF',
-        bind(getInput, \input ->
-        (stream.isEmpty(input) ?
+        bind(getParserState, \s ->
+        (s.isEmpty() ?
             end :
-            _fail(\pos -> new ExpectError(pos, "end of input", stream.first(input))))));
+            _fail(\pos -> new ExpectError(pos, "end of input", s.first())))));
 
 /**
  * Parser that attempts parser `p`. Upon failure, never consumes any input.
@@ -759,11 +778,11 @@ var token = let
 in
     \consume, onErr -> {
         var errorHandler = (onErr || defaultErr);
-        return function TOKEN_PARSER(state{'position': pos, 'input': input}, m, cok, cerr, eok, eerr) {
-            if (!input) {
+        return function TOKEN_PARSER(state{'position': pos}, m, cok, cerr, eok, eerr) {
+            if (state.isEmpty()) {
                 return eerr(errorHandler(pos, null), state, m);
             } else {
-                var tok = stream.first(input);
+                var tok = state.first();
                 return (consume(tok) ?
                     cok(tok, state.next(tok), m) :
                     eerr(errorHandler(pos, tok), state, m));
@@ -787,8 +806,8 @@ var anyToken = Parser('Any Token',
 var memo = \p -> let
     id = (p.parserId || uniqueParserId())
 in
-    \state{'position': pos, 'input': input}, m, cok, cerr, eok, eerr -> {
-        var key = {'id': id, 'input': input};
+    \state{'position': pos}, m, cok, cerr, eok, eerr -> {
+        var key = {'id': id, 'state': state};
         var entry = Memoer.lookup(m, pos, key);
         if (entry)
             return cont(entry, [state, m, cok, cerr, eok, eerr]);

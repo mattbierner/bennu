@@ -1,6 +1,14 @@
 # ChangeLog #
 
-## 14.0.0 - August 29, 2013
+## 14.1.0 - September 12, 2013
+* Moved `isEmpty` and first logic onto parser state instead of using `input` stream
+  directly. This allows more customized behavior.
+
+## 14.0.1 - September 12, 2013
+* Fixed memoization returning old values if the parser changes the input.
+* Memoization now also takes the state into account for lookup.
+
+## 14.0.0 - September 10, 2013
 * Changed `parse.sequence` to return last element from a set of 1 or more parser.
 * Added `parse.enumeration` to return stream of parser results.
 * Removed `parse.string` as it basically does the same thing as `parse.enumeration`
