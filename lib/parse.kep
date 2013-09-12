@@ -21,8 +21,6 @@ var constant = \x -> \() -> x;
 
 var throwConstant = \err -> \() -> { throw err; };
 
-var eq = \x, y -> (x === y);
-
 var uniqueParserId = Math.random;
 
 /* Continuation
@@ -55,13 +53,14 @@ var Memoer = function(memoer, frames) {
 };
 
 /**
- * Create an empty Memoer.
- * 
- * @param compare Function used for ordering position keys in memoization tree.
+ * Empty Memoer.
  */
-Memoer.create = \compare ->
+Memoer.empty = let
+    compare = \x, y -> x.compare(y),
+    eq = \x, y -> (x.id === y.id && x.input === y.input)
+in
     new Memoer(
-        seshat.create(compare),
+        seshat.create(compare, eq),
         []);
 
 /**
@@ -788,24 +787,25 @@ var anyToken = Parser('Any Token',
 var memo = \p -> let
     id = (p.parserId || uniqueParserId())
 in
-    \state{'position': pos}, m, cok, cerr, eok, eerr -> {
-        var entry = Memoer.lookup(m, pos, id);
+    \state{'position': pos, 'input': input}, m, cok, cerr, eok, eerr -> {
+        var key = {'id': id, 'input': input};
+        var entry = Memoer.lookup(m, pos, key);
         if (entry)
             return cont(entry, [state, m, cok, cerr, eok, eerr]);
         
         return cont(p, [state, m,
             \x, pstate, pm ->
                 cok(x, pstate,
-                    Memoer.update(pm, pos, id, \(_, m, cok /*, cerr, eok, eerr*/) -> cok(x, pstate, m))),
+                    Memoer.update(pm, pos, key, \(_, m, cok /*, cerr, eok, eerr*/) -> cok(x, pstate, m))),
             \x, pstate, pm ->
                 cerr(x, pstate,
-                    Memoer.update(pm, pos, id, \(_, m, cok, cerr /*, eok, eerr*/) -> cerr(x, pstate, m))),
+                    Memoer.update(pm, pos, key, \(_, m, cok, cerr /*, eok, eerr*/) -> cerr(x, pstate, m))),
             \x, pstate, pm ->
                 eok(x, pstate,
-                    Memoer.update(pm, pos, id, \(_, m, cok, cerr, eok /*, eerr*/) -> eok(x, pstate, m))),
+                    Memoer.update(pm, pos, key, \(_, m, cok, cerr, eok /*, eerr*/) -> eok(x, pstate, m))),
             \x, pstate, pm ->
                 eerr(x, pstate,
-                    Memoer.update(pm, pos, id, \(_, m, cok, cerr, eok, eerr) -> eerr(x, pstate, m)))]);
+                    Memoer.update(pm, pos, key, \(_, m, cok, cerr, eok, eerr) -> eerr(x, pstate, m)))]);
     };
 
 /* Running
@@ -817,7 +817,7 @@ var exec = \p, state, m, cok, cerr, eok, eerr ->
     trampoline(p(state, m, cok, cerr, eok, eerr))();
 
 var _perform = \p, state, ok, err ->
-    exec(p, state, Memoer.create(\p1, p2 -> p1.compare(p2)), ok, err, ok, err);
+    exec(p, state, Memoer.empty, ok, err, ok, err);
 
 /**
  * Perform parser 'p' with state, returning result from callback 'ok' when 
