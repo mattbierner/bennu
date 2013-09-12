@@ -843,7 +843,9 @@ var _perform = \p, state, ok, err ->
  * successful and from 'err' on error.
  */
 var perform = \p, state, ok, err ->
-    _perform(p, state, \x -> \() -> ok(x), \x -> \() -> err(x));
+    _perform(p, state,
+        \x, state, m -> \() -> ok(x, state, m),
+        \x, state, m -> \() -> err(x, state, m));
 
 /**
  * Run a given parser with a given state.

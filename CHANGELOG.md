@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 14.1.1 - September 12, 2013
+* Fixed `perform` only returning yielded value, not state as well.
+
 ## 14.1.0 - September 12, 2013
 * Moved `isEmpty` and first logic onto parser state instead of using `input` stream
   directly. This allows more customized behavior.
