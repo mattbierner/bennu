@@ -1,4 +1,9 @@
-define(['parse/parse', 'parse/text'], function(parse, parse_text){
+define(['parse/parse',
+        'parse/text',
+        'nu/stream'],
+function(parse,
+        parse_text,
+        stream){
     return {
         'module': "Memo Tests",
         'tests': [
@@ -54,6 +59,35 @@ define(['parse/parse', 'parse/text'], function(parse, parse_text){
                     "aaa");
                 
                 assert.deepEqual(g, 3);
+            }],
+            
+            ["Memo Change streams",
+            function(){
+                var ga = 0, gb = 0;
+                
+                var a = parse.memo(parse.bind(parse_text.character('a'), function(x) {
+                    ga++;
+                    return parse.always(x);
+                }));
+                
+                 var b = parse.memo(parse.bind(parse_text.character('b'), function(x) {
+                    gb++;
+                    return parse.always(x);
+                }));
+                 
+                parse.run(
+                    parse.sequence(
+                        a,
+                        a,
+                        parse.setInput(stream.from('abb')),
+                        parse.setPosition(new parse.Position(0)),
+                        a,
+                        b,
+                        b),
+                    "aaa");
+                
+                assert.deepEqual(ga, 3);
+                assert.deepEqual(gb, 2);
             }],
         ],
     };

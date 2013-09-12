@@ -173,9 +173,7 @@ ParserState.prototype.next = \tok -> {
 /**
  * Create a new state with input.
  * 
- * @param input Input.
- * 
- * @returns New input state with position.
+ * @param input New input.
  */
 ParserState.prototype.setInput = \input ->
     new ParserState(input, this.position, this.userState);
@@ -183,9 +181,7 @@ ParserState.prototype.setInput = \input ->
 /**
  * Create a new state with position.
  * 
- * @param pos New position.
- * 
- * @returns New input state with position.
+ * @param position New position.
  */
 ParserState.prototype.setPosition = \position ->
     new ParserState(this.input, position, this.userState);
@@ -194,8 +190,6 @@ ParserState.prototype.setPosition = \position ->
  * Create a new state with userState.
  * 
  * @param userState New user state.
- * 
- * @returns New input state with position.
  */
 ParserState.prototype.setUserState = \userState ->
     new ParserState(this.input, this.position, userState);

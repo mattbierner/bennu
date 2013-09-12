@@ -60,7 +60,7 @@ var character = \c -> _character(c, expectError(c));
  * This parses all or nothing. Either it matches the string or it fails at the
  * starting location.
  * 
- * @param {String} s String to consume.
+ * @param {String} s String, or array like of characters, to consume.
  */
 var string = let
     reducer = \p, c, i, s ->
@@ -94,7 +94,7 @@ var trie = let
     },
     makeTrie = \words -> reduce(words, wordsReduce, {}),
     _trie = \trie, prefix ->
-        parse.choice.apply(undefined, Object.keys(trie).sort().reverse().map(\n ->
+        parse.choicea(Object.keys(trie).sort().reverse().map(\n ->
             (n.length === 0 ?
                 parse.always(prefix) :
                 parse.attempt(parse.next(
