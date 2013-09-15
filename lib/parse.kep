@@ -178,12 +178,13 @@ ParserState.prototype.first = \() ->
  * 
  * @returns New input state for next item in input.
  */
-ParserState.prototype.next = \tok -> {
+ParserState.prototype.next = \x -> {
     if (!this._next) {
-        this._next = new ParserState(
+        var s = new ParserState(
             stream.rest(this.input),
-            this.position.increment(tok),
+            this.position.increment(x),
             this.userState);
+        this._next = \_, m, cok -> cok(x, s, m);
     }
     return this._next;
 };
@@ -488,7 +489,7 @@ var getParserState = Parser('Get Parser State',
  */
 var setParserState = \s ->
     modifyParserState(constant(s));
-    
+
 /**
  * Parser that extracts information from the Parser's current state.
  * 
@@ -784,7 +785,7 @@ in
             } else {
                 var tok = state.first();
                 return (consume(tok) ?
-                    cok(tok, state.next(tok), m) :
+                    state.next(tok)(state, m, cok, cerr, eok, eerr) :
                     eerr(errorHandler(pos, tok), state, m));
             }
         };

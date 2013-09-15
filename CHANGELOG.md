@@ -1,7 +1,16 @@
 # ChangeLog #
 
+## 14.2.0 - September 15, 2013
+* Added support for parsing potential invalid inputs (streams that error while
+  evaluating). The first input element must be valid but after that, a custom
+  parser state can be used to catch error attempting to get the next state after
+  a token has been consumed.
+* Changed `ParserState.prototype.next` to return a parser instead of the next
+  state. This allows the next call to potentially fail and can map any errors
+  to parser errors.
+
 ## 14.1.1 - September 12, 2013
-* Fixed `perform` only returning yielded value, not state as well.
+* Fixed `perform` only calling callbacks with yielded value, not state as well.
 
 ## 14.1.0 - September 12, 2013
 * Moved `isEmpty` and first logic onto parser state instead of using `input` stream
