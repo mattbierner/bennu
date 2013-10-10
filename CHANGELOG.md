@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 14.2.1 - October 10, 2013
+* Fixed for Chrome's broken `Error.prototype.toString` preventing errors from
+  printing anything useful.
+
 ## 14.2.0 - September 15, 2013
 * Added support for parsing potential invalid inputs (streams that error while
   evaluating). The first input element must be valid but after that, a custom
