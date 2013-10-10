@@ -241,9 +241,16 @@ var ParseError = function(position, msg) {
     this.position = position;
     this._msg = msg;
 };
-ParseError.prototype = new Error();
+ParseError.prototype = new Error;
 ParseError.prototype.constructor = ParseError;
 ParseError.prototype.name = 'ParseError';
+
+/**
+ * @HACK: Chrome's Error.prototype.toString seems broken for a `message`
+ *    getter.
+ */
+ParseError.prototype.toString = \() ->
+    this.name + ": " + this.message;
 
 Object.defineProperties(ParseError.prototype, {
     'message': {
@@ -621,9 +628,8 @@ var sequence = \... -> sequencea(arguments);
 
 var _either = \e ->
     \p, q ->
-        function EITHER_PARSER(state, m, cok, cerr, eok, eerr) {
-            var pos = state.position;
-            var peerr = function(errFromP, _, mFromP) {
+        function EITHER_PARSER(state{'position': pos}, m, cok, cerr, eok, eerr) {
+            var peerr = \errFromP, _, mFromP -> {
                 var qeerr = \errFromQ, _, mFromQ ->
                     eerr(e(pos, errFromP, errFromQ), state, mFromQ);
                 return cont(q, [state, mFromP, cok, cerr, eok, qeerr]);
