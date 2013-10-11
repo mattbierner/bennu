@@ -1,18 +1,42 @@
 /**
  * @fileOverview Combinatory parsers for ordering parses in a language.
  */
-static define;
-define(['nu/stream',
-        'parse/parse'],
-function(stream,
-        parse) {
-"use strict";
-
+package (
+    times,
+    betweenTimes,
+    then,
+    between,
+    sepBy1,
+    sepBy,
+    sepEndBy1,
+    sepEndBy,
+    endBy1,
+    endBy,
+    chainl1,
+    chainl,
+    chainr1,
+    chainr)
+with
+    import 'nu/stream' stream,
+    import 'parse/parse' parse {
+        always,
+        append,
+        bind,
+        cons,
+        either,
+        many,
+        many1,
+        next,
+        optional,
+        ParserError,
+        rec
+    }
+{
 /* Parsers
  ******************************************************************************/
-var _end = parse.always(stream.end);
+var _end = always(stream.end);
 
-var _optionalValueParser = parse.optional.bind(undefined, stream.end);
+var _optionalValueParser = optional.bind(undefined, stream.end);
 
 /**
  * Consume p 'n' times.
@@ -20,10 +44,10 @@ var _optionalValueParser = parse.optional.bind(undefined, stream.end);
  * @param {Number} n Number of times to consume p.
  * @param p Parser to consume 'n' times.
  */
-var times = \n, p ->
+times = \n, p ->
     (n <= 0 ?
         _end : 
-        parse.cons(p, times(n - 1, p)));
+        cons(p, times(n - 1, p)));
 
 /**
  * Consume 'p' between 'min' and 'max' times.
@@ -32,17 +56,17 @@ var times = \n, p ->
  * @param {Number} max Maximum number of times to consume 'p'.
  * @param p Parser to consume.
  */
-var betweenTimes = let
+betweenTimes = let
     maxParser = \max, p ->
         (max <= 0 ?
             _end :
             _optionalValueParser(
-                parse.cons(p, maxParser(max - 1, p))))
+                cons(p, maxParser(max - 1, p))))
 in
     \min, max, p -> {
         if (max < min)
-            throw new parse.ParserError("between max < min");
-        return parse.append(
+            throw new ParserError("between max < min");
+        return append(
             times(min, p),
             maxParser(max - min, p));
     };
@@ -50,9 +74,9 @@ in
 /**
  * Parse 'p' then 'q', returning result from 'p'.
  */
-var then = \p, q ->
-    parse.bind(p, \x ->
-        parse.next(q, parse.always(x)));
+then = \p, q ->
+    bind(p, \x ->
+        next(q, always(x)));
 
 /**
  * Consume 'p' between 'open' and 'close', returning 'p' results.
@@ -61,106 +85,86 @@ var then = \p, q ->
  * @param close Parser to consume last, discarding results.
  * @param p Parser to consume between 'open' and 'close'.
  */
-var between = \open, close, p ->
-    parse.next(open, then(p, close));
+between = \open, close, p ->
+    next(open, then(p, close));
 
 /**
  * Consume 'p' separated by 'sep' one or more times.
  * 
  * If sep succeeds but p fails, does not backtrack.
  */
-var sepBy1 = \sep, p -> 
-    parse.cons(p, parse.many(parse.next(sep, p)));
+sepBy1 = \sep, p -> 
+    cons(p, many(next(sep, p)));
 
 /**
  * Parser that consumes 'p' separated by 'sep' zero or more times.
  */
-var sepBy = \sep, p ->
-    parse.optional(stream.end, sepBy1(sep, p));
+sepBy = \sep, p ->
+    optional(stream.end, sepBy1(sep, p));
 
 /**
  * Parser that consumes 'p' one or more times separated and optional ended by 'sep'.
  */
-var sepEndBy1 = \sep, p ->
-    parse.rec(\self ->
-        parse.cons(p, _optionalValueParser(
-            parse.next(sep, _optionalValueParser(self)))));
+sepEndBy1 = \sep, p ->
+    rec(\self ->
+        cons(p, _optionalValueParser(
+            next(sep, _optionalValueParser(self)))));
 /**
  * Parser that consumes 'p' zero or more times separated and optional ended by 'sep'.
  */
-var sepEndBy = \sep, p ->
-    parse.either(
+sepEndBy = \sep, p ->
+    either(
         sepEndBy1(sep, p),
-        parse.next(parse.optional(null, sep), parse.always(stream.end)));
+        next(optional(null, sep), always(stream.end)));
 
 /**
  * Parser that consumes 'p' one or more times separated by 'sep' and ended by 'sep'.
  */
-var endBy1 = \sep, p ->
-    parse.many1(then(p, sep));
+endBy1 = \sep, p ->
+    many1(then(p, sep));
 
 /**
  * Parser that consumes 'p' one or more times separated by 'sep' and ended by 'sep'.
  */
-var endBy = \sep, p ->
-    parse.many(then(p, sep));
+endBy = \sep, p ->
+    many(then(p, sep));
 
 /**
  * Parser that consumes 'p' one or more times separated by 'op' and returns 
  * result of left associative application of resulting function from 'op' to 'p'
  * values.
  */
-var chainl1 = \op, p ->
-    parse.bind(p, parse.rec(\self ->
+chainl1 = \op, p ->
+    bind(p, rec(\self ->
         \x ->
-            parse.optional(x, parse.bind(op, \f ->
-                parse.bind(p, \y -> self(f(x, y)))))));
+            optional(x, bind(op, \f ->
+                bind(p, \y -> self(f(x, y)))))));
 
 /**
  * Parser that consumes 'p' one or more times separated by 'op' and returns 
  * result of left associative application of resulting function from 'op' to 'p'
  * values.
  */
-var chainl = \op, x, p ->
-    parse.optional(x, chainl1(op, p));
+chainl = \op, x, p ->
+    optional(x, chainl1(op, p));
 
 /**
  * Parser that consumes 'p' one or more times separated by 'op' and returns 
  * result of right associative application of resulting function from 'op' to 'p'
  * values.
  */
-var chainr1 = \op, p ->
-    parse.rec(\self ->
-        parse.bind(p, \x ->
-            parse.optional(x, parse.bind(op, \f ->
-                parse.bind(self, \y -> parse.always(f(x, y)))))));
+chainr1 = \op, p ->
+    rec(\self ->
+        bind(p, \x ->
+            optional(x, bind(op, \f ->
+                bind(self, \y -> always(f(x, y)))))));
 
 /**
  * Parser that consumes 'p' zero or more times separated by 'op' and returns 
  * result of right associative application of resulting function from 'op' to 'p'
  * values.
  */
-var chainr = \op, x, p ->
-    parse.optional(x, chainr1(op, p));
+chainr = \op, x, p ->
+    optional(x, chainr1(op, p));
 
-/* Export
- ******************************************************************************/
-return {
-    'times': times,
-    'betweenTimes': betweenTimes,
-    
-    'then': then,
-    'between': between,
-    'sepBy1': sepBy1,
-    'sepBy': sepBy,
-    'sepEndBy1': sepEndBy1,
-    'sepEndBy': sepEndBy,
-    'endBy1': endBy1,
-    'endBy': endBy,
-    'chainl1': chainl1,
-    'chainl': chainl,
-    'chainr1': chainr1,
-    'chainr': chainr
-};
-
-});
+}

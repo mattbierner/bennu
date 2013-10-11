@@ -1,17 +1,25 @@
 /**
  * @fileOverview Parsers for use specifically with text.
  */
-static define;
-define(['parse/parse'],
-function(parse) {
-"use strict";
+package (
+    character,
+    string,
+    trie,
+    match,
+    anyChar,
+    letter,
+    space,
+    digit)
+with
+    import 'parse/parse' {always, attempt, choicea, ExpectError, next, Parser, token}
+{
 
 var reduce = Function.prototype.call.bind(Array.prototype.reduce);
 var reduceRight = Function.prototype.call.bind(Array.prototype.reduceRight);
 
 var expectError = \msg ->
     \pos, tok ->
-        new parse.ExpectError(pos, msg, (tok === null ? "end of input" : tok));
+        new ExpectError(pos, msg, (tok === null ? "end of input" : tok));
 
 /* Errors
  ******************************************************************************/
@@ -24,11 +32,11 @@ var expectError = \msg ->
  * @param [found] Found value.
  */
 var StringError = function(position, string, index, expected, found) {
-    parse.ExpectError.call(this, position, expected, found);
+    ExpectError.call(this, position, expected, found);
     this.string = string;
     this.index = index;
 };
-StringError.prototype = new parse.ExpectError;
+StringError.prototype = new ExpectError;
 StringError.prototype.constructor = StringError;
 
 Object.defineProperty(StringError.prototype, 'errorMessage', {
@@ -43,7 +51,7 @@ Object.defineProperty(StringError.prototype, 'errorMessage', {
 var _character = let
     pred = \l -> let x = l.valueOf() in \r -> (x === r.valueOf())
 in
-    \c, err -> parse.token(pred(c), err);
+    \c, err -> token(pred(c), err);
 
 /**
  * Parser that consumes a given character. 
@@ -52,7 +60,7 @@ in
  * 
  * @param c The char to consume.
  */
-var character = \c -> _character(c, expectError(c));
+character = \c -> _character(c, expectError(c));
 
 /**
  * Parser that consumes a given string.
@@ -62,14 +70,14 @@ var character = \c -> _character(c, expectError(c));
  * 
  * @param {String} s String, or array like of characters, to consume.
  */
-var string = let
+string = let
     reducer = \p, c, i, s ->
-       parse.next(
+       next(
            _character(c,
                \pos, tok -> new StringError(pos, s, i, c, tok)),
            p)
 in
-    \s -> parse.attempt(reduceRight(s, reducer, parse.always(s)));
+    \s -> attempt(reduceRight(s, reducer, always(s)));
 
 /**
  * Parser that matches any string from an array of words using a trie.
@@ -82,7 +90,7 @@ in
  * 
  * @param words 
  */
-var trie = let
+trie = let
     wordReduce = \parent, l -> {
         parent[l] = (parent[l] || {});
         return parent[l];
@@ -94,14 +102,14 @@ var trie = let
     },
     makeTrie = \words -> reduce(words, wordsReduce, {}),
     _trie = \trie, prefix ->
-        parse.choicea(Object.keys(trie).sort().reverse().map(\n ->
+        choicea(Object.keys(trie).sort().reverse().map(\n ->
             (n.length === 0 ?
-                parse.always(prefix) :
-                parse.attempt(parse.next(
+                always(prefix) :
+                attempt(next(
                     character(n),
                     _trie(trie[n], prefix + n))))))
 in
-    \words -> parse.attempt(_trie(makeTrie(words), ''));
+    \words -> attempt(_trie(makeTrie(words), ''));
 
 /**
  * Parser that consumes input that matches a regular expression.
@@ -112,46 +120,31 @@ in
  * @param pattern Regular expression to test characters against.
  * @param {String} expected Human readable message of the expected value.
  */
-var match = \pattern, expected ->
-    parse.token(RegExp.prototype.test.bind(pattern), expectError(expected));
+match = \pattern, expected ->
+    token(RegExp.prototype.test.bind(pattern), expectError(expected));
 
 /**
  * Parser that consumes any character.
  */
-var anyChar = parse.Parser('Any Character',
+anyChar = Parser('Any Character',
     match(`^.$`, "any character"));
 
 /**
  * Parser that consumes any letter character.
  */
-var letter = parse.Parser('Any Letter',
+letter = Parser('Any Letter',
     match(`^[a-z]$`i, "any letter character"));
 
 /**
  * Parser that consumes any space character.
  */
-var space = parse.Parser('Any Whitespace',
+space = Parser('Any Whitespace',
     match(`^\s$`i, "any space character"));
 
 /**
  * Parser that consumes any number character.
  */
-var digit = parse.Parser('Any Digit',
+digit = Parser('Any Digit',
     match(`^[0-9]$`i, "any digit character"));
-
-/* Export
- ******************************************************************************/
-return {
-// Parsers
-    'character': character,
-    'string': string,
-    'trie': trie,
-    
-    'match': match,
-    'anyChar': anyChar,
-    'letter': letter,
-    'space': space,
-    'digit': digit
-};
 
 });
