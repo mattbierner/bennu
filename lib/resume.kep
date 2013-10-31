@@ -8,7 +8,7 @@ package (
     parseState,
     parse)
 with
-    import 'parse/parse' {always, attempt, choicea,exec, ExpectError, Memoer, next, Parser, ParserState, Position, token},
+    import 'parse/parse' {always, attempt, bind, choicea, getParserState, exec, ExpectError, Memoer, next, Parser, ParserState, Position, token},
     import 'nu/stream' stream{'end': NIL, isEmpty, first, rest}
 in {
 
@@ -41,7 +41,7 @@ Resumable.prototype.addChunk = \c ->
         this.k,
         this.chunks.concat(c));
 
-// ParserState
+// ResumableState
 ////////////////////////////////////////
 /**
  * Object used to track a Parser's state.
@@ -50,12 +50,22 @@ Resumable.prototype.addChunk = \c ->
  * @param position Current position of head of input.
  * @param [userState] Object that users can thread through parsers.
  */
-var State = function(input, chunk, position, ud) {
-    this.input = input;
+var ResumableState = function(chunk, state) {
     this.chunk = chunk;
-    this.position = position;
-    this.userState = ud;
+    this.state = state;
 };
+
+Object.defineProperties(ResumableState, {
+    'input': {
+        'get': \() -> this.state.input
+    },
+    'position': {
+        'get': \() -> this.state.position
+    },
+    'userState': {
+        'get': \() -> this.state.userState
+    }
+});
 
 /**
  * Compares two states for memoization.
@@ -63,20 +73,20 @@ var State = function(input, chunk, position, ud) {
  * This is a part of the seshat id lookup process so the correct position has
  * already been found when this is called.
  */
-State.prototype.eq = \other ->
-    other && this.input === other.input && this.userState === other.userState;
+ResumableState.prototype.eq = \other ->
+    other && other.chunk === this.chunk && other.state.eq(other.state);
 
 /**
  * Is the state's input empty.
  */
-State.prototype.isEmpty = \() ->
-    isEmpty(this.input);
+ResumableState.prototype.isEmpty = \() ->
+    this.state.isEmpty();
 
 /**
  * Get the first item of the input.
  */
-State.prototype.first = \() ->
-    first(this.input);
+ResumableState.prototype.first = \() ->
+    this.state.first();
 
 /**
  * Get next state object for a given consumed token.
@@ -85,26 +95,25 @@ State.prototype.first = \() ->
  * 
  * @returns New input state for next item in input.
  */
-State.prototype.next = \x -> {
+ResumableState.prototype.next = \x -> {
     if (!this._next) {
         var chunk = this.chunk;
+        var self = this;
         
-        var s = new State(
-            rest(this.input),
-            chunk,
-            this.position.increment(x),
-            this.userState);
-        
-        if (isEmpty(rest(this.input))) {
-            var s = new State(
-                rest(this.input),
-                chunk + 1,
-                this.position.increment(x),
-                this.userState);
-            return \_, m, cok -> new Request(chunk + 1, s, \s -> cok(x, s, m));
+        if (isEmpty(rest(this.state.input))) {
+            return bind(next(self.state.next(x), getParserState), \s ->
+                \_, m, cok ->
+                    new Request(
+                        chunk + 1,
+                        s,
+                        \i -> cok(x, new ResumableState(chunk + 1, s.setInput(i)), m)));
         }
-        
-        this._next = \_, m, cok -> cok(x, s, m);
+        this._next = bind(next(self.state.next(x), getParserState), \s ->
+            \_, m, cok ->
+                cok(x, new ResumableState(
+                    chunk,
+                    s),
+                m));
     }
     return this._next;
 };
@@ -114,24 +123,24 @@ State.prototype.next = \x -> {
  * 
  * @param input New input.
  */
-State.prototype.setInput = \input ->
-    new State(input, this.chunk, this.position, this.userState);
+ResumableState.prototype.setInput = \input ->
+    new ResumableState(this.chunk, this.state.setInput(input));
 
 /**
  * Create a new state with position.
  * 
  * @param position New position.
  */
-State.prototype.setPosition = \position ->
-    new State(this.input, this.chunk, position, this.userState);
+ResumableState.prototype.setPosition = \position ->
+    new ResumableState(this.chunk, this.state.setPosition(position));
 
 /**
  * Create a new state with userState.
  * 
  * @param userState New user state.
  */
-State.prototype.setUserState = \userState ->
-    new State(this.input, this.chunk, this.position, userState);
+ResumableState.prototype.setUserState = \userState ->
+    new ResumableState(this.chunk, this.state.setUserState(userState));
 
 /* Running
  ******************************************************************************/
@@ -147,9 +156,9 @@ provide = \r, c -> {
                 false,
                 r2.chunk,
                 result.state,
-                result.k,
+                \x -> result.k(x.input),
                 r2.chunks);
-        result = trampoline(result.k(result.state.setInput(r2.chunks[result.chunk])));
+        result = trampoline(result.k(r2.chunks[result.chunk]));
     }
     return result;
 };
@@ -162,19 +171,23 @@ finish = \r ->
         finish(trampoline(r.k(r.state))) :
         r.k(r.state);
 
+/* Running
+ ******************************************************************************/
+
+        
 /** 
  * Run a given parser with a given state.
  * 
  * @param p Parser to run.
- * @param state State to run parser against.
+ * @param state ResumableState to run parser against.
  * 
  * @return Result from the parser.
  */
 parseState = \p, state ->
     new Resumable(
-        false,
+            false,
         0,
-        state,
+        new ResumableState(0, state),
         \s -> let
             ok = \x, s -> new Resumable(true, -1, s, \ -> x),
             err = \x, s -> new Resumable(true, -1, s, \ -> { throw x; })
@@ -194,9 +207,8 @@ parseState = \p, state ->
 parse = \p, ud ->
     parseState(
         p,
-        new State(
+        new ParserState(
             NIL,
-            0,
             Position.initial,
             ud));
 
