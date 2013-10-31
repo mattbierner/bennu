@@ -24,13 +24,13 @@ function(parse,
         'tests': [
             ["Simple items",
             function(){
-                var p = resume.parse(ab);
+                var p = resume.runInc(ab);
                 assert.equal(resume.finish(resume.provideString(p, 'a')), 'a');
                 assert.equal(resume.finish(resume.provideString(p, 'b')), 'b');
             }],
             ["multiple parser",
             function(){
-                var p = resume.parse(parse.eager(parse.many(ab)));
+                var p = resume.runInc(parse.eager(parse.many(ab)));
                 assert.deepEqual(resume.finish(resume.provideString(p, 'a')), ['a']);
                 assert.deepEqual(resume.finish(resume.provideString(p, 'b')), ['b']);
                 assert.deepEqual(resume.finish(resume.provideString(p, 'abba')), ['a', 'b', 'b', 'a']);
@@ -38,7 +38,7 @@ function(parse,
              }],
             ["multiple provides",
             function(){
-                var p = resume.parse(parse.eager(parse.many(ab)));
+                var p = resume.runInc(parse.eager(parse.many(ab)));
                 var r = resume.provideString(p, 'a');
                 assert.deepEqual(resume.finish(resume.provideString(r, 'a')), ['a', 'a']);
                 assert.deepEqual(resume.finish(resume.provideString(r, 'b')), ['a', 'b']);
@@ -46,7 +46,7 @@ function(parse,
              
              ["Backtracking simple",
              function(){
-                var p = resume.parse(
+                var p = resume.runInc(
                     parse.either(
                         parse.attempt(parse.sequence(a, a, a)),
                         parse.sequence(a, a, b)));
@@ -55,7 +55,7 @@ function(parse,
              }],
              ["Backtracking half provided",
              function(){
-                var p = resume.parse(
+                var p = resume.runInc(
                     parse.either(
                         parse.attempt(parse.sequence(a, a, a)),
                         parse.sequence(a, a, b)));
@@ -65,7 +65,7 @@ function(parse,
              }],
              ["Backtracking multi provides",
              function(){
-                var p = resume.parse(
+                var p = resume.runInc(
                     parse.either(
                         parse.attempt(parse.sequence(a, a, a)),
                         parse.sequence(a, a, b)));
@@ -78,7 +78,7 @@ function(parse,
              
              ["eof",
              function(){
-                var p = resume.parse(
+                var p = resume.runInc(
                     parse_lang.then(
                         parse.eager(parse.enumeration(a, a, a)),
                         parse.eof));
@@ -87,7 +87,7 @@ function(parse,
              }],
              ["Not eof",
              function(){
-                var p = resume.parse(
+                var p = resume.runInc(
                     parse_lang.then(
                         parse.eager(parse.enumeration(a, a)),
                         parse.eof));
@@ -98,7 +98,7 @@ function(parse,
              }],
              ["Multi feed does not trigger eof",
              function(){
-                var p = resume.parse(
+                var p = resume.runInc(
                     parse_lang.then(
                         parse.eager(parse.enumeration(a, a, a)),
                         parse.eof));
@@ -113,7 +113,7 @@ function(parse,
              }],
              ["Multi feed does not trigger eof with failure",
              function(){
-                var p = resume.parse(
+                var p = resume.runInc(
                     parse_lang.then(
                         parse.eager(parse.enumeration(a, a)),
                         parse.eof));
@@ -129,12 +129,28 @@ function(parse,
              
              ["provide inf source",
              function(){
-                var p = resume.parse(
+                var p = resume.runInc(
                     parse.eager(parse_lang.times(3, a)));
                 
                 assert.deepEqual(
                     resume.finish(resume.provide(p, gen.repeat(Infinity, 'a'))),
                     ['a', 'a', 'a']);
+             }],
+             
+             ["provide with starting input",
+             function(){
+                var p = resume.runIncState(
+                    parse.eager(parse.enumeration(a, a, b, a)),
+                    new parse.ParserState(
+                        stream.from('aa'),
+                        parse.Position.initial,
+                        null));
+                
+                var r = resume.provideString(p, 'b');
+                var r2 = resume.provideString(r, 'a');
+                assert.deepEqual(
+                    resume.finish(r2),
+                    ['a', 'a', 'b', 'a']);
              }],
         ],
     };

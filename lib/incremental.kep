@@ -7,10 +7,14 @@ package (
     provideString,
     finish,
     
-// Creation
-    parseState,
-    parse,
-    
+// Incremental Parser Running
+    parseIncState,
+    parseInc,
+
+    runIncState,
+    runInc,
+
+// Many Parser running
     runManyState,
     runManyStream,
     runMany)
@@ -19,10 +23,10 @@ with
         always,
         bind,
         getParserState,
-        exec,
         Memoer,
         next,
         optional,
+        parseState,
         ParserState,
         Position,
         runState,
@@ -32,30 +36,34 @@ in {
 
 /* Records
  ******************************************************************************/
+// Request
+////////////////////////////////////////
 var Request = function(chunk, state, k) {
     this.chunk = chunk;
     this.state = state;
     this.k = k;
 };
 
-var Resumable = function(done, state, k, chunks) {
+// Session
+////////////////////////////////////////
+var Session = function(done, state, k, chunks) {
     this.done = done;
     this.state = state;
     this.k = k;
     this.chunks = chunks;
 };
 
-Resumable.prototype.addChunk = \c ->
-    new Resumable(
+Session.prototype.addChunk = \c ->
+    new Session(
         this.done,
         this.state,
         this.k,
         this.chunks.concat(c));
 
-Resumable.prototype.hasChunk = \c ->
+Session.prototype.hasChunk = \c ->
     (c < this.chunks.length);
 
-Resumable.prototype.getChunk = \c ->
+Session.prototype.getChunk = \c ->
     this.chunks[c];
 
 /* IncrementalState
@@ -138,6 +146,8 @@ IncrementalState.prototype.setUserState = \userState ->
 /**
  * Feed a new chunk of input to an incremental parser.
  * 
+ * Will parse as much as possible before returning.
+ * 
  * @param r Resumable state
  * @param c Nu stream of input for chunk.
  * 
@@ -151,7 +161,7 @@ provide = \r, c -> {
     var result = trampoline(r2.k(r2.state.setInput(c)));
     while (result instanceof Request) {
         if (!r2.hasChunk(result.chunk))
-            return new Resumable(
+            return new Session(
                 false,
                 result.state,
                 \x -> result.k(x.input),
@@ -173,40 +183,68 @@ provideString = \r, input ->
 finish = \r ->
     !r.done ?
         finish(trampoline(r.k(r.state))) :
-        r.k(r.state);
+        r.k();
 
 /* Incremental Creation
  ******************************************************************************/
 /** 
- * Run a given parser with a given state.
+ * Begin incremental parsing for `p` with a custom inner state.
  * 
- * @param p Parser to run.
- * @param state IncrementalState to run parser against.
+ * @param p Parser.
+ * @param state Inner parser state.
+ * @param ok Success continuation.
+ * @param err Error continuation.
  * 
- * @return Result from the parser.
+ * @return Opaque state object for a partially evaluated parser.
  */
-parseState = \p, state ->
-    new Resumable(
-        false,
-        new IncrementalState(0, state),
-        \s -> let
-            ok = \x, s -> new Resumable(true, s, \ -> x),
-            err =\x, s -> new Resumable(true, s, \ -> { throw x; })
-        in
-            exec(p, s, Memoer.empty, ok, err, ok, err),
-        []);
+parseIncState = \p, state, ok, err -> let
+    pok = \x, s -> new Session(true, s, (ok, x, s)),
+    perr =\x, s -> new Session(true, s, (err, x, s))
+in
+    (state.isEmpty() ?
+        new Session(
+            false,
+            new IncrementalState(0, state),
+            \s -> parseState(p, s, pok, perr),
+            []) :
+        provide(
+            parseIncState(p, state.setInput(NIL), ok, err),
+            state.input));
 
 /**
- * Run parser 'p' against an input string.
+ * Begin incrementally parsing `p`.
  * 
- * @param p Parser to run.
- * @param input Array-like object of characters to run the parser against.
+ * @param p Parser.
  * @param [ud] User data.
-
- * @return Result from the parser.
+ * 
+ * @see parseIncState
  */
-parse = \p, ud ->
-    parseState(
+parseInc = \p, ud, ok, err ->
+    parseIncState(
+        p,
+        new ParserState(NIL, Position.initial, ud),
+        ok,
+        err);
+
+/**
+ * Begin incrementally parsing `p`
+ * 
+ * Returns successful results directly, throws error results.
+ * 
+ * @param p 
+ */
+runIncState = let
+    ok = \x -> x,
+    err = \x -> { throw x; }
+in
+    \p, state -> 
+        parseIncState(p, state, ok, err);
+
+/**
+ * 
+ */
+runInc = \p, ud ->
+    runIncState(
         p,
         new ParserState(
             NIL,
