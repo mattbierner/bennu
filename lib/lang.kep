@@ -17,7 +17,7 @@ package (
     chainr1,
     chainr)
 with
-    import 'nu/stream' stream,
+    import 'nu/stream' {'end': NIL},
     import 'parse/parse' parse {
         always,
         append,
@@ -29,14 +29,14 @@ with
         next,
         optional,
         ParserError,
-        rec
-    }
-{
+        rec}
+in {
+
 /* Parsers
  ******************************************************************************/
-var _end = always(stream.end);
+var _end = always(NIL);
 
-var _optionalValueParser = optional.bind(undefined, stream.end);
+var _optionalValueParser = optional.bind(undefined, NIL);
 
 /**
  * Consume p 'n' times.
@@ -100,7 +100,7 @@ sepBy1 = \sep, p ->
  * Parser that consumes 'p' separated by 'sep' zero or more times.
  */
 sepBy = \sep, p ->
-    optional(stream.end, sepBy1(sep, p));
+    optional(NIL, sepBy1(sep, p));
 
 /**
  * Parser that consumes 'p' one or more times separated and optional ended by 'sep'.
@@ -115,7 +115,7 @@ sepEndBy1 = \sep, p ->
 sepEndBy = \sep, p ->
     either(
         sepEndBy1(sep, p),
-        next(optional(null, sep), always(stream.end)));
+        next(optional(null, sep), always(NIL)));
 
 /**
  * Parser that consumes 'p' one or more times separated by 'sep' and ended by 'sep'.

@@ -70,11 +70,16 @@ package (
     anyToken,
 
     memo,
-    
+    Memoer,
 // Running
     exec,
     
     perform,
+    parse,
+    parseState,
+    finish,
+    provide,
+    provideString,
     
     runState,
     runStream,
@@ -88,16 +93,16 @@ package (
     testStream,
     test)
 with
-    import 'nu/stream' stream{'end': NIL, first, isEmpty, rest},
+    import 'nu/stream' stream{'end': NIL, first, isEmpty, rest, foldl},
     import 'seshat' seshat
-{
+in {
 
 var map = Function.prototype.call.bind(Array.prototype.map);
 var reduceRight = Function.prototype.call.bind(Array.prototype.reduceRight);
 
-var curry = \f, ... -> f.bind.apply(f, arguments);
-
 var identity = \x -> x;
+
+var args = \args(...) -> args;
 
 var constant = \x -> \() -> x;
 
@@ -129,7 +134,7 @@ var trampoline = \f -> {
  * reachable results in the stream. Memoized results for positions outside of the
  * window will be automatically pruned when possible.
  */
-var Memoer = function(memoer, frames) {
+Memoer = function(memoer, frames) {
     this.memoer = memoer;
     this.frames = frames;
 };
@@ -472,7 +477,7 @@ Object.defineProperty(ExpectError.prototype, 'errorMessage', {
  * @return A parser.
  */
 rec = \def -> {
-    var value = def(\... -> value.apply(this, arguments));
+    var value = def(\args(...) -> value.apply(this, args));
     return value;
 };
 
@@ -493,7 +498,7 @@ rec = \def -> {
  */
 Parser = \name, impl ->
     (impl.hasOwnProperty('parserId') ? 
-        Parser(name, \... -> impl.apply(this, arguments)) :
+        Parser(name, \args(...) -> impl.apply(this, args)) :
         Object.defineProperties(impl, {
             'displayName': {
                 'value': name,
@@ -706,7 +711,7 @@ sequencea = let reducer = \p, q -> next(q, p) in
 /**
  * Same as `sequencea` but gets parsers from arguments instead of array.
  */
-sequence = \... -> sequencea(arguments);
+sequence = \args(...) -> sequencea(args);
 
 var _either = \e ->
     \p, q ->
@@ -747,7 +752,7 @@ in
 /**
  * Same as choice but gets parsers from arguments.
  */
-choice = \... -> choicea(arguments);
+choice = \args(...) -> choicea(args);
 
 /**
  * Consume 'p' either zero or one time.
@@ -769,14 +774,18 @@ optional = \x, p ->
  */
 expected = \expect, p ->
     function EXPECTED_PARSER(state, m, cok, cerr, eok, eerr) {
-        return p(state, m, cok, cerr, eok, \(x, state, m) -> eerr(new ExpectError(state.position, expect), state, m));
+        return p(state, m,
+            cok,
+            cerr,
+            eok,
+            \x, state, m -> eerr(new ExpectError(state.position, expect), state, m));
     };
 
 // Iterative Parsers
 ////////////////////////////////////////
 var _end = always(NIL);
 
-var _optionalValueParser = curry(optional, NIL);
+var _optionalValueParser = (optional, NIL);
 
 var _joinParser = \joiner ->
     \p1, p2 ->
@@ -823,7 +832,7 @@ enumerationa = let reducer = \p, q -> cons(q, p) in
 /**
  * Same as `enumerationa` but gets parsers from arguments.
  */
-enumeration = \... -> enumerationa(arguments);
+enumeration = \args(...) -> enumerationa(args);
 
 /**
  * Consume 'p' zero or more times.
@@ -922,7 +931,7 @@ in
  * Execute a given parser 'p', correctly extracting results.
  */
 exec = \p, state, m, cok, cerr, eok, eerr ->
-    trampoline(p(state, m, cok, cerr, eok, eerr))();
+    trampoline(p(state, m, cok, cerr, eok, eerr));
 
 var _perform = \p, state, ok, err ->
     exec(p, state, Memoer.empty, ok, err, ok, err);
@@ -936,6 +945,51 @@ perform = \p, state, ok, err ->
         \x, state, m -> \() -> ok(x, state, m),
         \x, state, m -> \() -> err(x, state, m));
 
+var Request = function(done, state, k) {
+    this.done = done;
+    this.state = state;
+    this.k = k;
+};
+
+provide = \r, c ->
+    r.done ?
+        r :
+        new Request(false, r.state.setInput(stream.append(r.state.input, c)), r.k);
+    
+provideString = \r, s ->
+    provide(r, stream.from(s));
+
+finish = \r ->
+    !r.done ?
+        finish(r.k(r.state)) :
+        trampoline(r.k(r.state));
+
+/**
+ * Run a given parser with a given state.
+ * 
+ * @param p Parser to run.
+ * @param state State to run parser against.
+ * 
+ * @return Result from the parser.
+ */
+parseState = \p, state ->
+    new Request(false, state, \s ->
+        _perform(p, state,
+            \x, s -> new Request(true, s, \ -> x),
+            \x, s -> new Request(true, s, \ -> { throw x; })));
+
+/**
+ * Run parser 'p' against an input string.
+ * 
+ * @param p Parser to run.
+ * @param input Array-like object of characters to run the parser against.
+ * @param [ud] User data.
+
+ * @return Result from the parser.
+ */
+parse = \p, ud ->
+    parseState(p, new ParserState(stream.end, Position.initial, ud));
+
 /**
  * Run a given parser with a given state.
  * 
@@ -945,7 +999,8 @@ perform = \p, state, ok, err ->
  * @return Result from the parser.
  */
 runState = \p, state ->
-    _perform(p, state, constant, throwConstant);
+    //_perform(p, state, constant, throwConstant);
+    finish(provide(parseState(p, state), state));
 
 /**
  * Run parser 'p' against an input stream.
@@ -986,12 +1041,12 @@ run = \p, input, ud ->
  * 
  * @return Lazy stream of results.
  */
-runManyState = \p, state -> {
-    var manyP = _optionalValueParser(
-        bind(p, \(x, state, m) ->
-            always(stream.memoStream(x, curry(runState, manyP, state, m)))));
-    return runState(manyP, state);
-};
+runManyState = \p, state -> let
+    manyP = _optionalValueParser(
+        bind(p, \x, state, m ->
+            always(stream.memoStream(x, (runState, manyP, state, m)))))
+in
+    runState(manyP, state);
 
 /**
  * Run parser 'p' zero or more times to produce a lazy stream or results.
