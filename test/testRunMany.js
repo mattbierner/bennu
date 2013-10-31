@@ -1,4 +1,11 @@
-define(['parse/parse', 'parse/text', 'nu/stream'], function(parse, parse_text, stream){
+define(['parse/parse',
+        'parse/text',
+        'parse/incremental',
+        'nu/stream'],
+function(parse,
+        parse_text,
+        incremental,
+        stream){
     var ab = parse.either(
             parse_text.character('a'),
             parse_text.character('b'));
@@ -9,28 +16,28 @@ define(['parse/parse', 'parse/text', 'nu/stream'], function(parse, parse_text, s
             ["Consume many items",
             function(){
                 assert.deepEqual(
-                    stream.toArray(parse.runMany(ab, "abbaab")),
+                    stream.toArray(incremental.runMany(ab, "abbaab")),
                     ['a', 'b', 'b', 'a', 'a', 'b']);
                 
                 assert.deepEqual(
-                    stream.toArray(parse.runMany(ab, "abbaab abba")),
+                    stream.toArray(incremental.runMany(ab, "abbaab abba")),
                     ['a', 'b', 'b', 'a', 'a', 'b']);
             }],
             ["Consume no items, return empty stream",
             function(){                
                 assert.deepEqual(
-                    stream.toArray(parse.runMany(ab, "cd")),
+                    stream.toArray(incremental.runMany(ab, "cd")),
                     []);
                 
                 assert.deepEqual(
-                    stream.toArray(parse.runMany(ab, "")),
+                    stream.toArray(incremental.runMany(ab, "")),
                     []);
              }],
               ["Run on infinite stream",
               function(){
                   var s = stream.stream('a', function(){ return s; });
                   
-                  var result = parse.runManyStream(parse_text.character('a'), s);
+                  var result = incremental.runManyStream(parse_text.character('a'), s);
                   assert.ok(true);
               }]
         ],
