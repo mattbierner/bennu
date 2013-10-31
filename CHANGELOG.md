@@ -1,5 +1,21 @@
 # ChangeLog #
 
+## 15.0.0 - X, 2013
+* Added module for creating incremental parsers.
+** Incremental parser are be feed data incrementally and will parse as much as
+  possible before waiting for more data.
+** A single incremental parser can also be branched by feeding different input
+  streams.
+* Changed outermost continuation to only be a single level function.
+** This means that any thrown errors may take place inside of the parser itself
+  in edge cases, but this should not effect the interfaces.
+** Also, parsers can now better return abrupt completions.
+* Eliminated `parse.perform` since all parsers work that way now.
+* Added `parse.parser*` functions for easily passing success and error continuations
+  to parsers.
+* Moved `runMany` running to incremental module.
+* Exported `tail` and `trampoline` to support recreating internal tail call logic.
+
 ## 14.2.1 - October 10, 2013
 * Fixed for Chrome's broken `Error.prototype.toString` preventing errors from
   printing anything useful.

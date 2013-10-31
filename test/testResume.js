@@ -1,5 +1,17 @@
-define(['parse/parse', 'parse/text', 'parse/lang', 'parse/resume', 'nu/stream'],
-function(parse, parse_text, parse_lang, resume, stream){
+define(['parse/parse',
+        'parse/text',
+        'parse/lang',
+        'parse/incremental',
+        'nu/stream',
+        'nu/gen'],
+function(parse,
+        parse_text,
+        parse_lang,
+        resume,
+        stream,
+        gen)
+{
+    
     var a = parse_text.character('a'),
         b =  parse_text.character('b');
     
@@ -51,7 +63,18 @@ function(parse, parse_text, parse_lang, resume, stream){
                 assert.deepEqual(resume.finish(resume.provideString(r, 'a')), 'a');
                 assert.deepEqual(resume.finish(resume.provideString(r, 'b')), 'b');
              }],
-             
+             ["Backtracking multi provides",
+             function(){
+                var p = resume.parse(
+                    parse.either(
+                        parse.attempt(parse.sequence(a, a, a)),
+                        parse.sequence(a, a, b)));
+                var r = resume.provideString(p, 'a');
+                var r2 = resume.provideString(r, 'a');
+
+                assert.deepEqual(resume.finish(resume.provideString(r2, 'a')), 'a');
+                assert.deepEqual(resume.finish(resume.provideString(r2, 'b')), 'b');
+             }],
              
              ["eof",
              function(){
@@ -102,6 +125,16 @@ function(parse, parse_text, parse_lang, resume, stream){
                 assert.throws(function(){
                     resume.finish(r2);
                 });
+             }],
+             
+             ["provide inf source",
+             function(){
+                var p = resume.parse(
+                    parse.eager(parse_lang.times(3, a)));
+                
+                assert.deepEqual(
+                    resume.finish(resume.provide(p, gen.repeat(Infinity, 'a'))),
+                    ['a', 'a', 'a']);
              }],
         ],
     };

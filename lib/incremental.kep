@@ -2,9 +2,12 @@
  * @fileOverview Parsers for use specifically with text.
  */
 package (
+// Operations
     provide,
     provideString,
     finish,
+    
+// Creation
     parseState,
     parse)
 with
@@ -109,8 +112,11 @@ ResumableState.prototype.setUserState = \userState ->
         this.chunk,
         this.state.setUserState(userState));
 
-/* Running
+/* Operations
  ******************************************************************************/
+/**
+ * 
+ */
 provide = \r, c -> {
     if (r.done)
         return r;
@@ -138,9 +144,11 @@ finish = \r ->
         finish(trampoline(r.k(r.state))) :
         r.k(r.state);
 
-/* Running
+/* Creation
  ******************************************************************************/
-
+/*var exec = \p, s, m, cok, cerr, eok, eerr ->
+    exec(p, s, Memoer.empty, ok, err, ok, err),
+*/
         
 /** 
  * Run a given parser with a given state.
@@ -152,12 +160,12 @@ finish = \r ->
  */
 parseState = \p, state ->
     new Resumable(
-            false,
+        false,
         0,
         new ResumableState(0, state),
         \s -> let
             ok = \x, s -> new Resumable(true, -1, s, \ -> x),
-            err = \x, s -> new Resumable(true, -1, s, \ -> { throw x; })
+            err =\x, s -> new Resumable(true, -1, s, \ -> { throw x; })
         in
             exec(p, s, Memoer.empty, ok, err, ok, err),
         []);
