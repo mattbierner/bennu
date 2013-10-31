@@ -43,13 +43,6 @@ Resumable.prototype.addChunk = \c ->
 
 // ResumableState
 ////////////////////////////////////////
-/**
- * Object used to track a Parser's state.
- * 
- * @param input Input to the parser.
- * @param position Current position of head of input.
- * @param [userState] Object that users can thread through parsers.
- */
 var ResumableState = function(chunk, state) {
     this.chunk = chunk;
     this.state = state;
@@ -67,34 +60,16 @@ Object.defineProperties(ResumableState, {
     }
 });
 
-/**
- * Compares two states for memoization.
- * 
- * This is a part of the seshat id lookup process so the correct position has
- * already been found when this is called.
- */
+
 ResumableState.prototype.eq = \other ->
     other && other.chunk === this.chunk && other.state.eq(other.state);
 
-/**
- * Is the state's input empty.
- */
 ResumableState.prototype.isEmpty = \() ->
     this.state.isEmpty();
 
-/**
- * Get the first item of the input.
- */
 ResumableState.prototype.first = \() ->
     this.state.first();
 
-/**
- * Get next state object for a given consumed token.
- * 
- * @param tok Token consumed.
- * 
- * @returns New input state for next item in input.
- */
 ResumableState.prototype.next = \x -> {
     if (!this._next) {
         var chunk = this.chunk;
@@ -108,39 +83,31 @@ ResumableState.prototype.next = \x -> {
                         s,
                         \i -> cok(x, new ResumableState(chunk + 1, s.setInput(i)), m)));
         }
-        this._next = bind(next(self.state.next(x), getParserState), \s ->
-            \_, m, cok ->
-                cok(x, new ResumableState(
-                    chunk,
-                    s),
-                m));
+        
+        this._next = next(
+            this.state.next(x),
+            bind(getParserState, \innerState ->
+                let state = new ResumableState(chunk, innerState) in
+                    \_, m, cok ->
+                        cok(x, state, m)));
     }
     return this._next;
 };
 
-/**
- * Create a new state with input.
- * 
- * @param input New input.
- */
 ResumableState.prototype.setInput = \input ->
-    new ResumableState(this.chunk, this.state.setInput(input));
+    new ResumableState(
+        this.chunk,
+        this.state.setInput(input));
 
-/**
- * Create a new state with position.
- * 
- * @param position New position.
- */
 ResumableState.prototype.setPosition = \position ->
-    new ResumableState(this.chunk, this.state.setPosition(position));
+    new ResumableState(
+        this.chunk,
+        this.state.setPosition(position));
 
-/**
- * Create a new state with userState.
- * 
- * @param userState New user state.
- */
 ResumableState.prototype.setUserState = \userState ->
-    new ResumableState(this.chunk, this.state.setUserState(userState));
+    new ResumableState(
+        this.chunk,
+        this.state.setUserState(userState));
 
 /* Running
  ******************************************************************************/

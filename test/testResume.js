@@ -41,7 +41,7 @@ function(parse, parse_text, parse_lang, resume, stream){
                 assert.deepEqual(resume.finish(resume.provideString(p, 'aaa')), 'a');
                 assert.deepEqual(resume.finish(resume.provideString(p, 'aab')), 'b');
              }],
-              ["Backtracking half provided",
+             ["Backtracking half provided",
              function(){
                 var p = resume.parse(
                     parse.either(
@@ -50,6 +50,58 @@ function(parse, parse_text, parse_lang, resume, stream){
                 var r = resume.provideString(p, 'aa');
                 assert.deepEqual(resume.finish(resume.provideString(r, 'a')), 'a');
                 assert.deepEqual(resume.finish(resume.provideString(r, 'b')), 'b');
+             }],
+             
+             
+             ["eof",
+             function(){
+                var p = resume.parse(
+                    parse_lang.then(
+                        parse.eager(parse.enumeration(a, a, a)),
+                        parse.eof));
+                
+                assert.deepEqual(resume.finish(resume.provideString(p, 'aaa')), ['a', 'a', 'a']);
+             }],
+             ["Not eof",
+             function(){
+                var p = resume.parse(
+                    parse_lang.then(
+                        parse.eager(parse.enumeration(a, a)),
+                        parse.eof));
+                
+                assert.throws(function(){
+                    resume.finish(resume.provideString(p, 'aaa'));
+                });
+             }],
+             ["Multi feed does not trigger eof",
+             function(){
+                var p = resume.parse(
+                    parse_lang.then(
+                        parse.eager(parse.enumeration(a, a, a)),
+                        parse.eof));
+                
+                var r = resume.provideString(p, 'a');
+                var r1 = resume.provideString(r, 'a');
+                var r2 = resume.provideString(r1, 'a');
+
+                assert.deepEqual(
+                    resume.finish(r2),
+                    ['a', 'a', 'a']);
+             }],
+             ["Multi feed does not trigger eof with failure",
+             function(){
+                var p = resume.parse(
+                    parse_lang.then(
+                        parse.eager(parse.enumeration(a, a)),
+                        parse.eof));
+                
+                var r = resume.provideString(p, 'a');
+                var r1 = resume.provideString(r, 'a');
+                var r2 = resume.provideString(r1, 'a');
+
+                assert.throws(function(){
+                    resume.finish(r2);
+                });
              }],
         ],
     };
