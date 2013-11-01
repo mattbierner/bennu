@@ -13,8 +13,6 @@ can be written more quickly and integrate better with the host language.
 * [parse-ecma][parseecma] - Combinatory parsers for lexing and parsing ECMAScript 5.1
 
 
-
-
 # Using parse.js #
 
 ### To clone ##

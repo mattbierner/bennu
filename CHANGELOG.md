@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 15.0.3 - Oct 31, 2013
+* Fixed `incremental` state not correctly forwarding properties to inner state.
+
 ## 15.0.2 - Oct 31, 2013
 * Fixed `incremental.provide` to be noop when providing empty stream.
 

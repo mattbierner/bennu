@@ -84,7 +84,7 @@ var IncrementalState = function(chunk, state) {
     this.state = state;
 };
 
-Object.defineProperties(IncrementalState, {
+Object.defineProperties(IncrementalState.prototype, {
     'input': {
         'get': \() -> this.state.input
     },
