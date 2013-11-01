@@ -157,7 +157,7 @@ IncrementalState.prototype.setUserState = \userState ->
  * @return New resumable state for parser after input has been received.
  */
 provide = \r, c -> {
-    if (r.done)
+    if (r.done || isEmpty(c))
         return r;
     var r2 = r.addChunk(c);
     

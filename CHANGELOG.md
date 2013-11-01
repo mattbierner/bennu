@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 15.0.2 - Oct 31, 2013
+* Fixed `incremental.provide` to be noop when providing empty stream.
+
 ## 15.0.1 - Oct 31, 2013
 * Fixed test returning function of result instead of result.
 

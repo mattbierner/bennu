@@ -28,6 +28,7 @@ function(parse,
                 assert.equal(resume.finish(resume.provideString(p, 'a')), 'a');
                 assert.equal(resume.finish(resume.provideString(p, 'b')), 'b');
             }],
+            
             ["multiple parser",
             function(){
                 var p = resume.runInc(parse.eager(parse.many(ab)));
@@ -48,6 +49,15 @@ function(parse,
                 var p = resume.runInc(parse.eager(parse.enumeration(a, a, a)));
                 var r = resume.provideString(p, 'aaaaaa');
                 assert.deepEqual(resume.finish(resume.provideString(r, 'a')), ['a', 'a', 'a']);
+             }],
+             ["provides empty",
+            function(){
+                var p = resume.runInc(parse.eager(parse.enumeration(a, a, a)));
+                var r = resume.provideString(p, 'aa');
+                var r1 = resume.provideString(r, '');
+                var r2 = resume.provideString(r1, '');
+                
+                assert.deepEqual(resume.finish(resume.provideString(r2, 'a')), ['a', 'a', 'a']);
              }],
              
              ["Backtracking simple",
