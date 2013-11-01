@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 15.0.1 - Oct 31, 2013
+* Fixed test returning function of result instead of result.
+
 ## 15.0.0 - Oct 31, 2013
 * Added module for creating incremental parsers.
 ** Incremental parser are be feed data incrementally and will parse as much as

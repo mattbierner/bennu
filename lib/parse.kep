@@ -1020,8 +1020,8 @@ run = \p, input, ud ->
  * @return Did the parser successfully run?
  */
 testState = let
-    ok = constant(constant(true)),
-    err = constant(constant(false))
+    ok = constant(true),
+    err = constant(false)
 in
     \p, state -> parseState(p, state, ok, err);
 

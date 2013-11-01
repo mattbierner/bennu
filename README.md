@@ -9,16 +9,18 @@ Combinatorial parsers allow complex parsers to be created from a set of simple
 building blocks. Compared to other parsing techniques, combinatorial parsers
 can be written more quickly and integrate better with the host language.
 
-## Examples ##
-* [parse-ecma][parseecma] - Combinatory parsers for lexing and parsing ECMAScript 5.
+### Examples
+* [parse-ecma][parseecma] - Combinatory parsers for lexing and parsing ECMAScript 5.1
 
-## To clone ##
-    git clone https://github.com/mattbierner/parse.js parse
-    cd parse
-    git submodule update --init --recursive
+
 
 
 # Using parse.js #
+
+### To clone ##
+    git clone https://github.com/mattbierner/parse.js parse
+    cd parse
+    git submodule update --init --recursive
 
 ## Dependencies
 * [Nu][nu] 2.0.X - Small functional, lazy stream library.
