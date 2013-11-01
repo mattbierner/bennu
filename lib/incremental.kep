@@ -46,9 +46,8 @@ var Request = function(chunk, state, k) {
 
 // Session
 ////////////////////////////////////////
-var Session = function(done, state, k, chunks) {
+var Session = function(done, k, chunks) {
     this.done = done;
-    this.state = state;
     this.k = k;
     this.chunks = chunks;
 };
@@ -56,7 +55,6 @@ var Session = function(done, state, k, chunks) {
 Session.prototype.addChunk = \c ->
     new Session(
         this.done,
-        this.state,
         this.k,
         this.chunks.concat(c));
 
@@ -105,23 +103,24 @@ IncrementalState.prototype.first = \() ->
 IncrementalState.prototype.next = \x -> {
     if (!this._next) {
         var chunk = this.chunk;
-        var self = this;
         
         if (isEmpty(rest(this.state.input))) {
-            return bind(next(self.state.next(x), getParserState), \s ->
-                \_, m, cok ->
-                    new Request(
-                        chunk + 1,
-                        s,
-                        \i -> cok(x, new IncrementalState(chunk + 1, s.setInput(i)), m)));
-        }
-        
-        this._next = next(
-            this.state.next(x),
-            bind(getParserState, \innerState ->
-                let state = new IncrementalState(chunk, innerState) in
+            this._next = next(
+                this.state.next(x),
+                bind(getParserState, \innerState ->
                     \_, m, cok ->
-                        cok(x, state, m)));
+                        new Request(
+                            chunk + 1,
+                            innerState,
+                            \i -> cok(x, new IncrementalState(chunk + 1, innerState.setInput(i)), m))));
+        } else  {
+            this._next = next(
+                this.state.next(x),
+                bind(getParserState, \innerState ->
+                    let state = new IncrementalState(chunk, innerState) in
+                        \_, m, cok ->
+                            cok(x, state, m)));
+        }
     }
     return this._next;
 };
@@ -158,13 +157,12 @@ provide = \r, c -> {
         return r;
     
     var r2 = r.addChunk(c);
-    var result = trampoline(r2.k(r2.state.setInput(c)));
+    var result = trampoline(r2.k(c));
     while (result instanceof Request) {
         if (!r2.hasChunk(result.chunk))
             return new Session(
                 false,
-                result.state,
-                \x -> result.k(x.input),
+                \x -> result.k(x),
                 r2.chunks);
         result = trampoline(result.k(r2.getChunk(result.chunk)));
     }
@@ -174,16 +172,23 @@ provide = \r, c -> {
 /**
  * Feed an array-like to an incremental parser.
  * 
- * @param Resumable state.
+ * @param r Resumable state.
  * @param input Array like object of input.
  */
 provideString = \r, input ->
     provide(r, stream.from(input));
 
+/**
+ * Signal that an incremental parsing is complete.
+ * 
+ * Returns the result of the parsing.
+ * 
+ * @param r Resumable state.
+ */
 finish = \r ->
-    !r.done ?
-        finish(trampoline(r.k(r.state))) :
-        r.k();
+    (r.done ?
+        r.k() :
+        finish(trampoline(r.k(NIL))));
 
 /* Incremental Creation
  ******************************************************************************/
@@ -198,14 +203,13 @@ finish = \r ->
  * @return Opaque state object for a partially evaluated parser.
  */
 parseIncState = \p, state, ok, err -> let
-    pok = \x, s -> new Session(true, s, (ok, x, s)),
-    perr =\x, s -> new Session(true, s, (err, x, s))
+    pok = \x, s -> new Session(true, (ok, x, s)),
+    perr =\x, s -> new Session(true, (err, x, s))
 in
     (state.isEmpty() ?
         new Session(
             false,
-            new IncrementalState(0, state),
-            \s -> parseState(p, s, pok, perr),
+            \s -> parseState(p, new IncrementalState(0, state.setInput(s)), pok, perr),
             []) :
         provide(
             parseIncState(p, state.setInput(NIL), ok, err),
