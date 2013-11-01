@@ -59,6 +59,8 @@ Parsers for working specifically with text.
 ### lib/lang - 'parse/lang'
 Combinatory parsers for ordering parsers, like found in a language.
 
+### lib/incremental - 'parse/incremental'
+Running parsers incrementally.
 
 # Code #
 parse.js is written in Javascript / Khepri. [Khepri][khepri] is a ECMAScript subset

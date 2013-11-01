@@ -710,7 +710,7 @@ sequencea = let reducer = \p, q -> next(q, p) in
 /**
  * Same as `sequencea` but gets parsers from arguments instead of array.
  */
-sequence = \args(...) -> sequencea(args);
+sequence = args \> sequencea;
 
 var _either = \e ->
     \p, q ->
@@ -751,7 +751,7 @@ in
 /**
  * Same as choice but gets parsers from arguments.
  */
-choice = \args(...) -> choicea(args);
+choice = args \> choicea;
 
 /**
  * Consume 'p' either zero or one time.
@@ -831,7 +831,7 @@ enumerationa = let reducer = \p, q -> cons(q, p) in
 /**
  * Same as `enumerationa` but gets parsers from arguments.
  */
-enumeration = \args(...) -> enumerationa(args);
+enumeration = args \> enumerationa;
 
 /**
  * Consume 'p' zero or more times.
@@ -932,9 +932,6 @@ in
 exec = \p, state, m, cok, cerr, eok, eerr ->
     trampoline(p(state, m, cok, cerr, eok, eerr));
 
-var _perform = \p, state, ok, err ->
-    exec(p, state, Memoer.empty, ok, err, ok, err);
-
 /**
  * Run a parser with a given state and continuations.
  * 
@@ -976,12 +973,7 @@ parseStream = \p, s, ud, ok, err ->
  * @see parseStream.
  */
 parse = \p, input, ud, ok, err ->
-    parseStream(
-        p,
-        stream.from(input),
-        ud,
-        ok,
-        err);
+    parseStream(p, stream.from(input), ud, ok, err);
 
 /**
  * Run parser `p` with a given state.
@@ -1031,7 +1023,7 @@ testState = let
     ok = constant(constant(true)),
     err = constant(constant(false))
 in
-    \p, state -> _perform(p, state, ok, err);
+    \p, state -> parseState(p, state, ok, err);
 
  /**
  * Test parser 'p' against stream 's'.

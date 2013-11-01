@@ -1,6 +1,6 @@
 # ChangeLog #
 
-## 15.0.0 - X, 2013
+## 15.0.0 - Oct 31, 2013
 * Added module for creating incremental parsers.
 ** Incremental parser are be feed data incrementally and will parse as much as
   possible before waiting for more data.

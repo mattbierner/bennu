@@ -36,7 +36,7 @@ in {
  ******************************************************************************/
 var _end = always(NIL);
 
-var _optionalValueParser = optional.bind(undefined, NIL);
+var _optionalValueParser = (optional, NIL);
 
 /**
  * Consume p 'n' times.

@@ -43,6 +43,12 @@ function(parse,
                 assert.deepEqual(resume.finish(resume.provideString(r, 'a')), ['a', 'a']);
                 assert.deepEqual(resume.finish(resume.provideString(r, 'b')), ['a', 'b']);
              }],
+             ["provides to much",
+            function(){
+                var p = resume.runInc(parse.eager(parse.enumeration(a, a, a)));
+                var r = resume.provideString(p, 'aaaaaa');
+                assert.deepEqual(resume.finish(resume.provideString(r, 'a')), ['a', 'a', 'a']);
+             }],
              
              ["Backtracking simple",
              function(){

@@ -1,5 +1,5 @@
 /**
- * @fileOverview Parsers for use specifically with text.
+ * @fileOverview Running parsers incrementally.
  */
 package (
 // Operations
@@ -31,16 +31,21 @@ with
         Position,
         runState,
         trampoline},
-    import 'nu/stream' stream{'end': NIL, isEmpty, first, rest}
+    import 'nu/stream' stream{
+        'end': NIL,
+        'from': streamFrom,
+        isEmpty,
+        first,
+        rest,
+        memoStream}
 in {
 
 /* Records
  ******************************************************************************/
 // Request
 ////////////////////////////////////////
-var Request = function(chunk, state, k) {
+var Request = function(chunk, k) {
     this.chunk = chunk;
-    this.state = state;
     this.k = k;
 };
 
@@ -111,7 +116,6 @@ IncrementalState.prototype.next = \x -> {
                     \_, m, cok ->
                         new Request(
                             chunk + 1,
-                            innerState,
                             \i -> cok(x, new IncrementalState(chunk + 1, innerState.setInput(i)), m))));
         } else  {
             this._next = next(
@@ -150,23 +154,20 @@ IncrementalState.prototype.setUserState = \userState ->
  * @param r Resumable state
  * @param c Nu stream of input for chunk.
  * 
- * @return New resumable state for parser after input has been recieved.
+ * @return New resumable state for parser after input has been received.
  */
 provide = \r, c -> {
     if (r.done)
         return r;
-    
     var r2 = r.addChunk(c);
+    
     var result = trampoline(r2.k(c));
-    while (result instanceof Request) {
-        if (!r2.hasChunk(result.chunk))
-            return new Session(
-                false,
-                \x -> result.k(x),
-                r2.chunks);
+    while (result instanceof Request && r2.hasChunk(result.chunk))
         result = trampoline(result.k(r2.getChunk(result.chunk)));
-    }
-    return result;
+    
+    return (result instanceof Request ?
+        new Session(false, result.k, r2.chunks) :
+        result);
 };
 
 /**
@@ -176,7 +177,7 @@ provide = \r, c -> {
  * @param input Array like object of input.
  */
 provideString = \r, input ->
-    provide(r, stream.from(input));
+    provide(r, streamFrom(input));
 
 /**
  * Signal that an incremental parsing is complete.
@@ -204,7 +205,7 @@ finish = \r ->
  */
 parseIncState = \p, state, ok, err -> let
     pok = \x, s -> new Session(true, (ok, x, s)),
-    perr =\x, s -> new Session(true, (err, x, s))
+    perr = \x, s -> new Session(true, (err, x, s))
 in
     (state.isEmpty() ?
         new Session(
@@ -235,7 +236,8 @@ parseInc = \p, ud, ok, err ->
  * 
  * Returns successful results directly, throws error results.
  * 
- * @param p 
+ * @param p Parser.
+ * @param state State.
  */
 runIncState = let
     ok = \x -> x,
@@ -245,7 +247,10 @@ in
         parseIncState(p, state, ok, err);
 
 /**
+ * Begin incrementally parsing `p`.
  * 
+ * @param p Parser.
+ * @param ud User data.
  */
 runInc = \p, ud ->
     runIncState(
@@ -273,7 +278,7 @@ runInc = \p, ud ->
 runManyState = \p, state -> let
     manyP = optional(NIL,
         bind(p, \x, state, m ->
-            always(stream.memoStream(x, (runState, manyP, state, m)))))
+            always(memoStream(x, (runState, manyP, state, m)))))
 in
     runState(manyP, state);
 
@@ -302,6 +307,6 @@ runManyStream = \p, s, ud ->
  * @see runManyStream
  */
 runMany = \p, input, ud ->
-    runManyStream(p, stream.from(input), ud);
+    runManyStream(p, streamFrom(input), ud);
 
 }

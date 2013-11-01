@@ -11,7 +11,14 @@ package (
     space,
     digit)
 with
-    import 'parse/parse' {always, attempt, choicea, ExpectError, next, Parser, token}
+    import 'parse/parse' {
+        always,
+        attempt,
+        choicea,
+        ExpectError,
+        next,
+        Parser,
+        token}
 in {
 
 var reduce = Function.prototype.call.bind(Array.prototype.reduce);
