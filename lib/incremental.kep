@@ -109,22 +109,16 @@ IncrementalState.prototype.next = \x -> {
     if (!this._next) {
         var chunk = this.chunk;
         
-        if (isEmpty(rest(this.state.input))) {
-            this._next = next(
-                this.state.next(x),
-                bind(getParserState, \innerState ->
+        this._next = next(
+            this.state.next(x),
+            bind(getParserState, \innerState ->
+                (innerState.isEmpty() ?
                     \_, m, cok ->
                         new Request(
                             chunk + 1,
-                            \i -> cok(x, new IncrementalState(chunk + 1, innerState.setInput(i)), m))));
-        } else  {
-            this._next = next(
-                this.state.next(x),
-                bind(getParserState, \innerState ->
+                            \i -> cok(x, new IncrementalState(chunk + 1, innerState.setInput(i)), m)) :
                     let state = new IncrementalState(chunk, innerState) in
-                        \_, m, cok ->
-                            cok(x, state, m)));
-        }
+                        \_, m, cok -> cok(x, state, m))));
     }
     return this._next;
 };
@@ -210,7 +204,7 @@ in
     (state.isEmpty() ?
         new Session(
             false,
-            \s -> parseState(p, new IncrementalState(0, state.setInput(s)), pok, perr),
+            \i -> parseState(p, new IncrementalState(0, state.setInput(i)), pok, perr),
             []) :
         provide(
             parseIncState(p, state.setInput(NIL), ok, err),

@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 15.0.4 - November 2, 2013
+* Changed incremental state empty check to better delegate to inner state instead
+  of assuming empty rest of input means state is empty.
+
 ## 15.0.3 - Oct 31, 2013
 * Fixed `incremental` state not correctly forwarding properties to inner state.
 
