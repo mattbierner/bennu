@@ -155,9 +155,9 @@ provide = \r, c -> {
         return r;
     var r2 = r.addChunk(c);
     
-    var result = trampoline(r2.k(c));
+    var result = r2.k(c) |> trampoline;
     while (result instanceof Request && r2.hasChunk(result.chunk))
-        result = trampoline(result.k(r2.getChunk(result.chunk)));
+        result = r2.getChunk(result.chunk) |> result.k |> trampoline;
     
     return (result instanceof Request ?
         new Session(false, result.k, r2.chunks) :
@@ -183,7 +183,7 @@ provideString = \r, input ->
 finish = \r ->
     (r.done ?
         r.k() :
-        finish(trampoline(r.k(NIL))));
+        r.k(NIL) |> trampoline |> finish);
 
 /* Incremental Creation
  ******************************************************************************/

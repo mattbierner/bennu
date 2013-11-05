@@ -1,5 +1,12 @@
 # ChangeLog #
 
+## 15.1.0 - November 5, 2013
+* Added `parse_text.characters` for selecting any from a set of characters.
+** Performs in constant time vs the linear `parse.choice` of characters.
+* Changed `parse_text.trie` to be more efficient.
+** Improves performance when used with a large set of words.
+* Shorter and clearer error messages for tries.
+
 ## 15.0.4 - November 2, 2013
 * Changed incremental state empty check to better delegate to inner state instead
   of assuming empty rest of input means state is empty.

@@ -3,6 +3,7 @@
  */
 package (
     character,
+    characters,
     string,
     trie,
     match,
@@ -14,13 +15,15 @@ with
     import 'parse/parse' {
         always,
         attempt,
-        choicea,
+        bind,
+        either,
         ExpectError,
         next,
         Parser,
         token}
 in {
 
+var map = Function.prototype.call.bind(Array.prototype.map);
 var reduce = Function.prototype.call.bind(Array.prototype.reduce);
 var reduceRight = Function.prototype.call.bind(Array.prototype.reduceRight);
 
@@ -50,7 +53,7 @@ Object.defineProperty(StringError.prototype, 'errorMessage', {
     'get': \() ->
         "In string:'" + this.string + "' at index:" + this.index +
         ", Expected:" + this.expected +
-        " Found:" + (this.found ? this.found :"end of input")
+        " Found:" + (this.found ? this.found : "end of input")
 });
 
 /* Parsers
@@ -63,11 +66,26 @@ in
 /**
  * Parser that consumes a given character. 
  * 
- * Attempts to unbox primitive object boxes.
+ * Attempts to unbox objects.
  * 
  * @param c The char to consume.
  */
 character = \c -> _character(c, expectError(c));
+
+/**
+ * Parser that consumes any of a set of character. 
+ * 
+ * Behaves the same as a choice of single characters but more efficient.
+ * 
+ * Attempts to unbox primitive object boxes.
+ * 
+ * @param chars Array like of characters.
+ */
+characters = \chars -> let
+    lookup = map(chars, \x -> x.valueOf()),
+    pred = \r -> lookup.indexOf(r.valueOf()) !== -1
+in
+    token(pred, expectError(chars.join(' or ')));
 
 /**
  * Parser that consumes a given string.
@@ -104,17 +122,24 @@ trie = let
     },
     wordsReduce = \trie, word -> {
         var node = reduce(word, wordReduce, trie);
-        node[''] = null;
+        node[''] = word;
         return trie;
     },
     makeTrie = \words -> reduce(words, wordsReduce, {}),
-    _trie = \trie, prefix ->
-        choicea(Object.keys(trie).sort().reverse().map(\n ->
-            (n.length === 0 ?
-                always(prefix) :
-                attempt(next(
-                    character(n),
-                    _trie(trie[n], prefix + n))))))
+    _trie = \trie -> let
+        keys = Object.keys(trie),
+        paths = reduce(keys, \p, c -> {
+            if (c.length)
+                p[c] = _trie(trie[c]);
+            return p;
+        }, {}),
+        select = attempt <| bind(characters(keys), \x -> paths[x])
+    in
+        (trie.hasOwnProperty('') ?
+            either(
+                select,
+                always(trie[''])) :
+            select)
 in
     \words -> attempt(_trie(makeTrie(words), ''));
 

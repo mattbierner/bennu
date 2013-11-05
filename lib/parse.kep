@@ -710,7 +710,7 @@ sequencea = let reducer = \p, q -> next(q, p) in
 /**
  * Same as `sequencea` but gets parsers from arguments instead of array.
  */
-sequence = args \> sequencea;
+sequence = args \>> sequencea;
 
 var _either = \e ->
     \p, q ->
@@ -751,7 +751,7 @@ in
 /**
  * Same as choice but gets parsers from arguments.
  */
-choice = args \> choicea;
+choice = args \>> choicea;
 
 /**
  * Consume 'p' either zero or one time.
@@ -831,7 +831,7 @@ enumerationa = let reducer = \p, q -> cons(q, p) in
 /**
  * Same as `enumerationa` but gets parsers from arguments.
  */
-enumeration = args \> enumerationa;
+enumeration = args \>> enumerationa;
 
 /**
  * Consume 'p' zero or more times.

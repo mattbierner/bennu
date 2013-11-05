@@ -99,8 +99,7 @@ sepBy1 = \sep, p ->
 /**
  * Parser that consumes 'p' separated by 'sep' zero or more times.
  */
-sepBy = \sep, p ->
-    optional(NIL, sepBy1(sep, p));
+sepBy = sepBy1 \>> (optional, NIL);
 
 /**
  * Parser that consumes 'p' one or more times separated and optional ended by 'sep'.
