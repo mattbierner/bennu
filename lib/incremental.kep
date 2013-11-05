@@ -183,7 +183,7 @@ provideString = \r, input ->
 finish = \r ->
     (r.done ?
         r.k() :
-        r.k(NIL) |> trampoline |> finish);
+        (r.k(NIL) |> trampoline |> finish));
 
 /* Incremental Creation
  ******************************************************************************/
