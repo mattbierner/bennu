@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 15.1.1 - November 12, 2013
+* Fixed `parse_text.characters` to work with array-likes.
+
 ## 15.1.0 - November 5, 2013
 * Added `parse_text.characters` for selecting any from a set of characters.
 ** Performs in constant time vs the linear `parse.choice` of characters.
