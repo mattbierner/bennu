@@ -54,9 +54,11 @@ package (
     lookahead,
     
     next,
+    sequences,
     sequencea,
     sequence,
     either,
+    choices,
     choicea,
     choice,
     optional,
@@ -66,6 +68,7 @@ package (
     binds,
     cons,
     append,
+    enumerations,
     enumerationa,
     enumeration,
     many,
@@ -92,12 +95,11 @@ package (
     testStream,
     test)
 with
-    import 'nu/stream' stream{'end': NIL, first, isEmpty, rest, foldl},
+    import 'nu/stream' stream{'end': NIL, first, isEmpty, rest, foldl, reduceRight, foldr},
     import 'seshat' seshat
 in {
 
 var map = Function.prototype.call.bind(Array.prototype.map);
-var reduceRight = Function.prototype.call.bind(Array.prototype.reduceRight);
 
 var identity = \x -> x;
 
@@ -106,6 +108,8 @@ var args = \args(...) -> args;
 var constant = \x -> \() -> x;
 
 var throwConstant = \err -> \() -> { throw err; };
+
+var flip = \f -> \x, y -> f(y, x);
 
 var uniqueParserId = Math.random;
 
@@ -697,6 +701,16 @@ next = \p, q ->
     bind(p, constant(q));
 
 /**
+ * Consume a sequence of 1 or more parsers, returning result from last.
+ * 
+ * This may partially fail if any parser fails in the sequence. Wrap in attempt
+ * to prevent partial failures.
+ * 
+ * @param s Stream of parsers
+ */
+sequences = (reduceRight, flip(next));
+
+/**
  * Consume a finite sequence of 1 or more parsers, returning result from last.
  * 
  * This may partially fail if any parser fails in the sequence. Wrap in attempt
@@ -704,8 +718,7 @@ next = \p, q ->
  * 
  * @param arr Array of parsers to consume.
  */
-sequencea = let reducer = \p, q -> next(q, p) in
-    \arr -> reduceRight(arr, reducer);
+sequencea = stream.from \> sequences;
 
 /**
  * Same as `sequencea` but gets parsers from arguments instead of array.
@@ -730,23 +743,21 @@ var _either = \e ->
 either = _either(\pos, pErr, qErr -> new MultipleError(pos, [pErr, qErr]));
 
 /**
- * Parser that attempts a number of parsers in order and returns
- * the value of the first one that succeeds.
+ * Parser that attempts a number of parsers in order, returning the value of
+ * the first one that succeeds.
  * 
- * Throws a ParserError if called with no arguments.
+ * @param s Stream of parsers.
+ */
+choices = (foldr,
+    flip(_either(\pos, pErr, qErr -> new ChoiceError(pos, pErr, qErr))),
+    bind(getPosition, \pos -> never(new MultipleError(pos, []))));
+
+/**
+ * @see choices
  * 
  * @param arr Array of parsers to attempt.
  */
-choicea = let
-    either = _either(\pos, pErr, qErr -> new ChoiceError(pos, pErr, qErr)),
-    reducer = \p, c -> either(c, p),
-    end = bind(getPosition, \pos -> never(new MultipleError(pos, [])))
-in
-    \arr -> {
-        if (!arr.length)
-            throw new ParserError("choice called no parsers");
-        return reduceRight(arr, reducer, end);
-    };
+choicea = stream.from \> choices;
 
 /**
  * Same as choice but gets parsers from arguments.
@@ -821,12 +832,20 @@ cons = _joinParser(stream.cons);
 append = _joinParser(stream.append);
 
 /**
- * Consume a finite sequence of parsers, returning the results as a stream.
+ * Consume a sequence of parsers, returning the results as a stream.
+ * 
+ * @param s Stream of parsers to consume.
+ */
+enumerations = (foldr,
+    flip(cons),
+    _end);
+
+/**
+ * @see enumerations
  * 
  * @param arr Array of parsers to consume.
  */
-enumerationa = let reducer = \p, q -> cons(q, p) in
-    \arr -> reduceRight(arr, reducer, _end);
+enumerationa = stream.from \> enumerations;
 
 /**
  * Same as `enumerationa` but gets parsers from arguments.

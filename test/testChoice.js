@@ -16,9 +16,9 @@ function(parse, parse_text){
                 
                 assert.deepEqual(parse.run(a, "cab"), 'c');
             }],
-            ["Zero choices construct error",
+            ["Zero choices always fails",
              function(){
-                assert.throws(function(){ parse.run(parse.choice(), "aa"); }, parse.ParserError);
+                assert.throws(function(){ parse.run(parse.choice(), "aa"); });
             }],
             ["Failed Choices",
             function(){

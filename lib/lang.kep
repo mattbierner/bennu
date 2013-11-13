@@ -3,6 +3,7 @@
  */
 package (
     times,
+    atMostTimes,
     betweenTimes,
     then,
     between,
@@ -18,12 +19,15 @@ package (
     chainr)
 with
     import 'nu/stream' {'end': NIL},
+    import 'nu/gen' {repeat},
+
     import 'parse/parse' parse {
         always,
         append,
         bind,
         cons,
         either,
+        enumerations,
         many,
         many1,
         next,
@@ -39,37 +43,40 @@ var _end = always(NIL);
 var _optionalValueParser = (optional, NIL);
 
 /**
- * Consume p 'n' times.
+ * Consume p exactly 'n' times.
  * 
  * @param {Number} n Number of times to consume p.
- * @param p Parser to consume 'n' times.
+ * @param p Parser.
  */
-times = \n, p ->
+times = repeat \>> enumerations;
+
+/**
+ * Consume `p` at most 'n' times.
+ * 
+ * @param {Number} n Max number of times to consume `p`.
+ * @param p Parser.
+ */
+atMostTimes = \n, p ->
     (n <= 0 ?
-        _end : 
-        cons(p, times(n - 1, p)));
+        _end :
+        _optionalValueParser(
+            bind(p, \x ->
+                cons(always(x), atMostTimes(n - 1, p)))));
 
 /**
  * Consume 'p' between 'min' and 'max' times.
  * 
  * @param {Number} min Minimum number of times to consume 'p'.
  * @param {Number} max Maximum number of times to consume 'p'.
- * @param p Parser to consume.
+ * @param p Parser.
  */
-betweenTimes = let
-    maxParser = \max, p ->
-        (max <= 0 ?
-            _end :
-            _optionalValueParser(
-                cons(p, maxParser(max - 1, p))))
-in
-    \min, max, p -> {
-        if (max < min)
-            throw new ParserError("between max < min");
-        return append(
-            times(min, p),
-            maxParser(max - min, p));
-    };
+betweenTimes = \min, max, p -> {
+    if (max < min)
+        throw new ParserError("between max < min");
+    return append(
+        times(min, p),
+        atMostTimes(max - min, p));
+};
 
 /**
  * Parse 'p' then 'q', returning result from 'p'.

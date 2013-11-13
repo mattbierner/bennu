@@ -29,6 +29,14 @@ function(parse, parse_text, parse_lang){
                  
                  assert.deepEqual(parse.run(a, ""), []);
             }],
+             ["Consume Upper bound Infinite times",
+             function(){
+                var a = parse.eager(parse_lang.betweenTimes(2, Infinity, parse_text.character('a')));
+                 
+                 assert.deepEqual(parse.run(a, "aa"), ['a', 'a']);
+                 
+                 assert.deepEqual(parse.run(a, "aaaaa"), ['a', 'a', 'a', 'a', 'a']);
+            }],
             ["Consume Too few",
             function(){
                 var a = parse.eager(parse_lang.betweenTimes(3, 4, parse_text.character('a')));
@@ -36,6 +44,8 @@ function(parse, parse_text, parse_lang){
                 assert.throws(parse.run.bind(undefined, a, "aa"), parse.ExpectError);
                 assert.throws(parse.run.bind(undefined, a, ""), parse.ExpectError);
              }],
+             
+             
              ["Consume Max lt Min",
              function(){
                 assert.throws(function(){ parse_lang.betweenTimes(5, 1, parse_text.character('a')); }, parse.ParserError);

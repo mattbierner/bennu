@@ -1,5 +1,11 @@
 # ChangeLog #
 
+## 15.2.0 - November 13, 2013
+* Added `enumerations`, `choices`, and `sequences` for combining finite
+  streams of parsers.
+* Fixed `lang.betweenTimes` to work with infinite upper bound.
+* Added `lang.atMostTimes` to consume `p` up to `n` times.
+
 ## 15.1.1 - November 12, 2013
 * Fixed `parse_text.characters` to work with array-likes.
 
