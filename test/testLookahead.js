@@ -40,6 +40,15 @@ function(parse,
                     "a"),
                 3);
             }],
+            ["Old position restored",
+            function(){
+                assert.deepEqual(parse.run(
+                    parse.next(
+                        parse.lookahead(parse_text.character('a')),
+                        parse.bind(parse.getPosition, function(x) { return parse.always(x.index);})),
+                    "a"),
+                0);
+            }],
         ],
     };
 });

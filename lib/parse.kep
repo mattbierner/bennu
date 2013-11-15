@@ -647,6 +647,10 @@ setInput = \input ->
 
 //
 ////////////////////////////////////////
+var _binary = \p1, p2, f ->
+    bind(p1, \v1 ->
+        bind(p2, \v2 -> f(v1, v2)));
+    
 var _fail = \e ->
     bind(getPosition, \pos -> never(e(pos)));
 
@@ -697,16 +701,20 @@ look = \p ->
                 always(x))));
 
 /**
- * Run `p` but restore old input.
+ * Run `p` but restore old input and position.
  * 
  * This merges the resulting state of `p`.
  */
 lookahead = \p ->
-    bind(getInput, \input ->
-        bind(p, \x ->
-            next(
-                setInput(input),
-                always(x))));
+    _binary(
+        getInput,
+        getPosition,
+        \input, pos ->
+            bind(p, \x ->
+                sequence(
+                    setPosition(pos),
+                    setInput(input),
+                    always(x))));
 
 // Combinitorial Parsers
 ////////////////////////////////////////

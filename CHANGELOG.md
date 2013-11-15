@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 15.3.1 - November 15, 2013
+* Updated `parse.lookahead` to also restore old position. Its behavior is now
+  to merge the old position and input into the new state.
+
 ## 15.3.0 - November 14, 2013
 * Changed `parse.lookahead` to merge state with old input. This is what the
   documentation said the parser does.
