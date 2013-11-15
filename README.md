@@ -11,10 +11,13 @@ can be written more quickly and integrate better with the host language.
 
 ### Examples
 * [parse-ecma][parse-ecma] - Combinatory parsers for lexing and parsing ECMAScript 5.1
+* [khepri][khepri] - khepri combinatory lexers and parsers.
 * [parse-re][parse-re] - ECMAScript regular expression grammar parser and engine
   using parse.js parser combinators.
 * [parse-pn][parse-pn] - Very simple polish notation calculator.
-  
+* [parse-ecma-incremental][parse-ecma-incremental] - Demonstrates using unmodified
+  parsers to incrementally lex ECMAScript.
+
 # Using parse.js #
 
 ### To clone ##
@@ -81,6 +84,7 @@ generated from it.
 [parse-ecma]: https://github.com/mattbierner/parse-ecma
 [parse-re]: https://github.com/mattbierner/parse-re
 [parse-pn]: https://github.com/mattbierner/parse-pn
+[parse-ecma-incremental]: https://github.com/mattbierner/parse-ecma-incremental
 [khepri]: https://github.com/mattbierner/khepri
 [nu]: https://github.com/mattbierner/nu
 [seshat]: https://github.com/mattbierner/seshat
