@@ -1,4 +1,8 @@
-define(['parse/parse', 'parse/text'], function(parse, parse_text){
+define(['parse/parse',
+        'parse/text'],
+function(parse,
+        parse_text){
+    
     return {
         'module': "Lookahead Tests",
         'tests': [
@@ -23,6 +27,18 @@ define(['parse/parse', 'parse/text'], function(parse, parse_text){
                     parse.lookahead(parse_text.character('a')),
                     "")
                 );
+            }],
+            ["merges state",
+            function(){
+                assert.deepEqual(parse.run(
+                    parse.next(
+                        parse.lookahead(
+                            parse.next(
+                                parse_text.character('a'),
+                                parse.setState(3))),
+                        parse.getState),
+                    "a"),
+                3);
             }],
         ],
     };

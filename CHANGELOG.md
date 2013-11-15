@@ -1,5 +1,11 @@
 # ChangeLog #
 
+## 15.3.0 - November 14, 2013
+* Changed `parse.lookahead` to merge state with old input. This is what the
+  documentation said the parser does.
+* Added `parse.look` that does what `parse.lookahead` used to do. This is the
+  same as parsec's lookahead.
+
 ## 15.2.0 - November 13, 2013
 * Added `enumerations`, `choices`, and `sequences` for combining finite
   streams of parsers.

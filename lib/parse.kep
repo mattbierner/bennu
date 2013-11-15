@@ -51,6 +51,7 @@ package (
     
     fail,
     attempt,
+    look,
     lookahead,
     
     next,
@@ -684,13 +685,28 @@ attempt = \p ->
     };
 
 /**
- * Parser that consumes no input but returns what was parsed.
+ * Run `p`, then restore old state but return result from `p`.
+ * 
+ * this behavior is the same as parsec's `lookahead`.
+ */
+look = \p ->
+    bind(getParserState, \state ->
+        bind(p, \x ->
+            next(
+                setParserState(state),
+                always(x))));
+
+/**
+ * Run `p` but restore old input.
+ * 
+ * This merges the resulting state of `p`.
  */
 lookahead = \p ->
-    function LOOKAHEAD_PARSER(state, m, cok, cerr, eok, eerr) {
-        var ok = \item, _, m -> eok(item, state, m);
-        return tail(p, [state, m, ok, cerr, eok, eerr]);
-    };
+    bind(getInput, \input ->
+        bind(p, \x ->
+            next(
+                setInput(input),
+                always(x))));
 
 // Combinitorial Parsers
 ////////////////////////////////////////
