@@ -10,9 +10,11 @@ building blocks. Compared to other parsing techniques, combinatorial parsers
 can be written more quickly and integrate better with the host language.
 
 ### Examples
-* [parse-ecma][parseecma] - Combinatory parsers for lexing and parsing ECMAScript 5.1
-
-
+* [parse-ecma][parse-ecma] - Combinatory parsers for lexing and parsing ECMAScript 5.1
+* [parse-re][parse-re] - ECMAScript regular expression grammar parser and engine
+  using parse.js parser combinators.
+* [parse-pn][parse-pn] - Very simple polish notation calculator.
+  
 # Using parse.js #
 
 ### To clone ##
@@ -76,7 +78,9 @@ generated from it.
 [CombinatorialParsers]: http://en.wikipedia.org/wiki/Parser_combinator
 [Parsatron]: https://github.com/youngnh/parsatron
 [Parsec]: http://legacy.cs.uu.nl/daan/parsec.html
-[parseecma]: https://github.com/mattbierner/parse-ecma
+[parse-ecma]: https://github.com/mattbierner/parse-ecma
+[parse-re]: https://github.com/mattbierner/parse-re
+[parse-pn]: https://github.com/mattbierner/parse-pn
 [khepri]: https://github.com/mattbierner/khepri
 [nu]: https://github.com/mattbierner/nu
 [seshat]: https://github.com/mattbierner/seshat
