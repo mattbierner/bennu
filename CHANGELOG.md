@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 16.0.0 - November 15, 2013
+* Updated to nu V3.0.0
+* Library files now live in `dist`.
+
 ## 15.3.1 - November 15, 2013
 * Updated `parse.lookahead` to also restore old position. Its behavior is now
   to merge the old position and input into the new state.

@@ -26,7 +26,7 @@ can be written more quickly and integrate better with the host language.
     git submodule update --init --recursive
 
 ## Dependencies
-* [Nu][nu] 2.0.X - Small functional, lazy stream library.
+* [Nu][nu] 3.0.X - Small functional, lazy stream library.
 * [Seshat][seshat] 0.0.X - Functional memoization utility.
 
 ## With AMD ##
@@ -40,8 +40,8 @@ Include any AMD style module loader and load parse:
         <script type="application/javascript">
             requirejs.config({
                 paths: {
-                    'parse': './lib',
-                    'nu': './dependencies/nu/lib',
+                    'parse': './dist',
+                    'nu': './dependencies/nu/dist',
                     'seshat': './dependencies/seshat/lib/seshat'
                 }
             });
@@ -68,14 +68,10 @@ Combinatory parsers for ordering parsers, like found in a language.
 Running parsers incrementally.
 
 # Code #
-parse.js is written in Javascript / Khepri. [Khepri][khepri] is a ECMAScript subset
-that, among other things, adds a shorted lambda function syntax. It is also
-implemented using parse.js. Besides lambda functions, Khepri files (*.kep) are
-pretty much plain old Javascript.
-
-For now, both the .js and .kep versions of source code will be kept in 'lib/',
-but only Khepri sources will be developed and Javascript files will be
-generated from it.
+Parse.js is written in Khepri. [Khepri][khepri] is an ECMAScript language
+focused on functional programming that compiles to Javascript.
+The `dist` directory contains the generated js library while the Khepri sources
+are in `lib` directory.
 
 
 [CombinatorialParsers]: http://en.wikipedia.org/wiki/Parser_combinator
