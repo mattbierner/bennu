@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 16.0.1 - November 15, 2013
+* Fixed a bug in look and lookahead that caused them to call `cok` instead of
+  `eok`, potential leading to incorrect behavior when used in a either.
+
 ## 16.0.0 - November 15, 2013
 * Updated to nu V3.0.0
 * Library files now live in `dist`.

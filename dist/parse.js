@@ -337,19 +337,24 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
             }), peerr]);
         });
     }));
+    var cnothing = (function(p) {
+        return (function LOOK_PARSER(state, m, cok, cerr, eok, eerr) {
+            return tail(p, [state, m, eok, cerr, eok, eerr]);
+        });
+    });
     (look = (function(p) {
-        return bind(getParserState, (function(state) {
+        return cnothing(bind(getParserState, (function(state) {
             return bind(p, (function(x) {
                 return next(setParserState(state), always(x));
             }));
-        }));
+        })));
     }));
     (lookahead = (function(p) {
-        return _binary(getInput, getPosition, (function(input, pos) {
+        return cnothing(_binary(getInput, getPosition, (function(input, pos) {
             return bind(p, (function(x) {
                 return sequence(setPosition(pos), setInput(input), always(x));
             }));
-        }));
+        })));
     }));
     (next = (function(p, q) {
         return bind(p, constant(q));

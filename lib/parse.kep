@@ -688,17 +688,22 @@ attempt = \p ->
             peerr]);
     };
 
+var cnothing = \p ->
+    function LOOK_PARSER(state, m, cok, cerr, eok, eerr) {
+        return tail(p, [state, m, eok, cerr, eok, eerr]);
+    };
+
 /**
  * Run `p`, then restore old state but return result from `p`.
  * 
  * this behavior is the same as parsec's `lookahead`.
  */
 look = \p ->
-    bind(getParserState, \state ->
+    cnothing(bind(getParserState, \state ->
         bind(p, \x ->
             next(
                 setParserState(state),
-                always(x))));
+                always(x)))));
 
 /**
  * Run `p` but restore old input and position.
@@ -706,7 +711,7 @@ look = \p ->
  * This merges the resulting state of `p`.
  */
 lookahead = \p ->
-    _binary(
+    cnothing(_binary(
         getInput,
         getPosition,
         \input, pos ->
@@ -714,7 +719,7 @@ lookahead = \p ->
                 sequence(
                     setPosition(pos),
                     setInput(input),
-                    always(x))));
+                    always(x)))));
 
 // Combinitorial Parsers
 ////////////////////////////////////////
