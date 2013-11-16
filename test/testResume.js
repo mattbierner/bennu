@@ -29,6 +29,18 @@ function(parse,
                 assert.equal(resume.finish(resume.provideString(p, 'b')), 'b');
             }],
             
+             ["Empty",
+             function(){
+                var p = resume.runInc(
+                    parse.sequence(
+                        parse.always('1'),
+                        parse.always('2'),
+                        parse.always('3'),
+                        parse.always('4')));
+                
+                assert.deepEqual(resume.finish(p), '4');
+             }],
+             
             ["multiple parser",
             function(){
                 var p = resume.runInc(parse.eager(parse.many(ab)));
@@ -92,6 +104,34 @@ function(parse,
                 assert.deepEqual(resume.finish(resume.provideString(r2, 'b')), 'b');
              }],
              
+             ["Backtracking  eof",
+             function(){
+                var p = resume.runInc(
+                    parse.either(
+                        parse.attempt(parse.sequence(a, a, parse.eof)),
+                        parse.sequence(a, a, b)));
+                var r = resume.provideString(p, 'a');
+                var r2 = resume.provideString(r, 'a');
+                
+                assert.deepEqual(resume.finish(r2), null);
+                assert.deepEqual(resume.finish(resume.provideString(r2, 'b')), 'b');
+             }],
+             ["Backtracking consumed then fails",
+             function(){
+                var p = resume.runInc(
+                    parse.choice(
+                        parse.attempt(parse.sequence(a, a, parse.bind(a, function() {
+                            return parse.never('');
+                        }))),
+                        parse.attempt(parse.sequence(a, a, parse.bind(a, function() {
+                            return parse.never('');
+                        }))),
+                        parse.sequence(a, a, parse.anyToken)));
+                var r = resume.provideString(p, 'aa');
+                
+                assert.deepEqual(resume.finish(resume.provideString(r, 'a')), 'a');
+             }],
+
              ["eof",
              function(){
                 var p = resume.runInc(

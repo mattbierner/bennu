@@ -102,21 +102,31 @@ define(["require", "exports", "parse/parse", "nu/stream"], (function(require, ex
     (IncrementalState.prototype.setUserState = (function(userState) {
         return new(IncrementalState)(this.chunk, this.state.setUserState(userState));
     }));
-    (provide = (function(r, c) {
-        if ((r.done || isEmpty(c))) return r;
+    var forceProvide = (function(r, c) {
+        if (r.done) return r;
 
         var r2 = r.addChunk(c);
         var result = trampoline(r2.k(c));
         while (((result instanceof Request) && r2.hasChunk(result.chunk)))(result = trampoline(result.k(r2.getChunk(result.chunk))));
 
         return ((result instanceof Request) ? new(Session)(false, result.k, r2.chunks) : result);
+    });
+    (provide = (function(r, c) {
+        return (isEmpty(c) ? r : forceProvide(r, c));
     }));
     (provideString = (function(r, input) {
         return provide(r, streamFrom(input));
     }));
-    (finish = (function(r) {
-        return (r.done ? r.k() : finish(trampoline(r.k(NIL))));
-    }));
+    (finish = (function() {
+        {
+            var complete = (function(r) {
+                return r.k();
+            });
+            return (function(r) {
+                return complete(forceProvide(r, NIL));
+            });
+        }
+    })());
     (parseIncState = (function(p, state, ok, err) {
         return (function() {
             {

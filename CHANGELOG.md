@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 16.0.2 - November 16, 2013
+* Fixed bug causing certain edge case incremental parsers to fail
+  when used with a backtracking parser at eof.
+
 ## 16.0.1 - November 15, 2013
 * Fixed a bug in look and lookahead that caused them to call `cok` instead of
   `eok`, potential leading to incorrect behavior when used in a either.

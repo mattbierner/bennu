@@ -141,18 +141,12 @@ IncrementalState.prototype.setUserState = \userState ->
 /* Operations
  ******************************************************************************/
 /**
- * Feed a new chunk of input to an incremental parser.
- * 
- * Will parse as much as possible before returning.
- * 
- * @param r Resumable state
- * @param c Nu stream of input for chunk.
- * 
- * @return New resumable state for parser after input has been received.
+ * Always add any chunk passed in, even empty ones.
  */
-provide = \r, c -> {
-    if (r.done || isEmpty(c))
+var forceProvide = \r, c -> {
+    if (r.done)
         return r;
+    
     var r2 = r.addChunk(c);
     
     var result = r2.k(c) |> trampoline;
@@ -163,6 +157,21 @@ provide = \r, c -> {
         new Session(false, result.k, r2.chunks) :
         result);
 };
+
+/**
+ * Feed a new chunk of input to an incremental parser.
+ * 
+ * Will parse as much as possible before returning.
+ * 
+ * @param r Resumable state
+ * @param c Nu stream of input for chunk.
+ * 
+ * @return New resumable state for parser after input has been received.
+ */
+provide = \r, c ->
+    (isEmpty(c) ?
+        r :
+        forceProvide(r, c));
 
 /**
  * Feed an array-like to an incremental parser.
@@ -180,10 +189,10 @@ provideString = \r, input ->
  * 
  * @param r Resumable state.
  */
-finish = \r ->
-    (r.done ?
-        r.k() :
-        (r.k(NIL) |> trampoline |> finish));
+finish = let
+    complete = \r -> r.k()
+in
+     \r -> complete(forceProvide(r, NIL));
 
 /* Incremental Creation
  ******************************************************************************/

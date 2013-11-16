@@ -1,5 +1,8 @@
 define(['parse/parse', 'parse/text'],
 function(parse, parse_text){
+    var a = parse_text.character('a'),
+        b = parse_text.character('b');
+    
     return {
         'module': "parse.attempt",
         'tests': [
@@ -28,7 +31,16 @@ function(parse, parse_text){
                  );
                  assert.deepEqual(result, 'c');
              }],
-           
+             ["Backtracking consumed then fails",
+             function(){
+                var p = parse.either(
+                        parse.attempt(parse.sequence(a, parse.bind(parse.anyToken, function() { return parse.never(); }))),
+                        parse.sequence(a, b));
+                
+                assert.deepEqual(
+                    parse.run(p, 'ab'),
+                    'b');
+             }],
         ],
     };
 });
