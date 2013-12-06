@@ -4,7 +4,13 @@
 */
 define(["require", "exports", "nu/stream", "seshat"], (function(require, exports, stream, seshat) {
     "use strict";
-    var tail, trampoline, ParserError, ParseError, MultipleError, UnknownError, UnexpectError, ExpectError, ParserState, Position, rec, Parser, RecParser, always, never, bind, eof, extract, getParserState, setParserState, modifyParserState, getState, setState, modifyState, getInput, setInput, getPosition, setPosition, fail, attempt, look, lookahead, next, sequences, sequencea, sequence, either, choices, choicea, choice, optional, expected, eager, binds, cons, append, enumerations, enumerationa, enumeration, many, many1, token, anyToken, memo, Memoer, exec, parseState, parseStream, parse, runState, runStream, run, testState, testStream, test;
+    var tail, trampoline, ParserError, ParseError, MultipleError, UnknownError, UnexpectError, ExpectError,
+            ParserState, Position, rec, Parser, RecParser, always, never, bind, eof, extract, getParserState,
+            setParserState, modifyParserState, getState, setState, modifyState, getInput, setInput, getPosition,
+            setPosition, fail, attempt, look, lookahead, next, sequences, sequencea, sequence, either, choices,
+            choicea, choice, optional, expected, eager, binds, cons, append, enumerations, enumerationa,
+            enumeration, many, many1, token, anyToken, memo, Memoer, exec, parseState, parseStream, parse,
+            runState, runStream, run, testState, testStream, test;
     var stream = stream,
         NIL = stream["end"],
         first = stream["first"],
@@ -46,7 +52,6 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
     (trampoline = (function(f) {
         var value = f;
         while ((value && value._next))(value = value[0].apply(undefined, value[1]));
-
         return value;
     }));
     (Memoer = (function(memoer, frames) {
@@ -62,7 +67,8 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
         return new(Memoer)(m.memoer, [lower].concat(m.frames));
     }));
     (Memoer.popWindow = (function(m) {
-        return new(Memoer)(((m.frames.length === 1) ? seshat.prune(m.memoer, m.frames[0]) : m.memoer), m.frames.slice(1));
+        return new(Memoer)(((m.frames.length === 1) ? seshat.prune(m.memoer, m.frames[0]) : m.memoer),
+            m.frames.slice(1));
     }));
     (Memoer.lookup = (function(m, pos, id) {
         return seshat.lookup(m.memoer, pos, id);
@@ -104,7 +110,6 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
                 return cok(x, s, m);
             }));
         }
-
         return this._next;
     }));
     (ParserState.prototype.setInput = (function(input) {
@@ -156,8 +161,9 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
     Object.defineProperty(MultipleError.prototype, "errorMessage", ({
         "get": (function() {
             return (("[" + map(this.errors, (function(x) {
-                return x.message;
-            })).join(", ")) + "]");
+                    return x.message;
+                }))
+                .join(", ")) + "]");
         })
     }));
     var ChoiceError = (function(position, pErr, qErr) {
@@ -233,12 +239,12 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
         return Parser(name, rec(body));
     }));
     (always = (function(x) {
-        return (function ALWAYS_PARSER(state, m, cok, cerr, eok) {
+        return (function ALWAYS_PARSER(state, m, _, _0, eok, _1) {
             return eok(x, state, m);
         });
     }));
     (never = (function(x) {
-        return (function NEVER_PARSER(state, m, cok, cerr, eok, eerr) {
+        return (function NEVER_PARSER(state, m, _, _0, _1, eerr) {
             return eerr(x, state, m);
         });
     }));
@@ -252,7 +258,7 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
         });
     }));
     (modifyParserState = (function(f) {
-        return (function MODIFY_PARSER_STATE(state, m, cok, cerr, eok) {
+        return (function MODIFY_PARSER_STATE(state, m, _, _0, eok, _1) {
             var newState = f(state);
             return eok(newState, newState, m);
         });
@@ -262,7 +268,7 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
         return modifyParserState(constant(s));
     }));
     (extract = (function(f) {
-        return (function EXTRACT(state, m, cok, cerr, eok) {
+        return (function EXTRACT(state, m, _, _0, eok, _1) {
             return eok(f(state), state, m);
         });
     }));
@@ -454,7 +460,8 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
     })(enumerationa, args));
     (many = (function() {
         {
-            var manyError = throwConstant(new(ParserError)("Many parser applied to a parser that accepts an empty string"));
+            var manyError = throwConstant(new(ParserError)(
+                "Many parser applied to a parser that accepts an empty string"));
             return (function MANY_PARSER(p) {
                 var safeP = (function(state, m, cok, cerr, eok, eerr) {
                     return tail(p, [state, m, cok, cerr, manyError, eerr]);
@@ -482,9 +489,9 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
                         return eerr(errorHandler(position, null), state, m);
                     } else {
                         var tok = state.first();
-                        return (consume(tok) ? state.next(tok)(state, m, cok, cerr, eok, eerr) : eerr(errorHandler(position, tok), state, m));
+                        return (consume(tok) ? state.next(tok)(state, m, cok, cerr, eok, eerr) :
+                            eerr(errorHandler(position, tok), state, m));
                     }
-
                 });
             });
         }
@@ -503,23 +510,26 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
                     });
                     var entry = Memoer.lookup(m, position, key);
                     if (entry) return tail(entry, [state, m, cok, cerr, eok, eerr]);
-
                     return tail(p, [state, m, (function(x, pstate, pm) {
-                        return cok(x, pstate, Memoer.update(pm, position, key, (function(_, m, cok) {
-                            return cok(x, pstate, m);
-                        })));
+                        return cok(x, pstate, Memoer.update(pm, position, key, (
+                            function(_, m, cok, _0, _1, _2) {
+                                return cok(x, pstate, m);
+                            })));
                     }), (function(x, pstate, pm) {
-                        return cerr(x, pstate, Memoer.update(pm, position, key, (function(_, m, cok, cerr) {
-                            return cerr(x, pstate, m);
-                        })));
+                        return cerr(x, pstate, Memoer.update(pm, position, key, (
+                            function(_, m, _0, cerr, _1, _2) {
+                                return cerr(x, pstate, m);
+                            })));
                     }), (function(x, pstate, pm) {
-                        return eok(x, pstate, Memoer.update(pm, position, key, (function(_, m, cok, cerr, eok) {
-                            return eok(x, pstate, m);
-                        })));
+                        return eok(x, pstate, Memoer.update(pm, position, key, (
+                            function(_, m, _0, _1, eok, _2) {
+                                return eok(x, pstate, m);
+                            })));
                     }), (function(x, pstate, pm) {
-                        return eerr(x, pstate, Memoer.update(pm, position, key, (function(_, m, cok, cerr, eok, eerr) {
-                            return eerr(x, pstate, m);
-                        })));
+                        return eerr(x, pstate, Memoer.update(pm, position, key, (
+                            function(_, m, _0, _1, _2, eerr) {
+                                return eerr(x, pstate, m);
+                            })));
                     })]);
                 });
             }

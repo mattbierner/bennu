@@ -4,7 +4,8 @@
 */
 define(["require", "exports", "parse/parse", "nu/stream"], (function(require, exports, __o, stream) {
     "use strict";
-    var provide, provideString, finish, parseIncState, parseInc, runIncState, runInc, runManyState, runManyStream, runMany;
+    var provide, provideString, finish, parseIncState, parseInc, runIncState, runInc, runManyState,
+            runManyStream, runMany;
     var __o = __o,
         always = __o["always"],
         bind = __o["bind"],
@@ -18,10 +19,10 @@ define(["require", "exports", "parse/parse", "nu/stream"], (function(require, ex
         runState = __o["runState"],
         trampoline = __o["trampoline"],
         stream = stream,
-        NIL = stream["end"],
         streamFrom = stream["from"],
         isEmpty = stream["isEmpty"],
         first = stream["first"],
+        NIL = stream["NIL"],
         rest = stream["rest"],
         memoStream = stream["memoStream"];
     var Request = (function(chunk, k) {
@@ -75,10 +76,11 @@ define(["require", "exports", "parse/parse", "nu/stream"], (function(require, ex
     (IncrementalState.prototype.next = (function(x) {
         if (!this._next) {
             var chunk = this.chunk;
-            (this._next = next(this.state.next(x), bind(getParserState, (function(innerState) {
+            (this._next = bind(next(this.state.next(x), getParserState), (function(innerState) {
                 return (innerState.isEmpty() ? (function(_, m, cok) {
                     return new(Request)((chunk + 1), (function(i) {
-                        return cok(x, new(IncrementalState)((chunk + 1), innerState.setInput(i)), m);
+                        return cok(x, new(IncrementalState)((chunk + 1),
+                            innerState.setInput(i)), m);
                     }));
                 }) : (function() {
                     {
@@ -88,9 +90,8 @@ define(["require", "exports", "parse/parse", "nu/stream"], (function(require, ex
                         });
                     }
                 })());
-            }))));
+            })));
         }
-
         return this._next;
     }));
     (IncrementalState.prototype.setInput = (function(input) {
@@ -104,11 +105,10 @@ define(["require", "exports", "parse/parse", "nu/stream"], (function(require, ex
     }));
     var forceProvide = (function(r, c) {
         if (r.done) return r;
-
         var r2 = r.addChunk(c);
         var result = trampoline(r2.k(c));
-        while (((result instanceof Request) && r2.hasChunk(result.chunk)))(result = trampoline(result.k(r2.getChunk(result.chunk))));
-
+        while (((result instanceof Request) && r2.hasChunk(result.chunk)))(result = trampoline(result.k(r2.getChunk(
+            result.chunk))));
         return ((result instanceof Request) ? new(Session)(false, result.k, r2.chunks) : result);
     });
     (provide = (function(r, c) {
@@ -136,9 +136,10 @@ define(["require", "exports", "parse/parse", "nu/stream"], (function(require, ex
                     perr = (function(x, s) {
                         return new(Session)(true, err.bind(null, x, s));
                     });
-                return (state.isEmpty() ? new(Session)(false, (function(i) {
-                    return parseState(p, new(IncrementalState)(0, state.setInput(i)), pok, perr);
-                }), []) : provide(parseIncState(p, state.setInput(NIL), ok, err), state.input));
+                return provide(new(Session)(false, (function(i) {
+                    return parseState(p, new(IncrementalState)(0, state.setInput(i)),
+                        pok, perr);
+                }), []), state.input);
             }
         })();
     }));

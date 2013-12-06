@@ -531,7 +531,7 @@ RecParser = \name, body -> Parser(name, rec(body));
  * @param x Value to succeed with.
  */
 always = \x ->
-    function ALWAYS_PARSER(state, m, cok, cerr, eok /*, _*/) {
+    function ALWAYS_PARSER(state, m, _, _, eok, _) {
         return eok(x, state, m);
     };
 
@@ -541,7 +541,7 @@ always = \x ->
  * @param x Value to fail with.
  */
 never = \x ->
-    function NEVER_PARSER(state, m, cok, cerr, eok, eerr) {
+    function NEVER_PARSER(state, m, _, _, _, eerr) {
         return eerr(x, state, m);
     };
 
@@ -569,7 +569,7 @@ bind = \p, f ->
  *  @param {function(ParserState): *} f Function that transforms that current state.
  */
 modifyParserState = \f ->
-    function MODIFY_PARSER_STATE(state, m, cok, cerr, eok /*, _*/) {
+    function MODIFY_PARSER_STATE(state, m, _, _, eok, _) {
         var newState = f(state);
         return eok(newState, newState, m);
     };
@@ -595,7 +595,7 @@ setParserState = \s ->
  *     given state object.
  */
 extract = \f ->
-    function EXTRACT(state, m, cok, cerr, eok /*, _*/) {
+    function EXTRACT(state, m, _, _, eok, _) {
         return eok(f(state), state, m);
     };
 
@@ -960,16 +960,16 @@ in
         return tail(p, [state, m,
             \x, pstate, pm ->
                 cok(x, pstate,
-                    Memoer.update(pm, position, key, \(_, m, cok /*, cerr, eok, eerr*/) -> cok(x, pstate, m))),
+                    Memoer.update(pm, position, key, \_, m, cok, _, _, _ -> cok(x, pstate, m))),
             \x, pstate, pm ->
                 cerr(x, pstate,
-                    Memoer.update(pm, position, key, \(_, m, cok, cerr /*, eok, eerr*/) -> cerr(x, pstate, m))),
+                    Memoer.update(pm, position, key, \_, m, _, cerr, _, _ -> cerr(x, pstate, m))),
             \x, pstate, pm ->
                 eok(x, pstate,
-                    Memoer.update(pm, position, key, \(_, m, cok, cerr, eok /*, eerr*/) -> eok(x, pstate, m))),
+                    Memoer.update(pm, position, key, \_, m, _, _, eok, _ -> eok(x, pstate, m))),
             \x, pstate, pm ->
                 eerr(x, pstate,
-                    Memoer.update(pm, position, key, \(_, m, cok, cerr, eok, eerr) -> eerr(x, pstate, m)))]);
+                    Memoer.update(pm, position, key, \_, m, _, _, _, eerr -> eerr(x, pstate, m)))]);
     };
 
 /* Running

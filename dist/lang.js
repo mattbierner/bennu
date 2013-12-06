@@ -4,7 +4,8 @@
 */
 define(["require", "exports", "nu/stream", "nu/gen", "parse/parse"], (function(require, exports, __o, __o0, parse) {
     "use strict";
-    var times, atMostTimes, betweenTimes, then, between, sepBy1, sepBy, sepEndBy1, sepEndBy, endBy1, endBy, chainl1, chainl, chainr1, chainr;
+    var times, atMostTimes, betweenTimes, then, between, sepBy1, sepBy, sepEndBy1, sepEndBy, endBy1, endBy,
+            chainl1, chainl, chainr1, chainr;
     var __o = __o,
         NIL = __o["end"],
         __o0 = __o0,
@@ -36,7 +37,6 @@ define(["require", "exports", "nu/stream", "nu/gen", "parse/parse"], (function(r
     }));
     (betweenTimes = (function(min, max, p) {
         if ((max < min)) throw new(ParserError)("between max < min");
-
         return append(times(min, p), atMostTimes((max - min), p));
     }));
     (then = (function(p, q) {
