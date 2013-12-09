@@ -97,7 +97,7 @@ Object.defineProperties(IncrementalState.prototype, {
 });
 
 IncrementalState.prototype.eq = \other ->
-    other && other.chunk === this.chunk && other.state.eq(other.state);
+    other && other.chunk === this.chunk && this.state.eq(other.state);
 
 IncrementalState.prototype.isEmpty = \() ->
     this.state.isEmpty();

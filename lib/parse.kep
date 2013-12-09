@@ -531,9 +531,7 @@ RecParser = \name, body -> Parser(name, rec(body));
  * @param x Value to succeed with.
  */
 always = \x ->
-    function ALWAYS_PARSER(state, m, _, _, eok, _) {
-        return eok(x, state, m);
-    };
+    function ALWAYS_PARSER \state, m, _, _, eok, _ -> eok(x, state, m);
 
 /**
  * Parser that always fails and consumes no input.
@@ -541,9 +539,7 @@ always = \x ->
  * @param x Value to fail with.
  */
 never = \x ->
-    function NEVER_PARSER(state, m, _, _, _, eerr) {
-        return eerr(x, state, m);
-    };
+    function NEVER_PARSER \state, m, _, _, _, eerr -> eerr(x, state, m);
 
 /**
  * Parser that parses 'p', passing the results to function 'f' which returns a
@@ -553,13 +549,12 @@ never = \x ->
  * @param f Function called with result from 'p' and returns parser 'q'.
  */
 bind = \p, f ->
-    function BIND_PARSER(state, m, cok, cerr, eok, eerr) {
-        return tail(p, [state, m,
+    function BIND_PARSER \state, m, cok, cerr, eok, eerr ->
+        tail(p, [state, m,
             \x, state, m -> tail(f(x, state, m), [state, m, cok, cerr, cok, cerr]),
             cerr,
             \x, state, m -> tail(f(x, state, m), [state, m, cok, cerr, eok, eerr]),
             eerr]);
-    };
 
 // State Interaction Parsers
 ////////////////////////////////////////
@@ -569,7 +564,7 @@ bind = \p, f ->
  *  @param {function(ParserState): *} f Function that transforms that current state.
  */
 modifyParserState = \f ->
-    function MODIFY_PARSER_STATE(state, m, _, _, eok, _) {
+    function MODIFY_PARSER_STATE \state, m, _, _, eok, _ -> {
         var newState = f(state);
         return eok(newState, newState, m);
     };
@@ -595,9 +590,7 @@ setParserState = \s ->
  *     given state object.
  */
 extract = \f ->
-    function EXTRACT(state, m, _, _, eok, _) {
-        return eok(f(state), state, m);
-    };
+    function EXTRACT \state, m, _, _, eok, _ -> eok(f(state), state, m);
 
 /**
  * Parser that modifies the current user state using function 'f'.
@@ -666,20 +659,19 @@ fail = \msg ->
 /**
  * Parser that matches end of input.
  */
-eof = let
+eof = (Parser, 'EOF') <| let
     end = always(NIL)
 in
-    Parser('EOF',
-        bind(getParserState, \s ->
+    bind(getParserState, \s ->
         (s.isEmpty() ?
             end :
-            _fail(\pos -> new ExpectError(pos, "end of input", s.first())))));
+            _fail(\pos -> new ExpectError(pos, "end of input", s.first()))));
 
 /**
  * Parser that attempts parser `p`. Upon failure, never consumes any input.
  */
 attempt = \p ->
-    function ATTEMPT_PARSER(state, m, cok, cerr, eok, eerr) {
+    function ATTEMPT_PARSER \state, m, cok, cerr, eok, eerr -> {
         var peerr = \x, s, m -> eerr(x, s, Memoer.popWindow(m));
         return tail(p, [state, Memoer.pushWindow(m, state.position),
             \x, s, m -> cok(x, s, Memoer.popWindow(m)),
@@ -689,9 +681,8 @@ attempt = \p ->
     };
 
 var cnothing = \p ->
-    function LOOK_PARSER(state, m, cok, cerr, eok, eerr) {
-        return tail(p, [state, m, eok, cerr, eok, eerr]);
-    };
+    function LOOK_PARSER \state, m, cok, cerr, eok, eerr ->
+        tail(p, [state, m, eok, cerr, eok, eerr]);
 
 /**
  * Run `p`, then restore old state but return result from `p`.
@@ -724,7 +715,7 @@ lookahead = \p ->
 // Combinitorial Parsers
 ////////////////////////////////////////
 /**
- * Parser that parses 'p', then 'q'. Return the 'q' value.
+ * Parse 'p', then 'q'. Return value from 'q'.
  */
 next = \p, q ->
     bind(p, constant(q));
@@ -756,7 +747,7 @@ sequence = args \>> sequencea;
 
 var _either = \e ->
     \p, q ->
-        function EITHER_PARSER(state{position}, m, cok, cerr, eok, eerr) {
+        function EITHER_PARSER \state{position}, m, cok, cerr, eok, eerr -> {
             var peerr = \errFromP, _, mFromP -> {
                 var qeerr = \errFromQ, _, mFromQ ->
                     eerr(e(position, errFromP, errFromQ), state, mFromQ);
@@ -812,13 +803,12 @@ optional = \x, p ->
  * @param p Parser to attempt.
  */
 expected = \expect, p ->
-    function EXPECTED_PARSER(state, m, cok, cerr, eok, eerr) {
-        return p(state, m,
+    function EXPECTED_PARSER \state, m, cok, cerr, eok, eerr ->
+        p(state, m,
             cok,
             cerr,
             eok,
             \x, state, m -> eerr(new ExpectError(state.position, expect), state, m));
-    };
 
 // Iterative Parsers
 ////////////////////////////////////////
@@ -893,11 +883,11 @@ many = let
     manyError = throwConstant(
         new ParserError("Many parser applied to a parser that accepts an empty string"))
 in
-    function MANY_PARSER(p) {
-        var safeP = \state, m, cok, cerr, eok, eerr ->
-            tail(p, [state, m, cok, cerr, manyError, eerr]);
-        return rec(\self -> _optionalValueParser(cons(safeP, self)));
-    };
+    function MANY_PARSER \p -> let
+        safeP = \state, m, cok, cerr, eok, eerr ->
+            tail(p, [state, m, cok, cerr, manyError, eerr])
+        in
+            rec(\self -> _optionalValueParser(cons(safeP, self)));
 
 /**
  * Consume 'p' 1 or more times.
@@ -921,9 +911,10 @@ token = let
     defaultErr = \pos, tok ->
         new UnexpectError(pos, (tok === null ? "end of input" : tok))
 in
-    \consume, onErr -> {
-        var errorHandler = (onErr || defaultErr);
-        return function TOKEN_PARSER(state{position}, m, cok, cerr, eok, eerr) {
+    \consume, onErr -> let
+        errorHandler = (onErr || defaultErr)
+    in
+        function TOKEN_PARSER \state{position}, m, cok, cerr, eok, eerr -> {
             if (state.isEmpty()) {
                 return eerr(errorHandler(position, null), state, m);
             } else {
@@ -933,7 +924,6 @@ in
                     eerr(errorHandler(position, tok), state, m));
             }
         };
-    };
 
 /**
  * Parser that consumes any token.

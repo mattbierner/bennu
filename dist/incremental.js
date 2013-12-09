@@ -65,7 +65,7 @@ define(["require", "exports", "parse/parse", "nu/stream"], (function(require, ex
         })
     }));
     (IncrementalState.prototype.eq = (function(other) {
-        return ((other && (other.chunk === this.chunk)) && other.state.eq(other.state));
+        return ((other && (other.chunk === this.chunk)) && this.state.eq(other.state));
     }));
     (IncrementalState.prototype.isEmpty = (function() {
         return this.state.isEmpty();
@@ -78,18 +78,19 @@ define(["require", "exports", "parse/parse", "nu/stream"], (function(require, ex
             var chunk = this.chunk;
             (this._next = bind(next(this.state.next(x), getParserState), (function(innerState) {
                 return (innerState.isEmpty() ? (function(_, m, cok) {
-                    return new(Request)((chunk + 1), (function(i) {
-                        return cok(x, new(IncrementalState)((chunk + 1),
-                            innerState.setInput(i)), m);
-                    }));
-                }) : (function() {
-                    {
-                        var state = new(IncrementalState)(chunk, innerState);
-                        return (function(_, m, cok) {
-                            return cok(x, state, m);
-                        });
-                    }
-                })());
+                        return new(Request)((chunk + 1), (function(i) {
+                            return cok(x, new(IncrementalState)((chunk + 1),
+                                innerState.setInput(i)), m);
+                        }));
+                    }) : (function() {
+                        {
+                            var state = new(IncrementalState)(chunk, innerState);
+                            return (function(_, m, cok) {
+                                return cok(x, state, m);
+                            });
+                        }
+                    })
+                    .call(this));
             })));
         }
         return this._next;
@@ -118,15 +119,16 @@ define(["require", "exports", "parse/parse", "nu/stream"], (function(require, ex
         return provide(r, streamFrom(input));
     }));
     (finish = (function() {
-        {
-            var complete = (function(r) {
-                return r.k();
-            });
-            return (function(r) {
-                return complete(forceProvide(r, NIL));
-            });
-        }
-    })());
+            {
+                var complete = (function(r) {
+                    return r.k();
+                });
+                return (function(r) {
+                    return complete(forceProvide(r, NIL));
+                });
+            }
+        })
+        .call(this));
     (parseIncState = (function(p, state, ok, err) {
         return (function() {
             {
@@ -141,24 +143,26 @@ define(["require", "exports", "parse/parse", "nu/stream"], (function(require, ex
                         pok, perr);
                 }), []), state.input);
             }
-        })();
+        })
+            .call(this);
     }));
     (parseInc = (function(p, ud, ok, err) {
         return parseIncState(p, new(ParserState)(NIL, Position.initial, ud), ok, err);
     }));
     (runIncState = (function() {
-        {
-            var ok = (function(x) {
-                return x;
-            }),
-                err = (function(x) {
-                    throw x;
+            {
+                var ok = (function(x) {
+                    return x;
+                }),
+                    err = (function(x) {
+                        throw x;
+                    });
+                return (function(p, state) {
+                    return parseIncState(p, state, ok, err);
                 });
-            return (function(p, state) {
-                return parseIncState(p, state, ok, err);
-            });
-        }
-    })());
+            }
+        })
+        .call(this));
     (runInc = (function(p, ud) {
         return runIncState(p, new(ParserState)(NIL, Position.initial, ud));
     }));
@@ -170,7 +174,8 @@ define(["require", "exports", "parse/parse", "nu/stream"], (function(require, ex
                 })));
                 return runState(manyP, state);
             }
-        })();
+        })
+            .call(this);
     }));
     (runManyStream = (function(p, s, ud) {
         return runManyState(p, new(ParserState)(s, Position.initial, ud));
