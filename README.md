@@ -23,7 +23,7 @@ can be written more quickly and integrate better with the host language.
 ### To clone ##
     git clone https://github.com/mattbierner/parse.js parse
     cd parse
-    git submodule update --init --recursive
+    git submodule update --init
 
 ## Dependencies
 * [Nu][nu] 3.0.X - Small functional, lazy stream library.
