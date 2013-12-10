@@ -12,7 +12,7 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
             enumeration, many, many1, token, anyToken, memo, Memoer, exec, parseState, parseStream, parse,
             runState, runStream, run, testState, testStream, test;
     var stream = stream,
-        NIL = stream["end"],
+        NIL = stream["NIL"],
         first = stream["first"],
         isEmpty = stream["isEmpty"],
         rest = stream["rest"],

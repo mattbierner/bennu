@@ -96,7 +96,7 @@ package (
     testStream,
     test)
 with
-    import 'nu/stream' stream{'end': NIL, first, isEmpty, rest, foldl, reduceRight, foldr},
+    import 'nu/stream' stream{NIL, first, isEmpty, rest, foldl, reduceRight, foldr},
     import 'seshat' seshat
 in {
 
