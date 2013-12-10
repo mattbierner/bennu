@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 16.0.3 - December 10, 2013
+* Changed tail call implementation to use best performing version from: 
+ http://jsperf.com/external-tail-calls/2
+
 ## 16.0.2 - November 16, 2013
 * Fixed bug causing certain edge case incremental parsers to fail
   when used with a backtracking parser at eof.
