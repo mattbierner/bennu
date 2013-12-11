@@ -116,9 +116,14 @@ var uniqueParserId = Math.random;
 
 /* Continuation
  ******************************************************************************/
-var Tail = function(f, args) {
-    this.f = f;
-    this.args = args;
+var Tail = function(p, state, m, cok, cerr, eok, eerr) {
+    this.p = p;
+    this.state = state;
+    this.m = m;
+    this.cok = cok;
+    this.cerr = cerr;
+    this.eok = eok;
+    this.eerr = eerr;
 };
 
 tail = \f, args -> new Tail(f, args);
@@ -126,7 +131,7 @@ tail = \f, args -> new Tail(f, args);
 trampoline = \f -> {
     var value = f;
     while (value instanceof Tail)
-        value = value.f.apply(null, value.args);
+        value = value.p(value.state, value.m, value.cok, value.cerr, value.eok, value.eerr);
     return value;
 };
 
@@ -551,11 +556,11 @@ never = \x ->
  */
 bind = \p, f ->
     function BIND_PARSER \state, m, cok, cerr, eok, eerr ->
-        new Tail(p, [state, m,
-            \x, state, m -> new Tail(f(x, state, m), [state, m, cok, cerr, cok, cerr]),
+        new Tail(p, state, m,
+            \x, state, m -> new Tail(f(x, state, m), state, m, cok, cerr, cok, cerr),
             cerr,
-            \x, state, m -> new Tail(f(x, state, m), [state, m, cok, cerr, eok, eerr]),
-            eerr]);
+            \x, state, m -> new Tail(f(x, state, m), state, m, cok, cerr, eok, eerr),
+            eerr);
 
 // State Interaction Parsers
 ////////////////////////////////////////
@@ -674,16 +679,16 @@ in
 attempt = \p ->
     function ATTEMPT_PARSER \state, m, cok, cerr, eok, eerr -> {
         var peerr = \x, s, m -> eerr(x, s, Memoer.popWindow(m));
-        return new Tail(p, [state, Memoer.pushWindow(m, state.position),
+        return new Tail(p, state, Memoer.pushWindow(m, state.position),
             \x, s, m -> cok(x, s, Memoer.popWindow(m)),
             peerr,
             \x, s, m -> eok(x, s, Memoer.popWindow(m)),
-            peerr]);
+            peerr);
     };
 
 var cnothing = \p ->
     function LOOK_PARSER \state, m, cok, cerr, eok, eerr ->
-        new Tail(p, [state, m, eok, cerr, eok, eerr]);
+        new Tail(p, state, m, eok, cerr, eok, eerr);
 
 /**
  * Run `p`, then restore old state but return result from `p`.
@@ -752,9 +757,9 @@ var _either = \e ->
             var peerr = \errFromP, _, mFromP -> {
                 var qeerr = \errFromQ, _, mFromQ ->
                     eerr(e(position, errFromP, errFromQ), state, mFromQ);
-                return new Tail(q, [state, mFromP, cok, cerr, eok, qeerr]);
+                return new Tail(q, state, mFromP, cok, cerr, eok, qeerr);
             };
-            return new Tail(p, [state, m, cok, cerr, eok, peerr]);
+            return new Tail(p, state, m, cok, cerr, eok, peerr);
         };
 
 /**
@@ -886,7 +891,7 @@ many = let
 in
     function MANY_PARSER \p -> let
         safeP = \state, m, cok, cerr, eok, eerr ->
-            new Tail(p, [state, m, cok, cerr, manyError, eerr])
+            new Tail(p, state, m, cok, cerr, manyError, eerr)
         in
             rec(\self -> _optionalValueParser(cons(safeP, self)));
 
@@ -946,9 +951,9 @@ in
         var key = {'id': id, 'state': state};
         var entry = Memoer.lookup(m, position, key);
         if (entry)
-            return new Tail(entry, [state, m, cok, cerr, eok, eerr]);
+            return new Tail(entry, state, m, cok, cerr, eok, eerr);
         
-        return new Tail(p, [state, m,
+        return new Tail(p, state, m,
             \x, pstate, pm ->
                 cok(x, pstate,
                     Memoer.update(pm, position, key, \_, m, cok, _, _, _ -> cok(x, pstate, m))),
@@ -960,7 +965,7 @@ in
                     Memoer.update(pm, position, key, \_, m, _, _, eok, _ -> eok(x, pstate, m))),
             \x, pstate, pm ->
                 eerr(x, pstate,
-                    Memoer.update(pm, position, key, \_, m, _, _, _, eerr -> eerr(x, pstate, m)))]);
+                    Memoer.update(pm, position, key, \_, m, _, _, _, eerr -> eerr(x, pstate, m))));
     };
 
 /* Running

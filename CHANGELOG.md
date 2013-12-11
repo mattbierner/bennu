@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 16.0.4 - December 11, 2013
+* Further improved tail call performance by defunctionalizing the call since tail
+  calls are only used one way.
+
 ## 16.0.3 - December 10, 2013
 * Changed tail call implementation to use best performing version from: 
  http://jsperf.com/external-tail-calls/2

@@ -44,16 +44,22 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
         });
     });
     var uniqueParserId = Math.random;
-    var Tail = (function(f, args) {
-        (this.f = f);
-        (this.args = args);
+    var Tail = (function(p, state, m, cok, cerr, eok, eerr) {
+        (this.p = p);
+        (this.state = state);
+        (this.m = m);
+        (this.cok = cok);
+        (this.cerr = cerr);
+        (this.eok = eok);
+        (this.eerr = eerr);
     });
     (tail = (function(f, args) {
         return new(Tail)(f, args);
     }));
     (trampoline = (function(f) {
         var value = f;
-        while ((value instanceof Tail))(value = value.f.apply(null, value.args));
+        while ((value instanceof Tail))(value = value.p(value.state, value.m, value.cok, value.cerr,
+            value.eok, value.eerr));
         return value;
     }));
     (Memoer = (function(memoer, frames) {
@@ -252,11 +258,11 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
     }));
     (bind = (function(p, f) {
         return (function BIND_PARSER(state, m, cok, cerr, eok, eerr) {
-            return new(Tail)(p, [state, m, (function(x, state, m) {
-                return new(Tail)(f(x, state, m), [state, m, cok, cerr, cok, cerr]);
+            return new(Tail)(p, state, m, (function(x, state, m) {
+                return new(Tail)(f(x, state, m), state, m, cok, cerr, cok, cerr);
             }), cerr, (function(x, state, m) {
-                return new(Tail)(f(x, state, m), [state, m, cok, cerr, eok, eerr]);
-            }), eerr]);
+                return new(Tail)(f(x, state, m), state, m, cok, cerr, eok, eerr);
+            }), eerr);
         });
     }));
     (modifyParserState = (function(f) {
@@ -340,16 +346,16 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
             var peerr = (function(x, s, m) {
                 return eerr(x, s, Memoer.popWindow(m));
             });
-            return new(Tail)(p, [state, Memoer.pushWindow(m, state.position), (function(x, s, m) {
+            return new(Tail)(p, state, Memoer.pushWindow(m, state.position), (function(x, s, m) {
                 return cok(x, s, Memoer.popWindow(m));
             }), peerr, (function(x, s, m) {
                 return eok(x, s, Memoer.popWindow(m));
-            }), peerr]);
+            }), peerr);
         });
     }));
     var cnothing = (function(p) {
         return (function LOOK_PARSER(state, m, cok, cerr, eok, eerr) {
-            return new(Tail)(p, [state, m, eok, cerr, eok, eerr]);
+            return new(Tail)(p, state, m, eok, cerr, eok, eerr);
         });
     });
     (look = (function(p) {
@@ -389,9 +395,9 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
                     var qeerr = (function(errFromQ, _, mFromQ) {
                         return eerr(e(position, errFromP, errFromQ), state, mFromQ);
                     });
-                    return new(Tail)(q, [state, mFromP, cok, cerr, eok, qeerr]);
+                    return new(Tail)(q, state, mFromP, cok, cerr, eok, qeerr);
                 });
-                return new(Tail)(p, [state, m, cok, cerr, eok, peerr]);
+                return new(Tail)(p, state, m, cok, cerr, eok, peerr);
             });
         });
     });
@@ -471,7 +477,7 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
                     return (function() {
                         {
                             var safeP = (function(state, m, cok, cerr, eok, eerr) {
-                                return new(Tail)(p, [state, m, cok, cerr, manyError, eerr]);
+                                return new(Tail)(p, state, m, cok, cerr, manyError, eerr);
                             });
                             return rec((function(self) {
                                 return _optionalValueParser(cons(safeP, self));
@@ -527,8 +533,8 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
                         "state": state
                     });
                     var entry = Memoer.lookup(m, position, key);
-                    if (entry) return new(Tail)(entry, [state, m, cok, cerr, eok, eerr]);
-                    return new(Tail)(p, [state, m, (function(x, pstate, pm) {
+                    if (entry) return new(Tail)(entry, state, m, cok, cerr, eok, eerr);
+                    return new(Tail)(p, state, m, (function(x, pstate, pm) {
                         return cok(x, pstate, Memoer.update(pm, position, key, (
                             function(_, m, cok, _0, _1, _2) {
                                 return cok(x, pstate, m);
@@ -548,7 +554,7 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
                             function(_, m, _0, _1, _2, eerr) {
                                 return eerr(x, pstate, m);
                             })));
-                    })]);
+                    }));
                 });
             }
         })
