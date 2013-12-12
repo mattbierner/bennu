@@ -17,6 +17,7 @@ define(["require", "exports", "parse/parse", "nu/stream"], (function(require, ex
         ParserState = __o["ParserState"],
         Position = __o["Position"],
         runState = __o["runState"],
+        Tail = __o["Tail"],
         trampoline = __o["trampoline"],
         stream = stream,
         streamFrom = stream["from"],
@@ -169,9 +170,15 @@ define(["require", "exports", "parse/parse", "nu/stream"], (function(require, ex
     (runManyState = (function(p, state) {
         return (function() {
             {
-                var manyP = optional(NIL, bind(p, (function(x, state, m) {
-                    return always(memoStream(x, runState.bind(null, manyP, state, m)));
-                })));
+                var manyP = optional(NIL, (function(state, m, cok, cerr, eok, eerr) {
+                    return new(Tail)(p, state, m, (function(x, state, m) {
+                        return cok(memoStream(x, runState.bind(null, manyP, state,
+                            m)));
+                    }), cerr, (function(x, state, m) {
+                        return eok(memoStream(x, runState.bind(null, manyP, state,
+                            m)));
+                    }), eerr);
+                }));
                 return runState(manyP, state);
             }
         })

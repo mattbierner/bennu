@@ -5,7 +5,7 @@
  */
 package (
 // Continuations
-    tail,
+    Tail,
     trampoline,
     
 // Errors
@@ -116,7 +116,7 @@ var uniqueParserId = Math.random;
 
 /* Continuation
  ******************************************************************************/
-var Tail = function(p, state, m, cok, cerr, eok, eerr) {
+Tail = function(p, state, m, cok, cerr, eok, eerr) {
     this.p = p;
     this.state = state;
     this.m = m;
@@ -125,8 +125,6 @@ var Tail = function(p, state, m, cok, cerr, eok, eerr) {
     this.eok = eok;
     this.eerr = eerr;
 };
-
-tail = \f, args -> new Tail(f, args);
 
 trampoline = \f -> {
     var value = f;
@@ -259,14 +257,12 @@ ParserState.prototype.eq = \other ->
 /**
  * Is the state's input empty.
  */
-ParserState.prototype.isEmpty = \() ->
-    isEmpty(this.input);
+ParserState.prototype.isEmpty = \() -> isEmpty(this.input);
 
 /**
  * Get the first item of the input.
  */
-ParserState.prototype.first = \() ->
-    first(this.input);
+ParserState.prototype.first = \() -> first(this.input);
 
 /**
  * Get next state object for a given consumed token.
@@ -537,7 +533,7 @@ RecParser = \name, body -> Parser(name, rec(body));
  * @param x Value to succeed with.
  */
 always = \x ->
-    function ALWAYS_PARSER \state, m, _, _, eok, _ -> eok(x, state, m);
+    function ALWAYS \state, m, _, _, eok, _ -> eok(x, state, m);
 
 /**
  * Parser that always fails and consumes no input.
@@ -545,7 +541,7 @@ always = \x ->
  * @param x Value to fail with.
  */
 never = \x ->
-    function NEVER_PARSER \state, m, _, _, _, eerr -> eerr(x, state, m);
+    function NEVER \state, m, _, _, _, eerr -> eerr(x, state, m);
 
 /**
  * Parser that parses 'p', passing the results to function 'f' which returns a
@@ -555,11 +551,11 @@ never = \x ->
  * @param f Function called with result from 'p' and returns parser 'q'.
  */
 bind = \p, f ->
-    function BIND_PARSER \state, m, cok, cerr, eok, eerr ->
+    function BIND \state, m, cok, cerr, eok, eerr ->
         new Tail(p, state, m,
-            \x, state, m -> new Tail(f(x, state, m), state, m, cok, cerr, cok, cerr),
+            \x, state, m -> f(x)(state, m, cok, cerr, cok, cerr),
             cerr,
-            \x, state, m -> new Tail(f(x, state, m), state, m, cok, cerr, eok, eerr),
+            \x, state, m -> f(x)(state, m, cok, cerr, eok, eerr),
             eerr);
 
 // State Interaction Parsers
@@ -677,7 +673,7 @@ in
  * Parser that attempts parser `p`. Upon failure, never consumes any input.
  */
 attempt = \p ->
-    function ATTEMPT_PARSER \state, m, cok, cerr, eok, eerr -> {
+    function ATTEMPT \state, m, cok, cerr, eok, eerr -> {
         var peerr = \x, s, m -> eerr(x, s, Memoer.popWindow(m));
         return new Tail(p, state, Memoer.pushWindow(m, state.position),
             \x, s, m -> cok(x, s, Memoer.popWindow(m)),
@@ -687,7 +683,7 @@ attempt = \p ->
     };
 
 var cnothing = \p ->
-    function LOOK_PARSER \state, m, cok, cerr, eok, eerr ->
+    function LOOK \state, m, cok, cerr, eok, eerr ->
         new Tail(p, state, m, eok, cerr, eok, eerr);
 
 /**
@@ -753,7 +749,7 @@ sequence = args \>> sequencea;
 
 var _either = \e ->
     \p, q ->
-        function EITHER_PARSER \state{position}, m, cok, cerr, eok, eerr -> {
+        function EITHER \state{position}, m, cok, cerr, eok, eerr -> {
             var peerr = \errFromP, _, mFromP -> {
                 var qeerr = \errFromQ, _, mFromQ ->
                     eerr(e(position, errFromP, errFromQ), state, mFromQ);
@@ -809,7 +805,7 @@ optional = \x, p ->
  * @param p Parser to attempt.
  */
 expected = \expect, p ->
-    function EXPECTED_PARSER \state, m, cok, cerr, eok, eerr ->
+    function EXPECTED \state, m, cok, cerr, eok, eerr ->
         p(state, m,
             cok,
             cerr,
@@ -829,8 +825,7 @@ var _joinParser = \joiner ->
                 always(joiner(v1, v2))));
 
 /**
- * Parser that takes stream results from 'p' and eagerly turns them into a
- * regular array.
+ * Parser that maps stream result from `p` and to a regular array.
  */
 eager = let toArray = \x -> always(stream.toArray(x)) in
     \p -> bind(p, toArray);
@@ -878,7 +873,7 @@ enumerationa = stream.from \> enumerations;
 enumeration = args \>> enumerationa;
 
 /**
- * Consume 'p' zero or more times.
+ * Consume `p` zero or more times.
  * 
  * Will throw an error when 'p' succeeds without consuming. As this is an error
  * with the parser itself, this event breaks out of parsing.
@@ -889,14 +884,14 @@ many = let
     manyError = throwConstant(
         new ParserError("Many parser applied to a parser that accepts an empty string"))
 in
-    function MANY_PARSER \p -> let
+    \p -> let
         safeP = \state, m, cok, cerr, eok, eerr ->
             new Tail(p, state, m, cok, cerr, manyError, eerr)
         in
-            rec(\self -> _optionalValueParser(cons(safeP, self)));
+            rec <|\self -> _optionalValueParser(cons(safeP, self));
 
 /**
- * Consume 'p' 1 or more times.
+ * Consume `p` 1 or more times.
  * 
  * @param p Parser to consume.
  */
@@ -908,10 +903,9 @@ many1 = \p -> cons(p, many(p));
  * Parser that consumes a single item from the head of the input if consume is
  * true. Fails to consume input if consume is false or input is empty.
  * 
- * @param {function(string): boolean} consume Function that tests if a
- *     character should be consumed.
- * @param {function(object): Error} [errMsg] Optional function that returns
- *    the error when consume fails. Passed the state position and tested token.
+ * @param consume Function that tests if a character should be consumed.
+ * @param [errMsg] Optional function that returns the error when consume fails.
+ *    Passed the state position and tested token.
  */
 token = let
     defaultErr = \pos, tok ->
@@ -920,13 +914,13 @@ in
     \consume, onErr -> let
         errorHandler = (onErr || defaultErr)
     in
-        function TOKEN_PARSER \state{position}, m, cok, cerr, eok, eerr -> {
+        function TOKEN \state{position}, m, cok, cerr, eok, eerr -> {
             if (state.isEmpty()) {
                 return eerr(errorHandler(position, null), state, m);
             } else {
                 var tok = state.first();
                 return (consume(tok) ?
-                    state.next(tok)(state, m, cok, cerr, eok, eerr) :
+                    new Tail(state.next(tok), state, m, cok, cerr, cok, cerr) :
                     eerr(errorHandler(position, tok), state, m));
             }
         };

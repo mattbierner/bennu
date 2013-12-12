@@ -30,6 +30,7 @@ with
         ParserState,
         Position,
         runState,
+        Tail,
         trampoline},
     import 'nu/stream' stream{
         'from': streamFrom,
@@ -278,8 +279,12 @@ runInc = \p, ud ->
  */
 runManyState = \p, state -> let
     manyP = optional(NIL,
-        bind(p, \x, state, m ->
-            always(memoStream(x, (runState, manyP, state, m)))))
+        \state, m, cok, cerr, eok, eerr ->
+            new Tail(p, state, m,
+                \x, state, m -> cok(memoStream(x, (runState, manyP, state, m))),
+                cerr,
+                \x, state, m -> eok(memoStream(x, (runState, manyP, state, m))),
+                eerr))
 in
     runState(manyP, state);
 

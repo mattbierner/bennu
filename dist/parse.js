@@ -4,7 +4,7 @@
 */
 define(["require", "exports", "nu/stream", "seshat"], (function(require, exports, stream, seshat) {
     "use strict";
-    var tail, trampoline, ParserError, ParseError, MultipleError, UnknownError, UnexpectError, ExpectError,
+    var Tail, trampoline, ParserError, ParseError, MultipleError, UnknownError, UnexpectError, ExpectError,
             ParserState, Position, rec, Parser, RecParser, always, never, bind, eof, extract, getParserState,
             setParserState, modifyParserState, getState, setState, modifyState, getInput, setInput, getPosition,
             setPosition, fail, attempt, look, lookahead, next, sequences, sequencea, sequence, either, choices,
@@ -44,7 +44,7 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
         });
     });
     var uniqueParserId = Math.random;
-    var Tail = (function(p, state, m, cok, cerr, eok, eerr) {
+    (Tail = (function(p, state, m, cok, cerr, eok, eerr) {
         (this.p = p);
         (this.state = state);
         (this.m = m);
@@ -52,9 +52,6 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
         (this.cerr = cerr);
         (this.eok = eok);
         (this.eerr = eerr);
-    });
-    (tail = (function(f, args) {
-        return new(Tail)(f, args);
     }));
     (trampoline = (function(f) {
         var value = f;
@@ -247,21 +244,21 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
         return Parser(name, rec(body));
     }));
     (always = (function(x) {
-        return (function ALWAYS_PARSER(state, m, _, _0, eok, _1) {
+        return (function ALWAYS(state, m, _, _0, eok, _1) {
             return eok(x, state, m);
         });
     }));
     (never = (function(x) {
-        return (function NEVER_PARSER(state, m, _, _0, _1, eerr) {
+        return (function NEVER(state, m, _, _0, _1, eerr) {
             return eerr(x, state, m);
         });
     }));
     (bind = (function(p, f) {
-        return (function BIND_PARSER(state, m, cok, cerr, eok, eerr) {
+        return (function BIND(state, m, cok, cerr, eok, eerr) {
             return new(Tail)(p, state, m, (function(x, state, m) {
-                return new(Tail)(f(x, state, m), state, m, cok, cerr, cok, cerr);
+                return f(x)(state, m, cok, cerr, cok, cerr);
             }), cerr, (function(x, state, m) {
-                return new(Tail)(f(x, state, m), state, m, cok, cerr, eok, eerr);
+                return f(x)(state, m, cok, cerr, eok, eerr);
             }), eerr);
         });
     }));
@@ -342,7 +339,7 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
         })
         .call(this)));
     (attempt = (function(p) {
-        return (function ATTEMPT_PARSER(state, m, cok, cerr, eok, eerr) {
+        return (function ATTEMPT(state, m, cok, cerr, eok, eerr) {
             var peerr = (function(x, s, m) {
                 return eerr(x, s, Memoer.popWindow(m));
             });
@@ -354,7 +351,7 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
         });
     }));
     var cnothing = (function(p) {
-        return (function LOOK_PARSER(state, m, cok, cerr, eok, eerr) {
+        return (function LOOK(state, m, cok, cerr, eok, eerr) {
             return new(Tail)(p, state, m, eok, cerr, eok, eerr);
         });
     });
@@ -388,7 +385,7 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
     })(sequencea, args));
     var _either = (function(e) {
         return (function(p, q) {
-            return (function EITHER_PARSER(state, m, cok, cerr, eok, eerr) {
+            return (function EITHER(state, m, cok, cerr, eok, eerr) {
                 var state = state,
                     position = state["position"];
                 var peerr = (function(errFromP, _, mFromP) {
@@ -423,7 +420,7 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
         return either(p, always(x));
     }));
     (expected = (function(expect, p) {
-        return (function EXPECTED_PARSER(state, m, cok, cerr, eok, eerr) {
+        return (function EXPECTED(state, m, cok, cerr, eok, eerr) {
             return p(state, m, cok, cerr, eok, (function(x, state, m) {
                 return eerr(new(ExpectError)(state.position, expect), state, m);
             }));
@@ -473,7 +470,7 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
             {
                 var manyError = throwConstant(new(ParserError)(
                     "Many parser applied to a parser that accepts an empty string"));
-                return (function MANY_PARSER(p) {
+                return (function(p) {
                     return (function() {
                         {
                             var safeP = (function(state, m, cok, cerr, eok, eerr) {
@@ -501,16 +498,16 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
                     return (function() {
                         {
                             var errorHandler = (onErr || defaultErr);
-                            return (function TOKEN_PARSER(state, m, cok, cerr, eok, eerr) {
+                            return (function TOKEN(state, m, cok, cerr, eok, eerr) {
                                 var state = state,
                                     position = state["position"];
                                 if (state.isEmpty()) {
                                     return eerr(errorHandler(position, null), state, m);
                                 } else {
                                     var tok = state.first();
-                                    return (consume(tok) ? state.next(tok)(state, m, cok, cerr,
-                                        eok, eerr) : eerr(errorHandler(position, tok),
-                                        state, m));
+                                    return (consume(tok) ? new(Tail)(state.next(tok), state, m,
+                                        cok, cerr, cok, cerr) : eerr(errorHandler(position,
+                                        tok), state, m));
                                 }
                             });
                         }
@@ -608,7 +605,7 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
     (test = (function(p, input, ud) {
         return testStream(p, stream.from(input), ud);
     }));
-    (exports.tail = tail);
+    (exports.Tail = Tail);
     (exports.trampoline = trampoline);
     (exports.ParserError = ParserError);
     (exports.ParseError = ParseError);
