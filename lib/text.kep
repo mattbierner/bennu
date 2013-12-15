@@ -2,24 +2,24 @@
  * @fileOverview Parsers for use specifically with text.
  */
 package (
-    character,
-    characters,
-    string,
-    trie,
-    match,
-    anyChar,
-    letter,
-    space,
+    character
+    characters
+    string
+    trie
+    match
+    anyChar
+    letter
+    space
     digit)
 with
     import 'parse/parse' {
-        always,
-        attempt,
-        bind,
-        either,
-        ExpectError,
-        next,
-        Parser,
+        always
+        attempt
+        bind
+        either
+        ExpectError
+        next
+        Parser
         token}
 in {
 

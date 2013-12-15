@@ -20,6 +20,7 @@ define(["require", "exports", "parse/parse", "nu/stream"], (function(require, ex
         Tail = __o["Tail"],
         trampoline = __o["trampoline"],
         stream = stream,
+        stream = stream,
         streamFrom = stream["from"],
         isEmpty = stream["isEmpty"],
         first = stream["first"],

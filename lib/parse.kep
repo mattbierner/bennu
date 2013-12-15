@@ -5,98 +5,98 @@
  */
 package (
 // Continuations
-    Tail,
-    trampoline,
+    Tail
+    trampoline
     
 // Errors
-    ParserError,
+    ParserError
     
-    ParseError,
-    MultipleError,
-    UnknownError,
-    UnexpectError,
-    ExpectError,
+    ParseError
+    MultipleError
+    UnknownError
+    UnexpectError
+    ExpectError
     
 // Objects
-    ParserState,
-    Position,
+    ParserState
+    Position
     
 // Rec
-    rec,
+    rec
     
 // Parser Definition
-    Parser,
-    RecParser,
+    Parser
+    RecParser
     
 // Parsers
-    always,
-    never,
-    bind,
-    eof,
+    always
+    never
+    bind
+    eof
     
-    extract,
-    getParserState,
-    setParserState,
-    modifyParserState,
+    extract
+    getParserState
+    setParserState
+    modifyParserState
     
-    getState,
-    setState,
-    modifyState,
+    getState
+    setState
+    modifyState
     
-    getInput,
-    setInput,
+    getInput
+    setInput
     
-    getPosition,
-    setPosition,
+    getPosition
+    setPosition
     
-    fail,
-    attempt,
-    look,
-    lookahead,
+    fail
+    attempt
+    look
+    lookahead
     
-    next,
-    sequences,
-    sequencea,
-    sequence,
-    either,
-    choices,
-    choicea,
-    choice,
-    optional,
-    expected,
+    next
+    sequences
+    sequencea
+    sequence
+    either
+    choices
+    choicea
+    choice
+    optional
+    expected
     
-    eager,
-    binds,
-    cons,
-    append,
-    enumerations,
-    enumerationa,
-    enumeration,
-    many,
-    many1,
+    eager
+    binds
+    cons
+    append
+    enumerations
+    enumerationa
+    enumeration
+    many
+    many1
 
-    token,
-    anyToken,
+    token
+    anyToken
 
-    memo,
-    Memoer,
+    memo
+    Memoer
     
 // Running
-    exec,
+    exec
     
-    parseState,
-    parseStream,
-    parse,
+    parseState
+    parseStream
+    parse
     
-    runState,
-    runStream,
-    run,
+    runState
+    runStream
+    run
     
-    testState,
-    testStream,
+    testState
+    testStream
     test)
 with
-    import 'nu/stream' stream{NIL, first, isEmpty, rest, foldl, reduceRight, foldr},
+    import 'nu/stream' stream#{NIL, first, isEmpty, rest, foldl, reduceRight, foldr},
     import 'seshat' seshat
 in {
 
@@ -551,8 +551,10 @@ never = \x ->
  * @param f Function called with result from 'p' and returns parser 'q'.
  */
 bind = \p, f ->
-    function BIND \state, m, cok, cerr, eok, eerr ->
-        new Tail(p, state, m,
+    function BIND \state m cok cerr eok eerr ->
+        new Tail(p,
+            state,
+            m,
             \x, state, m -> f(x)(state, m, cok, cerr, cok, cerr),
             cerr,
             \x, state, m -> f(x)(state, m, cok, cerr, eok, eerr),
@@ -673,9 +675,11 @@ in
  * Parser that attempts parser `p`. Upon failure, never consumes any input.
  */
 attempt = \p ->
-    function ATTEMPT \state, m, cok, cerr, eok, eerr -> {
+    function ATTEMPT \state m cok cerr eok eerr -> {
         var peerr = \x, s, m -> eerr(x, s, Memoer.popWindow(m));
-        return new Tail(p, state, Memoer.pushWindow(m, state.position),
+        return new Tail(p,
+            state,
+            Memoer.pushWindow(m, state.position),
             \x, s, m -> cok(x, s, Memoer.popWindow(m)),
             peerr,
             \x, s, m -> eok(x, s, Memoer.popWindow(m)),
@@ -683,7 +687,7 @@ attempt = \p ->
     };
 
 var cnothing = \p ->
-    function LOOK \state, m, cok, cerr, eok, eerr ->
+    function LOOK \state m cok cerr eok eerr ->
         new Tail(p, state, m, eok, cerr, eok, eerr);
 
 /**
@@ -692,11 +696,13 @@ var cnothing = \p ->
  * this behavior is the same as parsec's `lookahead`.
  */
 look = \p ->
-    cnothing(bind(getParserState, \state ->
-        bind(p, \x ->
-            next(
-                setParserState(state),
-                always(x)))));
+    cnothing(bind(
+        getParserState,
+        \state ->
+            bind(p, \x ->
+                next(
+                    setParserState(state),
+                    always(x)))));
 
 /**
  * Run `p` but restore old input and position.
@@ -719,7 +725,7 @@ lookahead = \p ->
 /**
  * Parse 'p', then 'q'. Return value from 'q'.
  */
-next = \p, q ->
+next = \p q ->
     bind(p, constant(q));
 
 /**
@@ -749,7 +755,7 @@ sequence = args \>> sequencea;
 
 var _either = \e ->
     \p, q ->
-        function EITHER \state{position}, m, cok, cerr, eok, eerr -> {
+        function EITHER \state#{position} m cok cerr eok eerr -> {
             var peerr = \errFromP, _, mFromP -> {
                 var qeerr = \errFromQ, _, mFromQ ->
                     eerr(e(position, errFromP, errFromQ), state, mFromQ);
@@ -805,8 +811,9 @@ optional = \x, p ->
  * @param p Parser to attempt.
  */
 expected = \expect, p ->
-    function EXPECTED \state, m, cok, cerr, eok, eerr ->
-        p(state, m,
+    function EXPECTED \state m cok cerr eok eerr ->
+        p(state,
+            m,
             cok,
             cerr,
             eok,
@@ -885,7 +892,7 @@ many = let
         new ParserError("Many parser applied to a parser that accepts an empty string"))
 in
     \p -> let
-        safeP = \state, m, cok, cerr, eok, eerr ->
+        safeP = \state m cok cerr eok eerr ->
             new Tail(p, state, m, cok, cerr, manyError, eerr)
         in
             rec <|\self -> _optionalValueParser(cons(safeP, self));
@@ -908,13 +915,13 @@ many1 = \p -> cons(p, many(p));
  *    Passed the state position and tested token.
  */
 token = let
-    defaultErr = \pos, tok ->
+    defaultErr = \pos tok ->
         new UnexpectError(pos, (tok === null ? "end of input" : tok))
 in
     \consume, onErr -> let
         errorHandler = (onErr || defaultErr)
     in
-        function TOKEN \state{position}, m, cok, cerr, eok, eerr -> {
+        function TOKEN \state#{position} m cok cerr eok eerr -> {
             if (state.isEmpty()) {
                 return eerr(errorHandler(position, null), state, m);
             } else {
@@ -941,25 +948,25 @@ anyToken = Parser('Any Token',
 memo = \p -> let
     id = (p.parserId || uniqueParserId())
 in
-    \state{position}, m, cok, cerr, eok, eerr -> {
+    \state#{position} m cok cerr eok eerr -> {
         var key = {'id': id, 'state': state};
         var entry = Memoer.lookup(m, position, key);
         if (entry)
             return new Tail(entry, state, m, cok, cerr, eok, eerr);
         
         return new Tail(p, state, m,
-            \x, pstate, pm ->
+            \x pstate pm ->
                 cok(x, pstate,
-                    Memoer.update(pm, position, key, \_, m, cok, _, _, _ -> cok(x, pstate, m))),
-            \x, pstate, pm ->
+                    Memoer.update(pm, position, key, \_ m cok _ _ _ -> cok(x, pstate, m))),
+            \x pstate pm ->
                 cerr(x, pstate,
-                    Memoer.update(pm, position, key, \_, m, _, cerr, _, _ -> cerr(x, pstate, m))),
-            \x, pstate, pm ->
+                    Memoer.update(pm, position, key, \_ m _ cerr _ _ -> cerr(x, pstate, m))),
+            \x pstate pm ->
                 eok(x, pstate,
-                    Memoer.update(pm, position, key, \_, m, _, _, eok, _ -> eok(x, pstate, m))),
-            \x, pstate, pm ->
+                    Memoer.update(pm, position, key, \_ m _ _ eok _ -> eok(x, pstate, m))),
+            \x pstate pm ->
                 eerr(x, pstate,
-                    Memoer.update(pm, position, key, \_, m, _, _, _, eerr -> eerr(x, pstate, m))));
+                    Memoer.update(pm, position, key, \_ m _ _ _ eerr -> eerr(x, pstate, m))));
     };
 
 /* Running
@@ -967,7 +974,7 @@ in
 /**
  * Execute a given parser 'p', correctly extracting results.
  */
-exec = \p, state, m, cok, cerr, eok, eerr ->
+exec = \p state m cok cerr eok eerr ->
     trampoline(p(state, m, cok, cerr, eok, eerr));
 
 /**
@@ -981,7 +988,7 @@ exec = \p, state, m, cok, cerr, eok, eerr ->
  * @param ok Success continuation.
  * @param err Failure continuation.
  */
-parseState = \p, state, ok, err ->
+parseState = \p state ok err ->
     exec(p, state, Memoer.empty, ok, err, ok, err);
 
 /**
@@ -993,7 +1000,7 @@ parseState = \p, state, ok, err ->
  * 
  * @see parseState
  */
-parseStream = \p, s, ud, ok, err ->
+parseStream = \p s ud ok err ->
     parseState(
         p,
         new ParserState(s, Position.initial, ud),
@@ -1010,7 +1017,7 @@ parseStream = \p, s, ud, ok, err ->
  * 
  * @see parseStream.
  */
-parse = \p, input, ud, ok, err ->
+parse = \p input ud ok err ->
     parseStream(p, stream.from(input), ud, ok, err);
 
 /**
@@ -1036,7 +1043,7 @@ in
  * @param s Nu style stream supporting first and rest.
  * @param [ud] User data.
  */
-runStream = \p, s, ud ->
+runStream = \p s ud ->
     runState(p, new ParserState(s, Position.initial, ud));
 
 /**
@@ -1046,7 +1053,7 @@ runStream = \p, s, ud ->
  * @param input Array-like object of characters to run the parser against.
  * @param [ud] User data.
  */
-run = \p, input, ud ->
+run = \p input ud ->
     runStream(p, stream.from(input), ud);
 
 /**
@@ -1072,7 +1079,7 @@ in
  * 
  * @see testState
  */
-testStream = \p, s, ud ->
+testStream = \p s ud ->
     testState(p, new ParserState(s, Position.initial, ud));
 
 /**
@@ -1084,7 +1091,7 @@ testStream = \p, s, ud ->
  *
  * @see testStream
  */
-test = \p, input, ud ->
+test = \p input ud ->
     testStream(p, stream.from(input), ud);
 
 }

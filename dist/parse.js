@@ -12,6 +12,7 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
             enumeration, many, many1, token, anyToken, memo, Memoer, exec, parseState, parseStream, parse,
             runState, runStream, run, testState, testStream, test;
     var stream = stream,
+        stream = stream,
         NIL = stream["NIL"],
         first = stream["first"],
         isEmpty = stream["isEmpty"],
@@ -327,7 +328,7 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
         })
             .call(this);
     }));
-    (eof = Parser.bind(null, "EOF")((function() {
+    (eof = Parser("EOF", (function() {
             {
                 var end = always(NIL);
                 return bind(getParserState, (function(s) {

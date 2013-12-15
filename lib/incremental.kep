@@ -3,41 +3,41 @@
  */
 package (
 // Operations
-    provide,
-    provideString,
-    finish,
+    provide
+    provideString
+    finish
     
 // Incremental Parser Running
-    parseIncState,
-    parseInc,
+    parseIncState
+    parseInc
 
-    runIncState,
-    runInc,
+    runIncState
+    runInc
 
 // Many Parser running
-    runManyState,
-    runManyStream,
+    runManyState
+    runManyStream
     runMany)
 with
     import 'parse/parse' {
-        always,
-        bind,
-        getParserState,
-        Memoer,
-        next,
-        optional,
-        parseState,
-        ParserState,
-        Position,
-        runState,
-        Tail,
+        always
+        bind
+        getParserState
+        Memoer
+        next
+        optional
+        parseState
+        ParserState
+        Position
+        runState
+        Tail
         trampoline},
-    import 'nu/stream' stream{
-        'from': streamFrom,
-        isEmpty,
-        first,
-        NIL,
-        rest,
+    import 'nu/stream' stream#{
+        'from': streamFrom
+        isEmpty
+        first
+        NIL
+        rest
         memoStream}
 in {
 
@@ -144,7 +144,7 @@ IncrementalState.prototype.setUserState = \userState ->
 /**
  * Always add any chunk passed in, even empty ones.
  */
-var forceProvide = \r, c -> {
+var forceProvide = \r c -> {
     if (r.done)
         return r;
     
@@ -169,7 +169,7 @@ var forceProvide = \r, c -> {
  * 
  * @return New resumable state for parser after input has been received.
  */
-provide = \r, c ->
+provide = \r c ->
     (isEmpty(c) ?
         r :
         forceProvide(r, c));
@@ -180,7 +180,7 @@ provide = \r, c ->
  * @param r Resumable state.
  * @param input Array like object of input.
  */
-provideString = \r, input ->
+provideString = \r input ->
     provide(r, streamFrom(input));
 
 /**
@@ -207,9 +207,9 @@ in
  * 
  * @return Opaque state object for a partially evaluated parser.
  */
-parseIncState = \p, state, ok, err -> let 
-    pok = \x, s -> new Session(true, (ok, x, s)),
-    perr = \x, s -> new Session(true, (err, x, s))
+parseIncState = \p state ok err -> let 
+    pok = \x s -> new Session(true, (ok, x, s)),
+    perr = \x s -> new Session(true, (err, x, s))
 in
     provide(
         new Session(
@@ -226,7 +226,7 @@ in
  * 
  * @see parseIncState
  */
-parseInc = \p, ud, ok, err ->
+parseInc = \p ud ok err ->
     parseIncState(
         p,
         new ParserState(NIL, Position.initial, ud),
@@ -245,7 +245,7 @@ runIncState = let
     ok = \x -> x,
     err = \x -> { throw x; }
 in
-    \p, state -> 
+    \p state -> 
         parseIncState(p, state, ok, err);
 
 /**
@@ -254,7 +254,7 @@ in
  * @param p Parser.
  * @param ud User data.
  */
-runInc = \p, ud ->
+runInc = \p ud ->
     runIncState(
         p,
         new ParserState(
@@ -277,13 +277,13 @@ runInc = \p, ud ->
  * 
  * @return Lazy stream of results.
  */
-runManyState = \p, state -> let
+runManyState = \p state -> let
     manyP = optional(NIL,
-        \state, m, cok, cerr, eok, eerr ->
+        \state m cok cerr eok eerr ->
             new Tail(p, state, m,
-                \x, state, m -> cok(memoStream(x, (runState, manyP, state, m))),
+                \x state m -> cok(memoStream(x, (runState, manyP, state, m))),
                 cerr,
-                \x, state, m -> eok(memoStream(x, (runState, manyP, state, m))),
+                \x state m -> eok(memoStream(x, (runState, manyP, state, m))),
                 eerr))
 in
     runState(manyP, state);
@@ -299,7 +299,7 @@ in
  *
  * @see runManyState
  */
-runManyStream = \p, s, ud ->
+runManyStream = \p s ud ->
     runManyState(p, new ParserState(s, Position.initial, ud));
 
 /**
@@ -312,7 +312,7 @@ runManyStream = \p, s, ud ->
  *
  * @see runManyStream
  */
-runMany = \p, input, ud ->
+runMany = \p input ud ->
     runManyStream(p, streamFrom(input), ud);
 
 }

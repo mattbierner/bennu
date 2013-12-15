@@ -32,7 +32,9 @@ define(["require", "exports", "parse/parse"], (function(require, exports, __o) {
     (StringError.prototype.constructor = StringError);
     Object.defineProperty(StringError.prototype, "errorMessage", ({
         "get": (function() {
-            return ((((((("In string:'" + this.string) + "' at index:") + this.index) + ", Expected:") + this.expected) + " Found:") + (this.found ? this.found : "end of input"));
+            return ((((((("In string:'" + this.string) + "' at index:") + this.index) +
+                ", Expected:") + this.expected) + " Found:") + (this.found ? this.found :
+                "end of input"));
         })
     }));
     var _character = (function() {
@@ -45,13 +47,15 @@ define(["require", "exports", "parse/parse"], (function(require, exports, __o) {
                             return (x === r.valueOf());
                         });
                     }
-                })();
+                })
+                    .call(this);
             });
             return (function(c, err) {
                 return token(pred(c), err);
             });
         }
-    })();
+    })
+        .call(this);
     (character = (function(c) {
         return _character(c, expectError(c));
     }));
@@ -66,55 +70,59 @@ define(["require", "exports", "parse/parse"], (function(require, exports, __o) {
                     });
                 return token(pred, expectError(join(chars, " or ")));
             }
-        })();
+        })
+            .call(this);
     }));
     (string = (function() {
-        {
-            var reducer = (function(p, c, i, s) {
-                return next(_character(c, (function(pos, tok) {
-                    return new(StringError)(pos, s, i, c, tok);
-                })), p);
-            });
-            return (function(s) {
-                return attempt(reduceRight(s, reducer, always(s)));
-            });
-        }
-    })());
-    (trie = (function() {
-        {
-            var wordReduce = (function(parent, l) {
-                (parent[l] = (parent[l] || ({})));
-                return parent[l];
-            }),
-                wordsReduce = (function(trie, word) {
-                    var node = reduce(word, wordReduce, trie);
-                    (node[""] = word);
-                    return trie;
-                }),
-                makeTrie = (function(words) {
-                    return reduce(words, wordsReduce, ({}));
-                }),
-                _trie = (function(trie) {
-                    return (function() {
-                        {
-                            var keys = Object.keys(trie),
-                                paths = reduce(keys, (function(p, c) {
-                                    if (c.length)(p[c] = _trie(trie[c]));
-
-                                    return p;
-                                }), ({})),
-                                select = attempt(bind(characters(keys), (function(x) {
-                                    return paths[x];
-                                })));
-                            return (trie.hasOwnProperty("") ? either(select, always(trie[""])) : select);
-                        }
-                    })();
+            {
+                var reducer = (function(p, c, i, s) {
+                    return next(_character(c, (function(pos, tok) {
+                        return new(StringError)(pos, s, i, c, tok);
+                    })), p);
                 });
-            return (function(words) {
-                return attempt(_trie(makeTrie(words), ""));
-            });
-        }
-    })());
+                return (function(s) {
+                    return attempt(reduceRight(s, reducer, always(s)));
+                });
+            }
+        })
+        .call(this));
+    (trie = (function() {
+            {
+                var wordReduce = (function(parent, l) {
+                    (parent[l] = (parent[l] || ({})));
+                    return parent[l];
+                }),
+                    wordsReduce = (function(trie, word) {
+                        var node = reduce(word, wordReduce, trie);
+                        (node[""] = word);
+                        return trie;
+                    }),
+                    makeTrie = (function(words) {
+                        return reduce(words, wordsReduce, ({}));
+                    }),
+                    _trie = (function(trie) {
+                        return (function() {
+                            {
+                                var keys = Object.keys(trie),
+                                    paths = reduce(keys, (function(p, c) {
+                                        if (c.length)(p[c] = _trie(trie[c]));
+                                        return p;
+                                    }), ({})),
+                                    select = attempt(bind(characters(keys), (function(x) {
+                                        return paths[x];
+                                    })));
+                                return (trie.hasOwnProperty("") ? either(select, always(trie[""])) :
+                                    select);
+                            }
+                        })
+                            .call(this);
+                    });
+                return (function(words) {
+                    return attempt(_trie(makeTrie(words), ""));
+                });
+            }
+        })
+        .call(this));
     (match = (function(pattern, expected) {
         return token(RegExp.prototype.test.bind(pattern), expectError(expected));
     }));
