@@ -159,7 +159,7 @@ Memoer.empty = new Memoer(
 /**
  * Push a new window onto the stack.
  */
-Memoer.pushWindow = \m, lower ->
+Memoer.pushWindow = \m lower ->
     new Memoer(
         m.memoer,
         [lower].concat(m.frames));
@@ -174,7 +174,7 @@ Memoer.popWindow = \m#{frames} ->
         (frames.length === 1 ?
             seshat.prune(m.memoer, frames[0]) :
             m.memoer),
-        m.frames.slice(1));
+        frames.slice(1));
 
 /**
  * Prune the table to exclude everything before position.
@@ -190,14 +190,14 @@ Memoer.prune = \m position ->
  * 
  * Return null if none.
  */
-Memoer.lookup = \m, pos, id ->
+Memoer.lookup = \m pos id ->
     seshat.lookup(m.memoer, pos, id);
 
 /**
  * Update the memoization table to store `val` for result at `pos` from parser
  * `id`.
  */
-Memoer.update = \m, pos, id, val ->
+Memoer.update = \m pos id val ->
     new Memoer(
         seshat.update(m.memoer, pos, id, val),
         m.frames);
@@ -935,7 +935,7 @@ in
                 return eerr(errorHandler(position, null), state, m);
             } else {
                 var tok = state.first();
-                var pcok = \x s m -> cok(x, s, Memoer.prune(m, position));
+                var pcok = \x s#{position} m -> cok(x, s, Memoer.prune(m, position));
                 return (consume(tok) ?
                     new Tail(state.next(tok), state, m, pcok, cerr, pcok, cerr) :
                     eerr(errorHandler(position, tok), state, m));
