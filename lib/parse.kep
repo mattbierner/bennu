@@ -533,7 +533,7 @@ RecParser = \name, body -> Parser(name, rec(body));
  * @param x Value to succeed with.
  */
 always = \x ->
-    function ALWAYS \state, m, _, _, eok, _ -> eok(x, state, m);
+    function ALWAYS \state m _ _ eok _ -> eok(x, state, m);
 
 /**
  * Parser that always fails and consumes no input.
@@ -541,7 +541,7 @@ always = \x ->
  * @param x Value to fail with.
  */
 never = \x ->
-    function NEVER \state, m, _, _, _, eerr -> eerr(x, state, m);
+    function NEVER \state m _ _ _ eerr -> eerr(x, state, m);
 
 /**
  * Parser that parses 'p', passing the results to function 'f' which returns a
@@ -550,7 +550,7 @@ never = \x ->
  * @param p Parser to run, passing results to f.
  * @param f Function called with result from 'p' and returns parser 'q'.
  */
-bind = \p, f ->
+bind = \p f  ->
     function BIND \state m cok cerr eok eerr ->
         new Tail(p,
             state,
@@ -676,7 +676,7 @@ in
  */
 attempt = \p ->
     function ATTEMPT \state m cok cerr eok eerr -> {
-        var peerr = \x, s, m -> eerr(x, s, Memoer.popWindow(m));
+        var peerr = \x s m -> eerr(x, s, Memoer.popWindow(m));
         return new Tail(p,
             state,
             Memoer.pushWindow(m, state.position),
@@ -754,7 +754,7 @@ sequencea = stream.from \> sequences;
 sequence = args \>> sequencea;
 
 var _either = \e ->
-    \p, q ->
+    \p q ->
         function EITHER \state#{position} m cok cerr eok eerr -> {
             var peerr = \errFromP, _, mFromP -> {
                 var qeerr = \errFromQ, _, mFromQ ->
@@ -800,7 +800,7 @@ choice = args \>> choicea;
  * 
  * @return Result of 'p' or default value.
  */
-optional = \x, p ->
+optional = \x p ->
     either(p, always(x));
 
 /**
@@ -810,7 +810,7 @@ optional = \x, p ->
  * @param expect Expected value. 
  * @param p Parser to attempt.
  */
-expected = \expect, p ->
+expected = \expect p ->
     function EXPECTED \state m cok cerr eok eerr ->
         p(state,
             m,
@@ -826,7 +826,7 @@ var _end = always(NIL);
 var _optionalValueParser = (optional, NIL);
 
 var _joinParser = \joiner ->
-    \p1, p2 ->
+    \p1 p2 ->
         bind(p1, \v1 ->
             bind(p2, \v2 ->
                 always(joiner(v1, v2))));
@@ -840,7 +840,7 @@ eager = let toArray = \x -> always(stream.toArray(x)) in
 /**
  * Same as bind but calls apply on 'f' using stream results of 'p'.
  */
-binds = \p, f ->
+binds = \p f ->
     bind(eager(p), \x ->
         f.apply(undefined, x));
 
@@ -918,7 +918,7 @@ token = let
     defaultErr = \pos tok ->
         new UnexpectError(pos, (tok === null ? "end of input" : tok))
 in
-    \consume, onErr -> let
+    \consume onErr -> let
         errorHandler = (onErr || defaultErr)
     in
         function TOKEN \state#{position} m cok cerr eok eerr -> {
@@ -951,22 +951,28 @@ in
     \state#{position} m cok cerr eok eerr -> {
         var key = {'id': id, 'state': state};
         var entry = Memoer.lookup(m, position, key);
-        if (entry)
-            return new Tail(entry, state, m, cok, cerr, eok, eerr);
+        if (entry) {
+            switch (entry[0]) {
+            case 'cok':     return cok(entry[1], entry[2], m);
+            case 'ceerr':   return cerr(entry[1], entry[2], m);
+            case 'eok':     return eok(entry[1], entry[2], m);
+            case 'eerr':    return eerr(entry[1], entry[2], m);
+            }
+        }
         
         return new Tail(p, state, m,
             \x pstate pm ->
                 cok(x, pstate,
-                    Memoer.update(pm, position, key, \_ m cok _ _ _ -> cok(x, pstate, m))),
+                    Memoer.update(pm, position, key, ['cok', x, pstate])),
             \x pstate pm ->
                 cerr(x, pstate,
-                    Memoer.update(pm, position, key, \_ m _ cerr _ _ -> cerr(x, pstate, m))),
+                    Memoer.update(pm, position, key, ['cerr', x, pstate])),
             \x pstate pm ->
                 eok(x, pstate,
-                    Memoer.update(pm, position, key, \_ m _ _ eok _ -> eok(x, pstate, m))),
+                    Memoer.update(pm, position, key, ['eok', x, pstate])),
             \x pstate pm ->
                 eerr(x, pstate,
-                    Memoer.update(pm, position, key, \_ m _ _ _ eerr -> eerr(x, pstate, m))));
+                    Memoer.update(pm, position, key, ['eerr', x, pstate])));
     };
 
 /* Running

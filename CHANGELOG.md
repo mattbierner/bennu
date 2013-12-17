@@ -1,8 +1,10 @@
 # ChangeLog #
 
+## 16.0.5 - December 116, 2013
+* Defunctionalized the values stored in memo tables for better performance.
+  
 ## 16.0.4 - December 11, 2013
-* Further improved tail call performance by defunctionalizing the call since tail
-  calls are only used one way.
+* Further improved tail call performance.
 
 ## 16.0.3 - December 10, 2013
 * Changed tail call implementation to use best performing version from: 

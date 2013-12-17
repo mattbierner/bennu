@@ -531,27 +531,34 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
                         "state": state
                     });
                     var entry = Memoer.lookup(m, position, key);
-                    if (entry) return new(Tail)(entry, state, m, cok, cerr, eok, eerr);
+                    if (entry) {
+                        switch (entry[0]) {
+                            case "cok":
+                                return cok(entry[1], entry[2], m);
+                            case "ceerr":
+                                return cerr(entry[1], entry[2], m);
+                            case "eok":
+                                return eok(entry[1], entry[2], m);
+                            case "eerr":
+                                return eerr(entry[1], entry[2], m);
+                        }
+                    }
                     return new(Tail)(p, state, m, (function(x, pstate, pm) {
-                        return cok(x, pstate, Memoer.update(pm, position, key, (
-                            function(_, m, cok, _0, _1, _2) {
-                                return cok(x, pstate, m);
-                            })));
+                        return cok(x, pstate, Memoer.update(pm, position, key, ["cok",
+                            x, pstate
+                        ]));
                     }), (function(x, pstate, pm) {
-                        return cerr(x, pstate, Memoer.update(pm, position, key, (
-                            function(_, m, _0, cerr, _1, _2) {
-                                return cerr(x, pstate, m);
-                            })));
+                        return cerr(x, pstate, Memoer.update(pm, position, key, ["cerr",
+                            x, pstate
+                        ]));
                     }), (function(x, pstate, pm) {
-                        return eok(x, pstate, Memoer.update(pm, position, key, (
-                            function(_, m, _0, _1, eok, _2) {
-                                return eok(x, pstate, m);
-                            })));
+                        return eok(x, pstate, Memoer.update(pm, position, key, ["eok",
+                            x, pstate
+                        ]));
                     }), (function(x, pstate, pm) {
-                        return eerr(x, pstate, Memoer.update(pm, position, key, (
-                            function(_, m, _0, _1, _2, eerr) {
-                                return eerr(x, pstate, m);
-                            })));
+                        return eerr(x, pstate, Memoer.update(pm, position, key, ["eerr",
+                            x, pstate
+                        ]));
                     }));
                 });
             }
