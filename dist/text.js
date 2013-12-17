@@ -40,15 +40,12 @@ define(["require", "exports", "parse/parse"], (function(require, exports, __o) {
     var _character = (function() {
         {
             var pred = (function(l) {
-                return (function() {
-                    {
-                        var x = l.valueOf();
-                        return (function(r) {
-                            return (x === r.valueOf());
-                        });
-                    }
-                })
-                    .call(this);
+                {
+                    var x = l.valueOf();
+                    return (function(r) {
+                        return (x === r.valueOf());
+                    });
+                }
             });
             return (function(c, err) {
                 return token(pred(c), err);
@@ -60,18 +57,15 @@ define(["require", "exports", "parse/parse"], (function(require, exports, __o) {
         return _character(c, expectError(c));
     }));
     (characters = (function(chars) {
-        return (function() {
-            {
-                var lookup = map(chars, (function(x) {
-                    return x.valueOf();
-                })),
-                    pred = (function(r) {
-                        return (lookup.indexOf(r.valueOf()) !== -1);
-                    });
-                return token(pred, expectError(join(chars, " or ")));
-            }
-        })
-            .call(this);
+        {
+            var lookup = map(chars, (function(x) {
+                return x.valueOf();
+            })),
+                pred = (function(r) {
+                    return (lookup.indexOf(r.valueOf()) !== -1);
+                });
+            return token(pred, expectError(join(chars, " or ")));
+        }
     }));
     (string = (function() {
             {
@@ -101,21 +95,17 @@ define(["require", "exports", "parse/parse"], (function(require, exports, __o) {
                         return reduce(words, wordsReduce, ({}));
                     }),
                     _trie = (function(trie) {
-                        return (function() {
-                            {
-                                var keys = Object.keys(trie),
-                                    paths = reduce(keys, (function(p, c) {
-                                        if (c.length)(p[c] = _trie(trie[c]));
-                                        return p;
-                                    }), ({})),
-                                    select = attempt(bind(characters(keys), (function(x) {
-                                        return paths[x];
-                                    })));
-                                return (trie.hasOwnProperty("") ? either(select, always(trie[""])) :
-                                    select);
-                            }
-                        })
-                            .call(this);
+                        {
+                            var keys = Object.keys(trie),
+                                paths = reduce(keys, (function(p, c) {
+                                    if (c.length)(p[c] = _trie(trie[c]));
+                                    return p;
+                                }), ({})),
+                                select = attempt(bind(characters(keys), (function(x) {
+                                    return paths[x];
+                                })));
+                            return (trie.hasOwnProperty("") ? either(select, always(trie[""])) : select);
+                        }
                     });
                 return (function(words) {
                     return attempt(_trie(makeTrie(words), ""));

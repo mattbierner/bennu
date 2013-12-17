@@ -29,7 +29,7 @@ var reduce = Function.prototype.call.bind(Array.prototype.reduce);
 var reduceRight = Function.prototype.call.bind(Array.prototype.reduceRight);
 
 var expectError = \msg ->
-    \pos, tok ->
+    \pos tok ->
         new ExpectError(pos, msg, (tok === null ? "end of input" : tok));
 
 /* Errors
@@ -153,7 +153,7 @@ in
  * @param pattern Regular expression to test characters against.
  * @param {String} expected Human readable message of the expected value.
  */
-match = \pattern, expected ->
+match = \pattern expected ->
     token(RegExp.prototype.test.bind(pattern), expectError(expected));
 
 /**

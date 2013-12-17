@@ -471,18 +471,19 @@ Object.defineProperty(ExpectError.prototype, 'errorMessage', {
 /* Rec
  ******************************************************************************/
 /**
- * Creates a parser using a factory function to allow self references.
+ * Creates a self referential parser.
  * 
- * For example, using a traditional definition the self reference to 'bs'
- * evaluates to undefined:
+ * In this example, the self reference to 'bs' evaluates to undefined:
  * 
- *    var bs = parse.either(parse.character('b'), bs) => parse.either(parse.character('b'), undefined)
+ *    var bs = either(character('b'), bs);
+ *    
+ *    // this is really
+ *    var bs = either(parse.character('b'), undefined);
  * 
  * Using rec, we fix this.
  * 
- *     var bs = rec(function(self) {
- *         return parse.either(parse.character('b'), self);
- *     });
+ *     var bs = rec <|\ self ->
+ *         either(character('b'), self);
  * 
  * @param def Factory function that is passed a reference to the parser being
  *     defined and returns the parser.
@@ -501,14 +502,15 @@ rec = \def -> {
  * 
  * Attaches a name for debugging.
  * 
+ * This modifies the parser function object and should only be used when
+ * defining parsers in a library and never during parsing itself.
+ * 
  * @param {string} name Human readable display name to give the Parser. Used for
  *     identifying a parser for debugging.
- * @param impl Implementation of the parser itself, not the parser's constructor.
- *
- * @return 
+ * @param p Parser.
  */
-Parser = \name, impl ->
-    Object.defineProperty(impl, 'displayName', {
+Parser = \name p ->
+    Object.defineProperty(p, 'displayName', {
         'value': name,
         'writable': false
     });
@@ -516,9 +518,9 @@ Parser = \name, impl ->
 /**
  * Create a recursively defined parser.
  * 
- * @param body The body of the parser.
+ * @see Parser
  */
-RecParser = \name, body -> Parser(name, rec(body));
+RecParser = \name p -> Parser(name, rec(p));
 
 /* Parsers
  ******************************************************************************/
@@ -565,10 +567,9 @@ bind = \p f  ->
  *  @param {function(ParserState): *} f Function that transforms that current state.
  */
 modifyParserState = \f ->
-    function MODIFY_PARSER_STATE \state m _ _ eok _ -> {
-        var newState = f(state);
-        return eok(newState, newState, m);
-    };
+    function MODIFY_PARSER_STATE \state m _ _ eok _ ->
+        let newState = f(state) in
+            eok(newState, newState, m);
 
 /**
  * Parser that returns the current state.
@@ -672,16 +673,16 @@ in
  * Parser that attempts parser `p`. Upon failure, never consumes any input.
  */
 attempt = \p ->
-    function ATTEMPT \state m cok cerr eok eerr -> {
-        var peerr = \x s m -> eerr(x, s, Memoer.popWindow(m));
-        return new Tail(p,
+    function ATTEMPT \state m cok cerr eok eerr -> let
+        peerr = \x s m -> eerr(x, s, Memoer.popWindow(m))
+    in
+        new Tail(p,
             state,
             Memoer.pushWindow(m, state.position),
             \x, s, m -> cok(x, s, Memoer.popWindow(m)),
             peerr,
             \x, s, m -> eok(x, s, Memoer.popWindow(m)),
             peerr);
-    };
 
 var cnothing = \p ->
     function LOOK \state m cok cerr eok eerr ->
@@ -752,14 +753,14 @@ sequence = args \>> sequencea;
 
 var _either = \e ->
     \p q ->
-        function EITHER \state#{position} m cok cerr eok eerr -> {
-            var peerr = \errFromP, _, mFromP -> {
-                var qeerr = \errFromQ, _, mFromQ ->
-                    eerr(e(position, errFromP, errFromQ), state, mFromQ);
-                return new Tail(q, state, mFromP, cok, cerr, eok, qeerr);
-            };
-            return new Tail(p, state, m, cok, cerr, eok, peerr);
-        };
+        function EITHER \state#{position} m cok cerr eok eerr -> let 
+            peerr = \errFromP, _, mFromP -> let
+                qeerr = \errFromQ, _, mFromQ ->
+                    eerr(e(position, errFromP, errFromQ), state, mFromQ)
+            in
+                new Tail(q, state, mFromP, cok, cerr, eok, qeerr)
+        in
+            new Tail(p, state, m, cok, cerr, eok, peerr);
 
 /**
  * Parser that attempts p or q. If p succeeds, returns its value. Else, tries
