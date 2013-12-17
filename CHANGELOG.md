@@ -1,6 +1,10 @@
 # ChangeLog #
 
-## 16.0.5 - December 116, 2013
+## 16.0.6 - December 16, 2013
+* Changed pruning to be more aggressive.
+* Removed `parserId` from parser since memo table is no longer a Javascript object.
+
+## 16.0.5 - December 16, 2013
 * Defunctionalized the values stored in memo tables for better performance.
   
 ## 16.0.4 - December 11, 2013
