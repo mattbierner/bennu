@@ -169,10 +169,10 @@ Memoer.pushWindow = \m, lower ->
  * 
  * Prunes table when possible.
  */
-Memoer.popWindow = \m ->
+Memoer.popWindow = \m, position ->
     new Memoer(
        (m.frames.length === 1 ?
-            seshat.prune(m.memoer, m.frames[0]) :
+            seshat.prune(m.memoer, position || m.frames[0]) :
             m.memoer),
         m.frames.slice(1));
 
@@ -568,7 +568,7 @@ bind = \p f  ->
  *  @param {function(ParserState): *} f Function that transforms that current state.
  */
 modifyParserState = \f ->
-    function MODIFY_PARSER_STATE \state, m, _, _, eok, _ -> {
+    function MODIFY_PARSER_STATE \state m _ _ eok _ -> {
         var newState = f(state);
         return eok(newState, newState, m);
     };
@@ -594,7 +594,7 @@ setParserState = \s ->
  *     given state object.
  */
 extract = \f ->
-    function EXTRACT \state, m, _, _, eok, _ -> eok(f(state), state, m);
+    function EXTRACT \state m _ _ eok _ -> eok(f(state), state, m);
 
 /**
  * Parser that modifies the current user state using function 'f'.
@@ -680,9 +680,9 @@ attempt = \p ->
         return new Tail(p,
             state,
             Memoer.pushWindow(m, state.position),
-            \x, s, m -> cok(x, s, Memoer.popWindow(m)),
+            \x, s, m -> cok(x, s, Memoer.popWindow(m, s.position)),
             peerr,
-            \x, s, m -> eok(x, s, Memoer.popWindow(m)),
+            \x, s, m -> eok(x, s, Memoer.popWindow(m, s.position)),
             peerr);
     };
 
@@ -768,7 +768,7 @@ var _either = \e ->
  * Parser that attempts p or q. If p succeeds, returns its value. Else, tries
  * to parse q.
  */
-either = _either(\pos, pErr, qErr -> new MultipleError(pos, [pErr, qErr]));
+either = _either(\pos pErr qErr -> new MultipleError(pos, [pErr, qErr]));
 
 /**
  * Parser that attempts a number of parsers in order, returning the value of
@@ -777,7 +777,7 @@ either = _either(\pos, pErr, qErr -> new MultipleError(pos, [pErr, qErr]));
  * @param s Stream of parsers.
  */
 choices = (foldr,
-    flip(_either(\pos, pErr, qErr -> new ChoiceError(pos, pErr, qErr))),
+    flip(_either(\pos pErr qErr -> new ChoiceError(pos, pErr, qErr))),
     bind(getPosition, \pos -> never(new MultipleError(pos, []))));
 
 /**
