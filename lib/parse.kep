@@ -169,12 +169,21 @@ Memoer.pushWindow = \m, lower ->
  * 
  * Prunes table when possible.
  */
-Memoer.popWindow = \m, position ->
+Memoer.popWindow = \m#{frames} ->
     new Memoer(
-       (m.frames.length === 1 ?
-            seshat.prune(m.memoer, position || m.frames[0]) :
+        (frames.length === 1 ?
+            Memoer.prune(m, frames[0]).memoer :
             m.memoer),
         m.frames.slice(1));
+
+/**
+ * Prune the table to exclude everything before position.
+ */
+Memoer.prune = \m position ->
+    (m.frames.length ? m :
+        new Memoer(
+            seshat.prune(m.memoer, position),
+            m.frames));
 
 /**
  * Lookup memoized result at `pos` for parser `id`.
@@ -680,9 +689,9 @@ attempt = \p ->
         return new Tail(p,
             state,
             Memoer.pushWindow(m, state.position),
-            \x, s, m -> cok(x, s, Memoer.popWindow(m, s.position)),
+            \x, s, m -> cok(x, s, Memoer.popWindow(m)),
             peerr,
-            \x, s, m -> eok(x, s, Memoer.popWindow(m, s.position)),
+            \x, s, m -> eok(x, s, Memoer.popWindow(m)),
             peerr);
     };
 
@@ -926,8 +935,9 @@ in
                 return eerr(errorHandler(position, null), state, m);
             } else {
                 var tok = state.first();
+                var pcok = \x s m -> cok(x, s, Memoer.prune(m, position));
                 return (consume(tok) ?
-                    new Tail(state.next(tok), state, m, cok, cerr, cok, cerr) :
+                    new Tail(state.next(tok), state, m, pcok, cerr, pcok, cerr) :
                     eerr(errorHandler(position, tok), state, m));
             }
         };

@@ -72,9 +72,14 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
     (Memoer.pushWindow = (function(m, lower) {
         return new(Memoer)(m.memoer, [lower].concat(m.frames));
     }));
-    (Memoer.popWindow = (function(m, position) {
-        return new(Memoer)(((m.frames.length === 1) ? seshat.prune(m.memoer, (position || m.frames[0])) :
-            m.memoer), m.frames.slice(1));
+    (Memoer.popWindow = (function(m) {
+        var m = m,
+            frames = m["frames"];
+        return new(Memoer)(((frames.length === 1) ? Memoer.prune(m, frames[0])
+            .memoer : m.memoer), m.frames.slice(1));
+    }));
+    (Memoer.prune = (function(m, position) {
+        return (m.frames.length ? m : new(Memoer)(seshat.prune(m.memoer, position), m.frames));
     }));
     (Memoer.lookup = (function(m, pos, id) {
         return seshat.lookup(m.memoer, pos, id);
@@ -345,9 +350,9 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
                 return eerr(x, s, Memoer.popWindow(m));
             });
             return new(Tail)(p, state, Memoer.pushWindow(m, state.position), (function(x, s, m) {
-                return cok(x, s, Memoer.popWindow(m, s.position));
+                return cok(x, s, Memoer.popWindow(m));
             }), peerr, (function(x, s, m) {
-                return eok(x, s, Memoer.popWindow(m, s.position));
+                return eok(x, s, Memoer.popWindow(m));
             }), peerr);
         });
     }));
@@ -506,9 +511,12 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
                                     return eerr(errorHandler(position, null), state, m);
                                 } else {
                                     var tok = state.first();
+                                    var pcok = (function(x, s, m) {
+                                        return cok(x, s, Memoer.prune(m, position));
+                                    });
                                     return (consume(tok) ? new(Tail)(state.next(tok), state, m,
-                                        cok, cerr, cok, cerr) : eerr(errorHandler(position,
-                                        tok), state, m));
+                                        pcok, cerr, pcok, cerr) : eerr(errorHandler(
+                                        position, tok), state, m));
                                 }
                             });
                         }
