@@ -112,8 +112,6 @@ var throwConstant = \err -> \() -> { throw err; };
 
 var flip = \f -> \x, y -> f(y, x);
 
-var uniqueParserId = Math.random;
-
 /* Continuation
  ******************************************************************************/
 Tail = function(p, state, m, cok, cerr, eok, eerr) {
@@ -501,9 +499,7 @@ rec = \def -> {
 /**
  * Create a named parser.
  * 
- * Attaches a name for debugging and a unique id for memoization.
- * 
- * If parser is already named, wraps the parser in a new named parser.
+ * Attaches a name for debugging.
  * 
  * @param {string} name Human readable display name to give the Parser. Used for
  *     identifying a parser for debugging.
@@ -512,18 +508,10 @@ rec = \def -> {
  * @return 
  */
 Parser = \name, impl ->
-    (impl.hasOwnProperty('parserId') ? 
-        Parser(name, \args(...) -> impl.apply(this, args)) :
-        Object.defineProperties(impl, {
-            'displayName': {
-                'value': name,
-                'writable': false
-            },
-            'parserId': {
-                'value': uniqueParserId(),
-                'writable': false
-            }
-        }));
+    Object.defineProperty(impl, 'displayName', {
+        'value': name,
+        'writable': false
+    });
 
 /**
  * Create a recursively defined parser.
@@ -653,7 +641,7 @@ setInput = \input ->
 
 //
 ////////////////////////////////////////
-var _binary = \p1, p2, f ->
+var _binary = \p1 p2 f ->
     bind(p1, \v1 ->
         bind(p2, \v2 -> f(v1, v2)));
     
@@ -935,10 +923,11 @@ in
                 return eerr(errorHandler(position, null), state, m);
             } else {
                 var tok = state.first();
-                var pcok = \x s#{position} m -> cok(x, s, Memoer.prune(m, position));
-                return (consume(tok) ?
-                    new Tail(state.next(tok), state, m, pcok, cerr, pcok, cerr) :
-                    eerr(errorHandler(position, tok), state, m));
+                if (consume(tok)) {
+                    var pcok = \x s#{position} m -> cok(x, s, Memoer.prune(m, position));
+                    return new Tail(state.next(tok), state, m, pcok, cerr, pcok, cerr);
+                }
+                return eerr(errorHandler(position, tok), state, m);
             }
         };
 
@@ -955,11 +944,9 @@ anyToken = Parser('Any Token',
  * 
  * Memoization is based on equal states, not equal inputs.
  */
-memo = \p -> let
-    id = (p.parserId || uniqueParserId())
-in
+memo = \p ->
     \state#{position} m cok cerr eok eerr -> {
-        var key = {'id': id, 'state': state};
+        var key = {'id': p, 'state': state};
         var entry = Memoer.lookup(m, position, key);
         if (entry) {
             switch (entry[0]) {

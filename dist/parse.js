@@ -44,7 +44,6 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
             return f(y, x);
         });
     });
-    var uniqueParserId = Math.random;
     (Tail = (function(p, state, m, cok, cerr, eok, eerr) {
         (this.p = p);
         (this.state = state);
@@ -232,19 +231,10 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
         return value;
     }));
     (Parser = (function(name, impl) {
-        return (impl.hasOwnProperty("parserId") ? Parser(name, (function() {
-            var args = arguments;
-            return impl.apply(this, args);
-        })) : Object.defineProperties(impl, ({
-            "displayName": ({
-                "value": name,
-                "writable": false
-            }),
-            "parserId": ({
-                "value": uniqueParserId(),
-                "writable": false
-            })
-        })));
+        return Object.defineProperty(impl, "displayName", ({
+            "value": name,
+            "writable": false
+        }));
     }));
     (RecParser = (function(name, body) {
         return Parser(name, rec(body));
@@ -511,14 +501,16 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
                                     return eerr(errorHandler(position, null), state, m);
                                 } else {
                                     var tok = state.first();
-                                    var pcok = (function(x, s, m) {
-                                        var s = s,
-                                            position = s["position"];
-                                        return cok(x, s, Memoer.prune(m, position));
-                                    });
-                                    return (consume(tok) ? new(Tail)(state.next(tok), state, m,
-                                        pcok, cerr, pcok, cerr) : eerr(errorHandler(
-                                        position, tok), state, m));
+                                    if (consume(tok)) {
+                                        var pcok = (function(x, s, m) {
+                                            var s = s,
+                                                position = s["position"];
+                                            return cok(x, s, Memoer.prune(m, position));
+                                        });
+                                        return new(Tail)(state.next(tok), state, m, pcok, cerr,
+                                            pcok, cerr);
+                                    }
+                                    return eerr(errorHandler(position, tok), state, m);
                                 }
                             });
                         }
@@ -530,50 +522,36 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
         .call(this));
     (anyToken = Parser("Any Token", token(constant(true))));
     (memo = (function(p) {
-        return (function() {
-            {
-                var id = (p.parserId || uniqueParserId());
-                return (function(state, m, cok, cerr, eok, eerr) {
-                    var state = state,
-                        position = state["position"];
-                    var key = ({
-                        "id": id,
-                        "state": state
-                    });
-                    var entry = Memoer.lookup(m, position, key);
-                    if (entry) {
-                        switch (entry[0]) {
-                            case "cok":
-                                return cok(entry[1], entry[2], m);
-                            case "ceerr":
-                                return cerr(entry[1], entry[2], m);
-                            case "eok":
-                                return eok(entry[1], entry[2], m);
-                            case "eerr":
-                                return eerr(entry[1], entry[2], m);
-                        }
-                    }
-                    return new(Tail)(p, state, m, (function(x, pstate, pm) {
-                        return cok(x, pstate, Memoer.update(pm, position, key, ["cok",
-                            x, pstate
-                        ]));
-                    }), (function(x, pstate, pm) {
-                        return cerr(x, pstate, Memoer.update(pm, position, key, ["cerr",
-                            x, pstate
-                        ]));
-                    }), (function(x, pstate, pm) {
-                        return eok(x, pstate, Memoer.update(pm, position, key, ["eok",
-                            x, pstate
-                        ]));
-                    }), (function(x, pstate, pm) {
-                        return eerr(x, pstate, Memoer.update(pm, position, key, ["eerr",
-                            x, pstate
-                        ]));
-                    }));
-                });
+        return (function(state, m, cok, cerr, eok, eerr) {
+            var state = state,
+                position = state["position"];
+            var key = ({
+                "id": p,
+                "state": state
+            });
+            var entry = Memoer.lookup(m, position, key);
+            if (entry) {
+                switch (entry[0]) {
+                    case "cok":
+                        return cok(entry[1], entry[2], m);
+                    case "ceerr":
+                        return cerr(entry[1], entry[2], m);
+                    case "eok":
+                        return eok(entry[1], entry[2], m);
+                    case "eerr":
+                        return eerr(entry[1], entry[2], m);
+                }
             }
-        })
-            .call(this);
+            return new(Tail)(p, state, m, (function(x, pstate, pm) {
+                return cok(x, pstate, Memoer.update(pm, position, key, ["cok", x, pstate]));
+            }), (function(x, pstate, pm) {
+                return cerr(x, pstate, Memoer.update(pm, position, key, ["cerr", x, pstate]));
+            }), (function(x, pstate, pm) {
+                return eok(x, pstate, Memoer.update(pm, position, key, ["eok", x, pstate]));
+            }), (function(x, pstate, pm) {
+                return eerr(x, pstate, Memoer.update(pm, position, key, ["eerr", x, pstate]));
+            }));
+        });
     }));
     (exec = (function(p, state, m, cok, cerr, eok, eerr) {
         return trampoline(p(state, m, cok, cerr, eok, eerr));
