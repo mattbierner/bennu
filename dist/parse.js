@@ -75,8 +75,8 @@ define(["require", "exports", "nu/stream", "seshat"], (function(require, exports
     (Memoer.popWindow = (function(m) {
         var m = m,
             frames = m["frames"];
-        return new(Memoer)(((frames.length === 1) ? Memoer.prune(m, frames[0])
-            .memoer : m.memoer), m.frames.slice(1));
+        return new(Memoer)(((frames.length === 1) ? seshat.prune(m.memoer, frames[0]) : m.memoer), m.frames
+            .slice(1));
     }));
     (Memoer.prune = (function(m, position) {
         return (m.frames.length ? m : new(Memoer)(seshat.prune(m.memoer, position), m.frames));

@@ -172,7 +172,7 @@ Memoer.pushWindow = \m, lower ->
 Memoer.popWindow = \m#{frames} ->
     new Memoer(
         (frames.length === 1 ?
-            Memoer.prune(m, frames[0]).memoer :
+            seshat.prune(m.memoer, frames[0]) :
             m.memoer),
         m.frames.slice(1));
 
