@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 16.1.6 - Jan 20, 2014
+* Added node package.
+
 ## 16.0.6 - December 16, 2013
 * Changed pruning to be more aggressive.
 * Removed `parserId` from parser since memo table is no longer a Javascript object.

@@ -1,11 +1,9 @@
-# parse.js - Combinatorial Parser Javascript Library #
+# Bennu - Javascript Parser Combinator Library
 
-## About ##
-parse.js is a library for creating [combinatorial parsers][CombinatorialParsers] in Javascript. 
-It is based on Nate Young's [Parsatron][Parsatron] which in turn is based on
-[Parsec][Parsec].
+## About
+Bennu is a library based on [Parsec][Parsec] for creating [combinatory parsers][CombinatorialParsers].
 
-Combinatorial parsers allow complex parsers to be created from a set of simple
+Parser combinators allow complex parsers to be created from a set of simple
 building blocks. Compared to other parsing techniques, combinatorial parsers
 can be written more quickly and integrate better with the host language.
 
@@ -13,24 +11,42 @@ can be written more quickly and integrate better with the host language.
 * [parse-ecma][parse-ecma] - Combinatory parsers for lexing and parsing ECMAScript 5.1
 * [khepri][khepri] - khepri combinatory lexers and parsers.
 * [parse-re][parse-re] - ECMAScript regular expression grammar parser and engine
-  using parse.js parser combinators.
+  using Bennu parser combinators.
 * [parse-pn][parse-pn] - Very simple polish notation calculator.
 * [parse-ecma-incremental][parse-ecma-incremental] - Demonstrates using unmodified
   parsers to incrementally lex ECMAScript.
 
-# Using parse.js #
+# Using Bennu
 
 ### To clone ##
-    git clone https://github.com/mattbierner/parse.js parse
-    cd parse
+    git clone https://github.com/mattbierner/bennu bennu
+    cd bennu
     git submodule update --init
 
-## Dependencies
+### Dependencies
 * [Nu][nu] 3.1.x - Small functional, lazy stream library.
 * [Seshet][seshet] 0.1.x - Functional memoization utility.
 
+
+## With Node
+Install:
+
+    npm install bennu
+
+Use:
+
+    var parse = require('bennu').parse;
+    var text = require('bennu').text;
+    
+    
+    var aOrB = parse.either(
+        text.character('a'),
+        text.character('b'));
+        
+    parse.run(aOrB, 'b'); // 'b'
+
 ## With AMD ##
-Include any AMD style module loader and load parse:
+Include any AMD style module loader and load Bennu:
 
     <!DOCTYPE html>
     <html>
@@ -40,12 +56,12 @@ Include any AMD style module loader and load parse:
         <script type="application/javascript">
             requirejs.config({
                 paths: {
-                    'parse': './dist',
-                    'nu': './dependencies/nu/dist',
-                    'seshat': './dependencies/seshat/lib/seshat'
+                    'bennu': './dist',
+                    'nu-stream': './dependencies/nu/dist',
+                    'seshet': './dependencies/seshet/lib/seshet'
                 }
             });
-            require(['parse/parse'], function(parse) {
+            require(['bennu/parse'], function(parse) {
                 ...
             });
         </script>
@@ -83,4 +99,4 @@ are in `lib` directory.
 [parse-ecma-incremental]: https://github.com/mattbierner/parse-ecma-incremental
 [khepri]: https://github.com/mattbierner/khepri
 [nu]: https://github.com/mattbierner/nu
-[seshat]: https://github.com/mattbierner/seshat
+[seshet]: https://github.com/mattbierner/seshet
