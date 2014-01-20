@@ -2,37 +2,37 @@
  * @fileOverview Combinatory parsers for ordering parses in a language.
  */
 package (
-    times,
-    atMostTimes,
-    betweenTimes,
-    then,
-    between,
-    sepBy1,
-    sepBy,
-    sepEndBy1,
-    sepEndBy,
-    endBy1,
-    endBy,
-    chainl1,
-    chainl,
-    chainr1,
+    times
+    atMostTimes
+    betweenTimes
+    then
+    between
+    sepBy1
+    sepBy
+    sepEndBy1
+    sepEndBy
+    endBy1
+    endBy
+    chainl1
+    chainl
+    chainr1
     chainr)
 with
-    import 'nu/stream' {'end': NIL},
-    import 'nu/gen' {repeat},
+    import 'nu-stream::stream' {NIL},
+    import 'nu-stream::gen' {repeat},
 
-    import 'parse/parse' parse {
-        always,
-        append,
-        bind,
-        cons,
-        either,
-        enumerations,
-        many,
-        many1,
-        next,
-        optional,
-        ParserError,
+    import './parse' {
+        append
+        always
+        bind
+        cons
+        either
+        enumerations
+        many
+        many1
+        next
+        optional
+        ParserError
         rec}
 in {
 

@@ -26,8 +26,8 @@ can be written more quickly and integrate better with the host language.
     git submodule update --init
 
 ## Dependencies
-* [Nu][nu] 3.0.X - Small functional, lazy stream library.
-* [Seshat][seshat] 0.0.X - Functional memoization utility.
+* [Nu][nu] 3.1.x - Small functional, lazy stream library.
+* [Seshet][seshet] 0.1.x - Functional memoization utility.
 
 ## With AMD ##
 Include any AMD style module loader and load parse:

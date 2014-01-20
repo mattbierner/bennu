@@ -96,8 +96,15 @@ package (
     testStream
     test)
 with
-    import 'nu/stream' stream#{NIL, first, isEmpty, rest, foldl, reduceRight, foldr},
-    import 'seshat' seshat
+    import 'nu-stream::stream' stream#{
+        NIL
+        first
+        isEmpty
+        rest
+        foldl
+        reduceRight
+        foldr},
+    import 'seshet' seshat
 in {
 
 var map = Function.prototype.call.bind(Array.prototype.map);

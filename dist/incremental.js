@@ -2,31 +2,22 @@
  * THIS FILE IS AUTO GENERATED from 'lib/incremental.kep'
  * DO NOT EDIT
 */
-define(["require", "exports", "parse/parse", "nu/stream"], (function(require, exports, __o, stream) {
+define(["require", "exports", "./parse", "nu-stream/stream"], (function(require, exports, stream, stream) {
     "use strict";
-    var provide, provideString, finish, parseIncState, parseInc, runIncState, runInc, runManyState,
-            runManyStream, runMany;
-    var __o = __o,
-        always = __o["always"],
-        bind = __o["bind"],
-        getParserState = __o["getParserState"],
-        Memoer = __o["Memoer"],
-        next = __o["next"],
-        optional = __o["optional"],
-        parseState = __o["parseState"],
-        ParserState = __o["ParserState"],
-        Position = __o["Position"],
-        runState = __o["runState"],
-        Tail = __o["Tail"],
-        trampoline = __o["trampoline"],
-        stream = stream,
-        stream = stream,
+    var streamFrom = stream["from"],
+        isEmpty = stream["isEmpty"],
+        first = stream["first"],
+        NIL = stream["NIL"],
+        rest = stream["rest"],
+        memoStream = stream["memoStream"],
         streamFrom = stream["from"],
         isEmpty = stream["isEmpty"],
         first = stream["first"],
         NIL = stream["NIL"],
         rest = stream["rest"],
         memoStream = stream["memoStream"];
+    var provide, provideString, finish, parseIncState, parseInc, runIncState, runInc, runManyState,
+            runManyStream, runMany;
     var Request = (function(chunk, k) {
         (this.chunk = chunk);
         (this.k = k);
@@ -85,12 +76,10 @@ define(["require", "exports", "parse/parse", "nu/stream"], (function(require, ex
                                 innerState.setInput(i)), m);
                         }));
                     }) : (function() {
-                        {
-                            var state = new(IncrementalState)(chunk, innerState);
-                            return (function(_, m, cok) {
-                                return cok(x, state, m);
-                            });
-                        }
+                        var state = new(IncrementalState)(chunk, innerState);
+                        return (function(_, m, cok) {
+                            return cok(x, state, m);
+                        });
                     })
                     .call(this));
             })));
@@ -121,69 +110,52 @@ define(["require", "exports", "parse/parse", "nu/stream"], (function(require, ex
         return provide(r, streamFrom(input));
     }));
     (finish = (function() {
-            {
-                var complete = (function(r) {
-                    return r.k();
-                });
-                return (function(r) {
-                    return complete(forceProvide(r, NIL));
-                });
-            }
+            var complete = (function(r) {
+                return r.k();
+            });
+            return (function(r) {
+                return complete(forceProvide(r, NIL));
+            });
         })
         .call(this));
     (parseIncState = (function(p, state, ok, err) {
-        return (function() {
-            {
-                var pok = (function(x, s) {
-                    return new(Session)(true, ok.bind(null, x, s));
-                }),
-                    perr = (function(x, s) {
-                        return new(Session)(true, err.bind(null, x, s));
-                    });
-                return provide(new(Session)(false, (function(i) {
-                    return parseState(p, new(IncrementalState)(0, state.setInput(i)),
-                        pok, perr);
-                }), []), state.input);
-            }
-        })
-            .call(this);
+        var pok = (function(x, s) {
+            return new(Session)(true, ok.bind(null, x, s));
+        }),
+            perr = (function(x, s) {
+                return new(Session)(true, err.bind(null, x, s));
+            });
+        return provide(new(Session)(false, (function(i) {
+            return parseState(p, new(IncrementalState)(0, state.setInput(i)), pok, perr);
+        }), []), state.input);
     }));
     (parseInc = (function(p, ud, ok, err) {
         return parseIncState(p, new(ParserState)(NIL, Position.initial, ud), ok, err);
     }));
     (runIncState = (function() {
-            {
-                var ok = (function(x) {
-                    return x;
-                }),
-                    err = (function(x) {
-                        throw x;
-                    });
-                return (function(p, state) {
-                    return parseIncState(p, state, ok, err);
+            var ok = (function(x) {
+                return x;
+            }),
+                err = (function(x) {
+                    throw x;
                 });
-            }
+            return (function(p, state) {
+                return parseIncState(p, state, ok, err);
+            });
         })
         .call(this));
     (runInc = (function(p, ud) {
         return runIncState(p, new(ParserState)(NIL, Position.initial, ud));
     }));
     (runManyState = (function(p, state) {
-        return (function() {
-            {
-                var manyP = optional(NIL, (function(state, m, cok, cerr, eok, eerr) {
-                    return new(Tail)(p, state, m, (function(x, state, m) {
-                        return cok(memoStream(x, runState.bind(null, manyP, state,
-                            m)));
-                    }), cerr, (function(x, state, m) {
-                        return eok(memoStream(x, runState.bind(null, manyP, state,
-                            m)));
-                    }), eerr);
-                }));
-                return runState(manyP, state);
-            }
-        })
-            .call(this);
+        var manyP = optional(NIL, (function(state, m, cok, cerr, eok, eerr) {
+            return new(Tail)(p, state, m, (function(x, state, m) {
+                return cok(memoStream(x, runState.bind(null, manyP, state, m)));
+            }), cerr, (function(x, state, m) {
+                return eok(memoStream(x, runState.bind(null, manyP, state, m)));
+            }), eerr);
+        }));
+        return runState(manyP, state);
     }));
     (runManyStream = (function(p, s, ud) {
         return runManyState(p, new(ParserState)(s, Position.initial, ud));
@@ -201,4 +173,4 @@ define(["require", "exports", "parse/parse", "nu/stream"], (function(require, ex
     (exports.runManyState = runManyState);
     (exports.runManyStream = runManyStream);
     (exports.runMany = runMany);
-}))
+}));

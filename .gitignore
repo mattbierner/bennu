@@ -1,6 +1,7 @@
 # Project Files #
 #################
 .project
+node_modules
 
 # OS Files #
 ############

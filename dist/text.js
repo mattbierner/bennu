@@ -2,11 +2,9 @@
  * THIS FILE IS AUTO GENERATED from 'lib/text.kep'
  * DO NOT EDIT
 */
-define(["require", "exports", "parse/parse"], (function(require, exports, __o) {
+define(["require", "exports", "./parse"], (function(require, exports, __o) {
     "use strict";
-    var character, characters, string, trie, match, anyChar, letter, space, digit;
-    var __o = __o,
-        always = __o["always"],
+    var always = __o["always"],
         attempt = __o["attempt"],
         bind = __o["bind"],
         either = __o["either"],
@@ -14,6 +12,7 @@ define(["require", "exports", "parse/parse"], (function(require, exports, __o) {
         next = __o["next"],
         Parser = __o["Parser"],
         token = __o["token"];
+    var character, characters, string, trie, match, anyChar, letter, space, digit;
     var join = Function.prototype.call.bind(Array.prototype.join);
     var map = Function.prototype.call.bind(Array.prototype.map);
     var reduce = Function.prototype.call.bind(Array.prototype.reduce);
@@ -38,79 +37,67 @@ define(["require", "exports", "parse/parse"], (function(require, exports, __o) {
         })
     }));
     var _character = (function() {
-        {
-            var pred = (function(l) {
-                {
-                    var x = l.valueOf();
-                    return (function(r) {
-                        return (x === r.valueOf());
-                    });
-                }
+        var pred = (function(l) {
+            var x = l.valueOf();
+            return (function(r) {
+                return (x === r.valueOf());
             });
-            return (function(c, err) {
-                return token(pred(c), err);
-            });
-        }
+        });
+        return (function(c, err) {
+            return token(pred(c), err);
+        });
     })
         .call(this);
     (character = (function(c) {
         return _character(c, expectError(c));
     }));
     (characters = (function(chars) {
-        {
-            var lookup = map(chars, (function(x) {
-                return x.valueOf();
-            })),
-                pred = (function(r) {
-                    return (lookup.indexOf(r.valueOf()) !== -1);
-                });
-            return token(pred, expectError(join(chars, " or ")));
-        }
+        var lookup = map(chars, (function(x) {
+            return x.valueOf();
+        })),
+            pred = (function(r) {
+                return (lookup.indexOf(r.valueOf()) !== -1);
+            });
+        return token(pred, expectError(join(chars, " or ")));
     }));
     (string = (function() {
-            {
-                var reducer = (function(p, c, i, s) {
-                    return next(_character(c, (function(pos, tok) {
-                        return new(StringError)(pos, s, i, c, tok);
-                    })), p);
-                });
-                return (function(s) {
-                    return attempt(reduceRight(s, reducer, always(s)));
-                });
-            }
+            var reducer = (function(p, c, i, s) {
+                return next(_character(c, (function(pos, tok) {
+                    return new(StringError)(pos, s, i, c, tok);
+                })), p);
+            });
+            return (function(s) {
+                return attempt(reduceRight(s, reducer, always((s + ""))));
+            });
         })
         .call(this));
     (trie = (function() {
-            {
-                var wordReduce = (function(parent, l) {
-                    (parent[l] = (parent[l] || ({})));
-                    return parent[l];
+            var wordReduce = (function(parent, l) {
+                (parent[l] = (parent[l] || ({})));
+                return parent[l];
+            }),
+                wordsReduce = (function(trie, word) {
+                    var node = reduce(word, wordReduce, trie);
+                    (node[""] = word);
+                    return trie;
                 }),
-                    wordsReduce = (function(trie, word) {
-                        var node = reduce(word, wordReduce, trie);
-                        (node[""] = word);
-                        return trie;
-                    }),
-                    makeTrie = (function(words) {
-                        return reduce(words, wordsReduce, ({}));
-                    }),
-                    _trie = (function(trie) {
-                        {
-                            var keys = Object.keys(trie),
-                                paths = reduce(keys, (function(p, c) {
-                                    if (c.length)(p[c] = _trie(trie[c]));
-                                    return p;
-                                }), ({})),
-                                select = attempt(bind(characters(keys), (function(x) {
-                                    return paths[x];
-                                })));
-                            return (trie.hasOwnProperty("") ? either(select, always(trie[""])) : select);
-                        }
-                    });
-                return (function(words) {
-                    return attempt(_trie(makeTrie(words), ""));
+                makeTrie = (function(words) {
+                    return reduce(words, wordsReduce, ({}));
+                }),
+                _trie = (function(trie) {
+                    var keys = Object.keys(trie),
+                        paths = reduce(keys, (function(p, c) {
+                            if (c.length)(p[c] = _trie(trie[c]));
+                            return p;
+                        }), ({})),
+                        select = attempt(bind(characters(keys), (function(x) {
+                            return paths[x];
+                        })));
+                    return (trie.hasOwnProperty("") ? either(select, always(trie[""])) : select);
                 });
-            }
+            return (function(words) {
+                return attempt(_trie(makeTrie(words), ""));
+            });
         })
         .call(this));
     (match = (function(pattern, expected) {
@@ -129,4 +116,4 @@ define(["require", "exports", "parse/parse"], (function(require, exports, __o) {
     (exports.letter = letter);
     (exports.space = space);
     (exports.digit = digit);
-}))
+}));

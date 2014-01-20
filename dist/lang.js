@@ -2,27 +2,47 @@
  * THIS FILE IS AUTO GENERATED from 'lib/lang.kep'
  * DO NOT EDIT
 */
-define(["require", "exports", "nu/stream", "nu/gen", "parse/parse"], (function(require, exports, __o, __o0, parse) {
+define(["require", "exports", "nu-stream/stream", "nu-stream/gen", "./parse"], (function(require, exports, __o1, __o1,
+    __o1) {
     "use strict";
+    var append = __o1["append"],
+        always = __o1["always"],
+        bind = __o1["bind"],
+        cons = __o1["cons"],
+        either = __o1["either"],
+        enumerations = __o1["enumerations"],
+        many = __o1["many"],
+        many1 = __o1["many1"],
+        next = __o1["next"],
+        optional = __o1["optional"],
+        ParserError = __o1["ParserError"],
+        rec = __o1["rec"],
+        append = __o1["append"],
+        always = __o1["always"],
+        bind = __o1["bind"],
+        cons = __o1["cons"],
+        either = __o1["either"],
+        enumerations = __o1["enumerations"],
+        many = __o1["many"],
+        many1 = __o1["many1"],
+        next = __o1["next"],
+        optional = __o1["optional"],
+        ParserError = __o1["ParserError"],
+        rec = __o1["rec"],
+        append = __o1["append"],
+        always = __o1["always"],
+        bind = __o1["bind"],
+        cons = __o1["cons"],
+        either = __o1["either"],
+        enumerations = __o1["enumerations"],
+        many = __o1["many"],
+        many1 = __o1["many1"],
+        next = __o1["next"],
+        optional = __o1["optional"],
+        ParserError = __o1["ParserError"],
+        rec = __o1["rec"];
     var times, atMostTimes, betweenTimes, then, between, sepBy1, sepBy, sepEndBy1, sepEndBy, endBy1, endBy,
             chainl1, chainl, chainr1, chainr;
-    var __o = __o,
-        NIL = __o["end"],
-        __o0 = __o0,
-        repeat = __o0["repeat"],
-        parse = parse,
-        always = parse["always"],
-        append = parse["append"],
-        bind = parse["bind"],
-        cons = parse["cons"],
-        either = parse["either"],
-        enumerations = parse["enumerations"],
-        many = parse["many"],
-        many1 = parse["many1"],
-        next = parse["next"],
-        optional = parse["optional"],
-        ParserError = parse["ParserError"],
-        rec = parse["rec"];
     var _end = always(NIL);
     var _optionalValueParser = optional.bind(null, NIL);
     (times = (function(f, g) {
@@ -112,4 +132,4 @@ define(["require", "exports", "nu/stream", "nu/gen", "parse/parse"], (function(r
     (exports.chainl = chainl);
     (exports.chainr1 = chainr1);
     (exports.chainr = chainr);
-}))
+}));

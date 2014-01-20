@@ -4,3 +4,6 @@
 [submodule "dependencies/seshat"]
 	path = dependencies/seshat
 	url = git://github.com/mattbierner/seshat.git
+[submodule "dependencies/seshet"]
+	path = dependencies/seshet
+	url = git@github.com:mattbierner/seshet.git

@@ -1,20 +1,43 @@
 {
-  "name": "parse.js",
-  "version": "16.0.6",
-  "description": "Combinatory Parsing Library",
-  "main": "lib/parse.js",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/mattbierner/parse.js.git"
-  },
-  "keywords": [
-    "parse",
-    "parser",
-    "combinatorial",
-    "combinatory",
-    "combinatory parsing",
-    "functional"
-  ],
-  "author": "Matt Bierner",
-  "license": "MIT"
+    "name": "bennu",
+    "version": "16.0.6",
+    "description": "Parser Combinator Library",
+    "author": "Matt Bierner",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/mattbierner/bennu.git"
+    },
+    "keywords": [
+        "parse",
+        "parser",
+        "combinator",
+        "combinatory",
+        "combinatory parsing",
+        "functional"
+    ],
+
+    "main": "index.js",
+    "directories": {
+        "lib": "dist_node"
+    },
+    "files": [
+        "dist_node/",
+        "dependencies",
+        "lib",
+        "tests/",
+        "index.js",
+        "test.js"
+    ],
+    "dependencies": {
+        "nu-stream": "3.1.x",
+        "seshet": "0.1.x"
+    },
+    "devDependencies": {
+        "nodeunit": "0.8.x"
+    },
+    
+    "scripts": {
+        "test": "node test.js"
+    }
 }

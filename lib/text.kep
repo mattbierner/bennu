@@ -12,7 +12,7 @@ package (
     space
     digit)
 with
-    import 'parse/parse' {
+    import './parse' {
         always
         attempt
         bind
@@ -103,7 +103,7 @@ string = let
                \pos, tok -> new StringError(pos, s, i, c, tok)),
            p)
 in
-    \s -> attempt(reduceRight(s, reducer, always(s)));
+    \s -> attempt(reduceRight(s, reducer, always(s + '')));
 
 /**
  * Parser that matches any string from an array of words using a trie.
