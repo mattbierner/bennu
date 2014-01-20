@@ -64,14 +64,14 @@
     <script type="application/javascript">
         requirejs.config({
             paths: {
-                parse: 'dist',
-                nu: 'dependencies/nu/dist',
-                'seshat': 'dependencies/seshat/lib/seshat'
+                'bennu': 'dist',
+                'nu-stream': 'dependencies/nu/dist',
+                'seshet': 'dependencies/seshet/dist/seshet'
             }
         });
         
         $(function(){
-            require(['nu/stream', 'parse/parse', 'parse/text', 'parse/lang'],
+            require(['nu-stream/stream', 'bennu/parse', 'bennu/text', 'bennu/lang'],
             function(stream, parse, parse_text, parse_lang) {
                 var flatten = function(s, f) {
                     if (stream.isStream(s)) {

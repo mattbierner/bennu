@@ -2,8 +2,15 @@
  * THIS FILE IS AUTO GENERATED from 'lib/parse.kep'
  * DO NOT EDIT
 */
-define(["require", "exports", "nu-stream/stream", "seshet"], (function(require, exports, seshat, seshat) {
+define(["require", "exports", "nu-stream/stream", "seshet"], (function(require, exports, stream, seshat) {
     "use strict";
+    var NIL = stream["NIL"],
+        first = stream["first"],
+        isEmpty = stream["isEmpty"],
+        rest = stream["rest"],
+        foldl = stream["foldl"],
+        reduceRight = stream["reduceRight"],
+        foldr = stream["foldr"];
     var Tail, trampoline, ParserError, ParseError, MultipleError, UnknownError, UnexpectError, ExpectError,
             ParserState, Position, rec, Parser, RecParser, always, never, bind, eof, extract, getParserState,
             setParserState, modifyParserState, getState, setState, modifyState, getInput, setInput, getPosition,

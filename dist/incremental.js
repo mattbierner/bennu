@@ -2,14 +2,20 @@
  * THIS FILE IS AUTO GENERATED from 'lib/incremental.kep'
  * DO NOT EDIT
 */
-define(["require", "exports", "./parse", "nu-stream/stream"], (function(require, exports, stream, stream) {
+define(["require", "exports", "./parse", "nu-stream/stream"], (function(require, exports, __o, stream) {
     "use strict";
-    var streamFrom = stream["from"],
-        isEmpty = stream["isEmpty"],
-        first = stream["first"],
-        NIL = stream["NIL"],
-        rest = stream["rest"],
-        memoStream = stream["memoStream"],
+    var always = __o["always"],
+        bind = __o["bind"],
+        getParserState = __o["getParserState"],
+        Memoer = __o["Memoer"],
+        next = __o["next"],
+        optional = __o["optional"],
+        parseState = __o["parseState"],
+        ParserState = __o["ParserState"],
+        Position = __o["Position"],
+        runState = __o["runState"],
+        Tail = __o["Tail"],
+        trampoline = __o["trampoline"],
         streamFrom = stream["from"],
         isEmpty = stream["isEmpty"],
         first = stream["first"],
