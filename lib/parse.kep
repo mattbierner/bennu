@@ -121,14 +121,14 @@ var flip = \f -> \x, y -> f(y, x);
 
 /* Continuation
  ******************************************************************************/
-Tail = function(p, state, m, cok, cerr, eok, eerr) {
-    this.p = p;
-    this.state = state;
-    this.m = m;
-    this.cok = cok;
-    this.cerr = cerr;
-    this.eok = eok;
-    this.eerr = eerr;
+Tail = function\p, state, m, cok, cerr, eok, eerr =self-> {
+    self.p = p;
+    self.state = state;
+    self.m = m;
+    self.cok = cok;
+    self.cerr = cerr;
+    self.eok = eok;
+    self.eerr = eerr;
 };
 
 trampoline = \f -> {
@@ -147,9 +147,9 @@ trampoline = \f -> {
  * reachable results in the stream. Memoized results for positions outside of the
  * window will be automatically pruned when possible.
  */
-Memoer = function(memoer, frames) {
-    this.memoer = memoer;
-    this.frames = frames;
+Memoer = function \memoer, frames =self-> {
+    self.memoer = memoer;
+    self.frames = frames;
 };
 
 /**
@@ -216,8 +216,8 @@ Memoer.update = \m pos id val ->
  * 
  * Simply tracks the index in the input.
  */
-Position = function(i) {
-    this.index = i;
+Position = function\ i =self-> {
+    self.index = i;
 };
 
 /**
@@ -225,7 +225,7 @@ Position = function(i) {
  */
 Position.initial = new Position(0);
 
-Position.prototype.toString = \() -> '' + this.index;
+Position.prototype.toString = \() =self-> '' + self.index;
 
 /**
  * Advanced the position based on a consumed character.
@@ -234,7 +234,7 @@ Position.prototype.toString = \() -> '' + this.index;
  * 
  * @returns Position after 'tok'.
  */
-Position.prototype.increment = \tok -> new Position(this.index + 1);
+Position.prototype.increment = \tok =self-> new Position(self.index + 1);
 
 /**
  * Compares two positions.
@@ -242,7 +242,7 @@ Position.prototype.increment = \tok -> new Position(this.index + 1);
  * @returns Number less than, equal to, or greater than zero if this position is
  *   less than, equal to, or greater than 'pos'.
  */
-Position.prototype.compare = \pos -> (this.index - pos.index);
+Position.prototype.compare = \pos =self-> (self.index - pos.index);
 
 // ParserState
 ////////////////////////////////////////
@@ -253,10 +253,10 @@ Position.prototype.compare = \pos -> (this.index - pos.index);
  * @param position Current position of head of input.
  * @param [userState] Object that users can thread through parsers.
  */
-ParserState = function(input, position, userState) {
-    this.input = input;
-    this.position = position;
-    this.userState = userState;
+ParserState = function\input, position, userState =self-> {
+    self.input = input;
+    self.position = position;
+    self.userState = userState;
 };
 
 /**
@@ -265,18 +265,18 @@ ParserState = function(input, position, userState) {
  * This is a part of the seshat id lookup process so the correct position has
  * already been found when this is called.
  */
-ParserState.prototype.eq = \other ->
-    other && this.input === other.input && this.userState === other.userState;
+ParserState.prototype.eq = \other =self->
+    other && self.input === other.input && self.userState === other.userState;
 
 /**
  * Is the state's input empty.
  */
-ParserState.prototype.isEmpty = \() -> isEmpty(this.input);
+ParserState.prototype.isEmpty = \() =self-> isEmpty(self.input);
 
 /**
  * Get the first item of the input.
  */
-ParserState.prototype.first = \() -> first(this.input);
+ParserState.prototype.first = \() =self-> first(self.input);
 
 /**
  * Get next state object for a given consumed token.
@@ -285,15 +285,15 @@ ParserState.prototype.first = \() -> first(this.input);
  * 
  * @returns New input state for next item in input.
  */
-ParserState.prototype.next = \x -> {
-    if (!this._next) {
+ParserState.prototype.next = \x =self-> {
+    if (!self._next) {
         var s = new ParserState(
-            rest(this.input),
-            this.position.increment(x),
-            this.userState);
-        this._next = \_, m, cok -> cok(x, s, m);
+            rest(self.input),
+            self.position.increment(x),
+            self.userState);
+        self._next = \_, m, cok -> cok(x, s, m);
     }
-    return this._next;
+    return self._next;
 };
 
 /**
@@ -301,24 +301,24 @@ ParserState.prototype.next = \x -> {
  * 
  * @param input New input.
  */
-ParserState.prototype.setInput = \input ->
-    new ParserState(input, this.position, this.userState);
+ParserState.prototype.setInput = \input =self->
+    new ParserState(input, self.position, self.userState);
 
 /**
  * Create a new state with position.
  * 
  * @param position New position.
  */
-ParserState.prototype.setPosition = \position ->
-    new ParserState(this.input, position, this.userState);
+ParserState.prototype.setPosition = \position =self->
+    new ParserState(self.input, position, self.userState);
 
 /**
  * Create a new state with userState.
  * 
  * @param userState New user state.
  */
-ParserState.prototype.setUserState = \userState ->
-    new ParserState(this.input, this.position, userState);
+ParserState.prototype.setUserState = \userState =self->
+    new ParserState(self.input, self.position, userState);
 
 /* Errors
  ******************************************************************************/
@@ -328,8 +328,8 @@ ParserState.prototype.setUserState = \userState ->
  * 
  * Base Error for an error with the parsers themselves.
  */
-ParserError = function(msg) {
-    this.message = msg;
+ParserError = function\ msg =self-> {
+    self.message = msg;
 };
 ParserError.prototype = new Error();
 ParserError.prototype.constructor = ParserError;
@@ -344,9 +344,9 @@ ParserError.prototype.name = 'ParserError';
  * @param position Position of error.
  * @param [msg] Error message.
  */
-ParseError = function(position, msg) {
-    this.position = position;
-    this._msg = msg;
+ParseError = function\ position msg =self->{
+    self.position = position;
+    self._msg = msg;
 };
 ParseError.prototype = new Error;
 ParseError.prototype.constructor = ParseError;
@@ -356,19 +356,19 @@ ParseError.prototype.name = 'ParseError';
  * @HACK: Chrome's Error.prototype.toString seems broken for a `message`
  *    getter.
  */
-ParseError.prototype.toString = \() ->
-    this.name + ": " + this.message;
+ParseError.prototype.toString = \() =self->
+    self.name + ": " + self.message;
 
 Object.defineProperties(ParseError.prototype, {
     'message': {
         'configurable': true,
-        'get': \() ->
-            "At position:" + this.position + " " + this.errorMessage
+        'get': \() =self->
+            "At position:" + self.position + " " + self.errorMessage
     },
     'errorMessage': {
         'configurable': true,
-        'get': \() ->
-            (this._msg === undefined ? "" : this._msg)
+        'get': \() =self->
+            (self._msg === undefined ? "" : self._msg)
     }
 });
 
@@ -380,17 +380,17 @@ Object.defineProperties(ParseError.prototype, {
  * @params position Position of errors.
  * @params [errors] Array like object containing zero or more ParseErrors.
  */
-MultipleError = function(position, errors) {
-    ParseError.call(this, position);
-    this.errors = (errors || []);
+MultipleError = function\position, errors =self-> {
+    ParseError.call(self, position);
+    self.errors = (errors || []);
 };
 MultipleError.prototype = new ParseError();
 MultipleError.prototype.constructor = MultipleError;
 MultipleError.prototype.name = 'MultipleError';
 
 Object.defineProperty(MultipleError.prototype, 'errorMessage', {
-    'get': \() ->
-        "[" + map(this.errors, \x -> x.message).join(", ") + "]"
+    'get': \() =self->
+        "[" + map(self.errors, \x -> x.message).join(", ") + "]"
 });
 
 /**
@@ -400,18 +400,18 @@ Object.defineProperty(MultipleError.prototype, 'errorMessage', {
  * 
  * Defers merging errors until actually needed.
  */
-var ChoiceError = function(position, pErr, qErr) {
-    ParseError.call(this, position);
-    this._pErr = pErr;
-    this._qErr = qErr;
+var ChoiceError = function\position, pErr, qErr =self-> {
+    ParseError.call(self, position);
+    self._pErr = pErr;
+    self._qErr = qErr;
 };
 ChoiceError.prototype = new MultipleError();
 ChoiceError.prototype.constructor = MultipleError;
 ChoiceError.prototype.name = 'ChoiceError';
 
 Object.defineProperty(ChoiceError.prototype, 'errors', {
-    'get': \() ->
-        [this._pErr].concat(this._qErr.errors)
+    'get': \() =self->
+        [self._pErr].concat(self._qErr.errors)
 });
 
 /**
@@ -420,8 +420,8 @@ Object.defineProperty(ChoiceError.prototype, 'errors', {
  * 
  * @param position Position of error.
  */
-UnknownError = function(position) {
-    ParseError.call(this, position);
+UnknownError = function\position =self-> {
+    ParseError.call(self, position);
 };
 UnknownError.prototype = new ParseError();
 UnknownError.prototype.constructor = UnknownError;
@@ -438,17 +438,17 @@ Object.defineProperty(UnknownError.prototype, 'errorMessage', {
  * @param position Position of error.
  * @param unexpected Found value.
  */
-UnexpectError = function(position, unexpected) {
-    ParseError.call(this, position);
-    this.unexpected = unexpected;
+UnexpectError = function\ position, unexpected =self-> {
+    ParseError.call(self, position);
+    self.unexpected = unexpected;
 };
 UnexpectError.prototype = new ParseError();
 UnexpectError.prototype.constructor = UnexpectError;
 UnexpectError.prototype.name = 'UnexpectError';
 
 Object.defineProperty(UnexpectError.prototype, 'errorMessage', {
-    'get': \() ->
-        "Unexpected:" + this.unexpected
+    'get': \() =self->
+        "Unexpected:" + self.unexpected
 });
 
 /**
@@ -459,19 +459,19 @@ Object.defineProperty(UnexpectError.prototype, 'errorMessage', {
  * @oaram expected Expected value.
  * @param [found] Found value.
  */
-ExpectError = function(position, expected, found) {
-    ParseError.call(this, position);
-    this.expected = expected;
-    this.found = found;
+ExpectError = function\position, expected, found =self-> {
+    ParseError.call(self, position);
+    self.expected = expected;
+    self.found = found;
 };
 ExpectError.prototype = new ParseError();
 ExpectError.prototype.constructor = ExpectError;
 ExpectError.prototype.name = "ExpectError";
 
 Object.defineProperty(ExpectError.prototype, 'errorMessage', {
-    'get': \() ->
-        "Expected:" + this.expected + (this.found ?
-            " Found:" + this.found :
+    'get': \() =self->
+        "Expected:" + self.expected + (self.found ?
+            " Found:" + self.found :
             "")
 });
 
@@ -498,7 +498,7 @@ Object.defineProperty(ExpectError.prototype, 'errorMessage', {
  * @return A parser.
  */
 rec = \def -> {
-    var value = def(\args(...) -> value.apply(this, args));
+    var value = def(\args(...) -> value.apply(undefined, args));
     return value;
 };
 
@@ -517,10 +517,12 @@ rec = \def -> {
  * @param p Parser.
  */
 Parser = \name p ->
-    Object.defineProperty(p, 'displayName', {
-        'value': name,
-        'writable': false
-    });
+    (p.hasOwnProperty('displayName') ?
+        Parser(name, \args() -> p.apply(undefined, args)) :
+        Object.defineProperty(p, 'displayName', {
+            'value': name,
+            'writable': false
+        }));
 
 /**
  * Create a recursively defined parser.

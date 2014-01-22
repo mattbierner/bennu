@@ -42,19 +42,19 @@ var expectError = \msg ->
  * @oaram expected Expected value.
  * @param [found] Found value.
  */
-var StringError = function(position, string, index, expected, found) {
-    ExpectError.call(this, position, expected, found);
-    this.string = string;
-    this.index = index;
+var StringError = function\(position, string, index, expected, found) =self-> {
+    ExpectError.call(self, position, expected, found);
+    self.string = string;
+    self.index = index;
 };
 StringError.prototype = new ExpectError;
 StringError.prototype.constructor = StringError;
 
 Object.defineProperty(StringError.prototype, 'errorMessage', {
-    'get': \() ->
-        "In string:'" + this.string + "' at index:" + this.index +
-        ", Expected:" + this.expected +
-        " Found:" + (this.found ? this.found : "end of input")
+    'get': \() =self->
+        "In string:'" + self.string + "' at index:" + self.index +
+        ", Expected:" + self.expected +
+        " Found:" + (self.found ? self.found : "end of input")
 });
 
 /* Parsers

@@ -19,11 +19,10 @@ var __o = require("nu-stream")["stream"],
     next = __o1["next"],
     optional = __o1["optional"],
     ParserError = __o1["ParserError"],
-    rec = __o1["rec"];
-var times, atMostTimes, betweenTimes, then, between, sepBy1, sepBy, sepEndBy1, sepEndBy, endBy1, endBy, chainl1, chainl,
-        chainr1, chainr;
-var _end = always(NIL);
-var _optionalValueParser = optional.bind(null, NIL);
+    rec = __o1["rec"],
+    times, atMostTimes, betweenTimes, then, between, sepBy1, sepBy, sepEndBy1, sepEndBy, endBy1, endBy, chainl1, chainl,
+        chainr1, chainr, _end = always(NIL),
+    _optionalValueParser = optional.bind(null, NIL);
 (times = (function(f, g) {
     return (function() {
         return f(g.apply(null, arguments));

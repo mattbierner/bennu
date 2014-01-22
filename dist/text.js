@@ -11,28 +11,30 @@ define(["require", "exports", "./parse"], (function(require, exports, __o) {
         ExpectError = __o["ExpectError"],
         next = __o["next"],
         Parser = __o["Parser"],
-        token = __o["token"];
-    var character, characters, string, trie, match, anyChar, letter, space, digit;
-    var join = Function.prototype.call.bind(Array.prototype.join);
-    var map = Function.prototype.call.bind(Array.prototype.map);
-    var reduce = Function.prototype.call.bind(Array.prototype.reduce);
-    var reduceRight = Function.prototype.call.bind(Array.prototype.reduceRight);
-    var expectError = (function(msg) {
-        return (function(pos, tok) {
-            return new(ExpectError)(pos, msg, ((tok === null) ? "end of input" : tok));
+        token = __o["token"],
+        character, characters, string, trie, match, anyChar, letter, space, digit, join = Function.prototype.call
+            .bind(Array.prototype.join),
+        map = Function.prototype.call.bind(Array.prototype.map),
+        reduce = Function.prototype.call.bind(Array.prototype.reduce),
+        reduceRight = Function.prototype.call.bind(Array.prototype.reduceRight),
+        expectError = (function(msg) {
+            return (function(pos, tok) {
+                return new(ExpectError)(pos, msg, ((tok === null) ? "end of input" : tok));
+            });
+        }),
+        StringError = (function(position, string, index, expected, found) {
+            var self = this;
+            ExpectError.call(self, position, expected, found);
+            (self.string = string);
+            (self.index = index);
         });
-    });
-    var StringError = (function(position, string, index, expected, found) {
-        ExpectError.call(this, position, expected, found);
-        (this.string = string);
-        (this.index = index);
-    });
     (StringError.prototype = new(ExpectError)());
     (StringError.prototype.constructor = StringError);
     Object.defineProperty(StringError.prototype, "errorMessage", ({
         "get": (function() {
-            return ((((((("In string:'" + this.string) + "' at index:") + this.index) +
-                ", Expected:") + this.expected) + " Found:") + (this.found ? this.found :
+            var self = this;
+            return ((((((("In string:'" + self.string) + "' at index:") + self.index) +
+                ", Expected:") + self.expected) + " Found:") + (self.found ? self.found :
                 "end of input"));
         })
     }));
@@ -60,46 +62,40 @@ define(["require", "exports", "./parse"], (function(require, exports, __o) {
             });
         return token(pred, expectError(join(chars, " or ")));
     }));
-    (string = (function() {
-            var reducer = (function(p, c, i, s) {
-                return next(_character(c, (function(pos, tok) {
-                    return new(StringError)(pos, s, i, c, tok);
-                })), p);
-            });
-            return (function(s) {
-                return attempt(reduceRight(s, reducer, always((s + ""))));
-            });
-        })
-        .call(this));
-    (trie = (function() {
-            var wordReduce = (function(parent, l) {
-                (parent[l] = (parent[l] || ({})));
-                return parent[l];
-            }),
-                wordsReduce = (function(trie, word) {
-                    var node = reduce(word, wordReduce, trie);
-                    (node[""] = word);
-                    return trie;
-                }),
-                makeTrie = (function(words) {
-                    return reduce(words, wordsReduce, ({}));
-                }),
-                _trie = (function(trie) {
-                    var keys = Object.keys(trie),
-                        paths = reduce(keys, (function(p, c) {
-                            if (c.length)(p[c] = _trie(trie[c]));
-                            return p;
-                        }), ({})),
-                        select = attempt(bind(characters(keys), (function(x) {
-                            return paths[x];
-                        })));
-                    return (trie.hasOwnProperty("") ? either(select, always(trie[""])) : select);
-                });
-            return (function(words) {
-                return attempt(_trie(makeTrie(words), ""));
-            });
-        })
-        .call(this));
+    var reducer = (function(p, c, i, s) {
+        return next(_character(c, (function(pos, tok) {
+            return new(StringError)(pos, s, i, c, tok);
+        })), p);
+    });
+    (string = (function(s) {
+        return attempt(reduceRight(s, reducer, always((s + ""))));
+    }));
+    var wordReduce = (function(parent, l) {
+        (parent[l] = (parent[l] || ({})));
+        return parent[l];
+    }),
+        wordsReduce = (function(trie, word) {
+            var node = reduce(word, wordReduce, trie);
+            (node[""] = word);
+            return trie;
+        }),
+        makeTrie = (function(words) {
+            return reduce(words, wordsReduce, ({}));
+        }),
+        _trie = (function(trie) {
+            var keys = Object.keys(trie),
+                paths = reduce(keys, (function(p, c) {
+                    if (c.length)(p[c] = _trie(trie[c]));
+                    return p;
+                }), ({})),
+                select = attempt(bind(characters(keys), (function(x) {
+                    return paths[x];
+                })));
+            return (trie.hasOwnProperty("") ? either(select, always(trie[""])) : select);
+        });
+    (trie = (function(words) {
+        return attempt(_trie(makeTrie(words), ""));
+    }));
     (match = (function(pattern, expected) {
         return token(RegExp.prototype.test.bind(pattern), expectError(expected));
     }));

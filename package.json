@@ -1,6 +1,6 @@
 {
     "name": "bennu",
-    "version": "16.1.0",
+    "version": "16.1.1",
     "description": "Parser Combinator Library",
     "author": "Matt Bierner",
     "license": "MIT",
@@ -14,17 +14,16 @@
         "combinator",
         "combinatory",
         "combinatory parsing",
-        "functional"
-    ],
+        "functional"],
 
     "main": "index.js",
     "directories": {
-        "lib": "dist_node"
+        "lib": "dist_node/"
     },
     "files": [
         "dist_node/",
-        "dependencies",
-        "lib",
+        "dependencies/",
+        "lib/",
         "tests/",
         "index.js",
         "test.js"

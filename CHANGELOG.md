@@ -1,6 +1,10 @@
 # ChangeLog #
 
-## 16.1.6 - Jan 20, 2014
+## 16.1.1 - Jan 22, 2014
+* Fixed certain edge cases creating large a stack.
+* Fixed `Parser` called on existing parser being an error.
+
+## 16.1.0 - Jan 20, 2014
 * Added node package.
 
 ## 16.0.6 - December 16, 2013

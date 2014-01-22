@@ -45,30 +45,30 @@ in {
  ******************************************************************************/
 // Request
 ////////////////////////////////////////
-var Request = function(chunk, k) {
-    this.chunk = chunk;
-    this.k = k;
+var Request = function\(chunk, k) =self-> {
+    self.chunk = chunk;
+    self.k = k;
 };
 
 // Session
 ////////////////////////////////////////
-var Session = function(done, k, chunks) {
-    this.done = done;
-    this.k = k;
-    this.chunks = chunks;
+var Session = function\(done, k, chunks) =self-> {
+    self.done = done;
+    self.k = k;
+    self.chunks = chunks;
 };
 
-Session.prototype.addChunk = \c ->
+Session.prototype.addChunk = \c =self->
     new Session(
-        this.done,
-        this.k,
-        this.chunks.concat(c));
+        self.done,
+        self.k,
+        self.chunks.concat(c));
 
-Session.prototype.hasChunk = \c ->
-    (c < this.chunks.length);
+Session.prototype.hasChunk = \c =self->
+    (c < self.chunks.length);
 
-Session.prototype.getChunk = \c ->
-    this.chunks[c];
+Session.prototype.getChunk = \c =self->
+    self.chunks[c];
 
 /* IncrementalState
  ******************************************************************************/
@@ -80,38 +80,38 @@ Session.prototype.getChunk = \c ->
  * @param chunk Identifier for the chunk the state is currently operating on.
  * @param state Inner parser state.
  */
-var IncrementalState = function(chunk, state) {
-    this.chunk = chunk;
-    this.state = state;
+var IncrementalState = function\(chunk, state) =self-> {
+    self.chunk = chunk;
+    self.state = state;
 };
 
 Object.defineProperties(IncrementalState.prototype, {
     'input': {
-        'get': \() -> this.state.input
+        'get': \() =self-> self.state.input
     },
     'position': {
-        'get': \() -> this.state.position
+        'get': \() =self-> self.state.position
     },
     'userState': {
-        'get': \() -> this.state.userState
+        'get': \() =self-> self.state.userState
     }
 });
 
-IncrementalState.prototype.eq = \other ->
-    other && other.chunk === this.chunk && this.state.eq(other.state);
+IncrementalState.prototype.eq = \other =self->
+    other && other.chunk === self.chunk && self.state.eq(other.state);
 
-IncrementalState.prototype.isEmpty = \() ->
-    this.state.isEmpty();
+IncrementalState.prototype.isEmpty = \() =self->
+    self.state.isEmpty();
 
-IncrementalState.prototype.first = \() ->
-    this.state.first();
+IncrementalState.prototype.first = \() =self->
+    self.state.first();
 
-IncrementalState.prototype.next = \x -> {
-    if (!this._next) {
-        var chunk = this.chunk;
+IncrementalState.prototype.next = \x =self-> {
+    if (!self._next) {
+        var chunk = self.chunk;
         
-        this._next = bind(
-            next(this.state.next(x), getParserState),
+        self._next = bind(
+            next(self.state.next(x), getParserState),
             \innerState ->
                 (innerState.isEmpty() ?
                     \_, m, cok ->
@@ -121,23 +121,23 @@ IncrementalState.prototype.next = \x -> {
                     let state = new IncrementalState(chunk, innerState) in
                         \_, m, cok -> cok(x, state, m)));
     }
-    return this._next;
+    return self._next;
 };
 
-IncrementalState.prototype.setInput = \input ->
+IncrementalState.prototype.setInput = \input =self->
     new IncrementalState(
-        this.chunk,
-        this.state.setInput(input));
+        self.chunk,
+        self.state.setInput(input));
 
-IncrementalState.prototype.setPosition = \position ->
+IncrementalState.prototype.setPosition = \position =self->
     new IncrementalState(
-        this.chunk,
-        this.state.setPosition(position));
+        self.chunk,
+        self.state.setPosition(position));
 
-IncrementalState.prototype.setUserState = \userState ->
+IncrementalState.prototype.setUserState = \userState =self->
     new IncrementalState(
-        this.chunk,
-        this.state.setUserState(userState));
+        self.chunk,
+        self.state.setUserState(userState));
 
 /* Operations
  ******************************************************************************/
@@ -277,7 +277,7 @@ runInc = \p ud ->
  * 
  * @return Lazy stream of results.
  */
-runManyState = \p state -> let
+runManyState = \p state toEnd -> let
     manyP = optional(NIL,
         \state m cok cerr eok eerr ->
             new Tail(p, state, m,
