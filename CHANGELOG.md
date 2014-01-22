@@ -1,6 +1,6 @@
 # ChangeLog #
 
-## 16.1.1 - Jan 22, 2014
+## 16.1.2 - Jan 22, 2014
 * Fixed certain edge cases creating large a stack.
 * Fixed `Parser` called on existing parser being an error.
 
