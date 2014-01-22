@@ -563,9 +563,9 @@ bind = \p f  ->
         new Tail(p,
             state,
             m,
-            \x, state, m -> f(x)(state, m, cok, cerr, cok, cerr),
+            \x, state, m -> new Tail(f(x), state, m, cok, cerr, cok, cerr),
             cerr,
-            \x, state, m -> f(x)(state, m, cok, cerr, eok, eerr),
+            \x, state, m -> new Tail(f(x), state, m, cok, cerr, eok, eerr),
             eerr);
 
 // State Interaction Parsers

@@ -278,9 +278,9 @@ Object.defineProperty(ExpectError.prototype, "errorMessage", ({
 (bind = (function(p, f) {
     return (function BIND(state, m, cok, cerr, eok, eerr) {
         return new(Tail)(p, state, m, (function(x, state, m) {
-            return f(x)(state, m, cok, cerr, cok, cerr);
+            return new(Tail)(f(x), state, m, cok, cerr, cok, cerr);
         }), cerr, (function(x, state, m) {
-            return f(x)(state, m, cok, cerr, eok, eerr);
+            return new(Tail)(f(x), state, m, cok, cerr, eok, eerr);
         }), eerr);
     });
 }));
