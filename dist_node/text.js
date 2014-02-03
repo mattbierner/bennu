@@ -39,27 +39,30 @@ Object.defineProperty(StringError.prototype, "errorMessage", ({
 }));
 var _character = (function() {
     var pred = (function(l) {
-        var x = l.valueOf();
-        return (function(r) {
-            return (x === r.valueOf());
-        });
+        return (function() {
+            var x = l.valueOf();
+            return (function(r) {
+                return (x === r.valueOf());
+            });
+        })();
     });
     return (function(c, err) {
         return token(pred(c), err);
     });
-})
-    .call(this);
+})();
 (character = (function(c) {
     return _character(c, expectError(c));
 }));
 (characters = (function(chars) {
-    var lookup = map(chars, (function(x) {
-        return x.valueOf();
-    })),
-        pred = (function(r) {
-            return (lookup.indexOf(r.valueOf()) !== -1);
-        });
-    return token(pred, expectError(join(chars, " or ")));
+    return (function() {
+        var lookup = map(chars, (function(x) {
+            return x.valueOf();
+        })),
+            pred = (function(r) {
+                return (lookup.indexOf(r.valueOf()) >= 0);
+            });
+        return token(pred, expectError(join(chars, " or ")));
+    })();
 }));
 var reducer = (function(p, c, i, s) {
     return next(_character(c, (function(pos, tok) {
@@ -82,15 +85,17 @@ var wordReduce = (function(parent, l) {
         return reduce(words, wordsReduce, ({}));
     }),
     _trie = (function(trie) {
-        var keys = Object.keys(trie),
-            paths = reduce(keys, (function(p, c) {
-                if (c.length)(p[c] = _trie(trie[c]));
-                return p;
-            }), ({})),
-            select = attempt(bind(characters(keys), (function(x) {
-                return paths[x];
-            })));
-        return (trie.hasOwnProperty("") ? either(select, always(trie[""])) : select);
+        return (function() {
+            var keys = Object.keys(trie),
+                paths = reduce(keys, (function(p, c) {
+                    if (c.length)(p[c] = _trie(trie[c]));
+                    return p;
+                }), ({})),
+                select = attempt(bind(characters(keys), (function(x) {
+                    return paths[x];
+                })));
+            return (trie.hasOwnProperty("") ? either(select, always(trie[""])) : select);
+        })();
     });
 (trie = (function(words) {
     return attempt(_trie(makeTrie(words), ""));

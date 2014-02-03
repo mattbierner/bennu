@@ -30,7 +30,7 @@ var reduceRight = Function.prototype.call.bind(Array.prototype.reduceRight);
 
 var expectError = \msg ->
     \pos tok ->
-        new ExpectError(pos, msg, (tok === null ? "end of input" : tok));
+        new ExpectError(pos, msg, ?tok === null :"end of input" :tok);
 
 /* Errors
  ******************************************************************************/
@@ -42,19 +42,19 @@ var expectError = \msg ->
  * @oaram expected Expected value.
  * @param [found] Found value.
  */
-var StringError = function\(position, string, index, expected, found) =self-> {
+var StringError = function \position, string, index, expected, found =self-> {
     ExpectError.call(self, position, expected, found);
     self.string = string;
     self.index = index;
 };
-StringError.prototype = new ExpectError;
+StringError.prototype = new ExpectError();
 StringError.prototype.constructor = StringError;
 
 Object.defineProperty(StringError.prototype, 'errorMessage', {
     'get': \() =self->
         "In string:'" + self.string + "' at index:" + self.index +
         ", Expected:" + self.expected +
-        " Found:" + (self.found ? self.found : "end of input")
+        " Found:" + (?self.found :self.found :"end of input")
 });
 
 /* Parsers
@@ -84,7 +84,7 @@ character = \c -> _character(c, expectError(c));
  */
 characters = \chars -> let
     lookup = map(chars, \x -> x.valueOf()),
-    pred = \r -> lookup.indexOf(r.valueOf()) !== -1
+    pred = \r -> lookup.indexOf(r.valueOf()) >= 0
 in
     token(pred, expectError(join(chars, ' or ')));
 
@@ -103,7 +103,7 @@ string = let
                \pos, tok -> new StringError(pos, s, i, c, tok)),
            p)
 in
-    \s -> attempt(reduceRight(s, reducer, always(s + '')));
+    \s -> attempt <| reduceRight(s, reducer, always(s + ''));
 
 /**
  * Parser that matches any string from an array of words using a trie.
@@ -118,12 +118,12 @@ in
  */
 trie = let
     wordReduce = \parent, l -> {
-        parent[l] = (parent[l] || {});
-        return parent[l];
+        parent.(l) = (parent.(l) || {});
+        return parent.(l);
     },
     wordsReduce = \trie, word -> {
         var node = reduce(word, wordReduce, trie);
-        node[''] = word;
+        node.('') = word;
         return trie;
     },
     makeTrie = \words -> reduce(words, wordsReduce, {}),
@@ -131,18 +131,18 @@ trie = let
         keys = Object.keys(trie),
         paths = reduce(keys, \p, c -> {
             if (c.length)
-                p[c] = _trie(trie[c]);
+                p.(c) = _trie(trie.(c));
             return p;
         }, {}),
-        select = attempt <| bind(characters(keys), \x -> paths[x])
+        select = attempt <| bind(characters(keys), \x -> paths.(x))
     in
-        (trie.hasOwnProperty('') ?
-            either(
+        ?trie.hasOwnProperty('')
+            :either(
                 select,
-                always(trie[''])) :
-            select)
+                always(trie.('')))
+            :select
 in
-    \words -> attempt(_trie(makeTrie(words), ''));
+    \words -> attempt <| _trie(makeTrie words, '');
 
 /**
  * Parser that consumes input that matches a regular expression.
@@ -159,25 +159,25 @@ match = \pattern expected ->
 /**
  * Parser that consumes any character.
  */
-anyChar = Parser('Any Character',
-    match(`^.$`, "any character"));
+anyChar = Parser@'Any Character' <|
+    match(`^.$`, "any character");
 
 /**
  * Parser that consumes any letter character.
  */
-letter = Parser('Any Letter',
-    match(`^[a-z]$`i, "any letter character"));
+letter = Parser@'Any Letter' <|
+    match(`^[a-z]$`i, "any letter character");
 
 /**
  * Parser that consumes any space character.
  */
-space = Parser('Any Whitespace',
-    match(`^\s$`i, "any space character"));
+space = Parser@'Any Whitespace' <|
+    match(`^\s$`i, "any space character");
 
 /**
  * Parser that consumes any number character.
  */
-digit = Parser('Any Digit',
-    match(`^[0-9]$`i, "any digit character"));
+digit = Parser@'Any Digit' <|
+    match(`^[0-9]$`i, "any digit character");
 
 }

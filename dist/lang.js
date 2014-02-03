@@ -18,11 +18,10 @@ define(["require", "exports", "nu-stream/stream", "nu-stream/gen", "./parse"], (
         next = __o1["next"],
         optional = __o1["optional"],
         ParserError = __o1["ParserError"],
-        rec = __o1["rec"];
-    var times, atMostTimes, betweenTimes, then, between, sepBy1, sepBy, sepEndBy1, sepEndBy, endBy1, endBy,
-            chainl1, chainl, chainr1, chainr;
-    var _end = always(NIL);
-    var _optionalValueParser = optional.bind(null, NIL);
+        rec = __o1["rec"],
+        times, atMostTimes, betweenTimes, then, between, sepBy1, sepBy, sepEndBy1, sepEndBy, endBy1, endBy,
+            chainl1, chainl, chainr1, chainr, _end = always(NIL),
+        _optionalValueParser = optional.bind(null, NIL);
     (times = (function(f, g) {
         return (function() {
             return f(g.apply(null, arguments));
@@ -52,14 +51,14 @@ define(["require", "exports", "nu-stream/stream", "nu-stream/gen", "./parse"], (
         return (function() {
             return f(g.apply(null, arguments));
         });
-    })(optional.bind(null, NIL), sepBy1));
+    })(_optionalValueParser, sepBy1));
     (sepEndBy1 = (function(sep, p) {
         return rec((function(self) {
             return cons(p, _optionalValueParser(next(sep, _optionalValueParser(self))));
         }));
     }));
     (sepEndBy = (function(sep, p) {
-        return either(sepEndBy1(sep, p), next(optional(null, sep), always(NIL)));
+        return either(sepEndBy1(sep, p), next(_optionalValueParser(sep), _end));
     }));
     (endBy1 = (function(sep, p) {
         return many1(then(p, sep));

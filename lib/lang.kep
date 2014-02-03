@@ -38,9 +38,9 @@ in {
 
 /* Parsers
  ******************************************************************************/
-var _end = always(NIL);
+var _end = always NIL;
 
-var _optionalValueParser = (optional, NIL);
+var _optionalValueParser = optional@NIL;
 
 /**
  * Consume p exactly 'n' times.
@@ -57,11 +57,11 @@ times = repeat \>> enumerations;
  * @param p Parser.
  */
 atMostTimes = \n, p ->
-    (n <= 0 ?
-        _end :
-        _optionalValueParser(
+    ?n <= 0
+        :_end
+        :_optionalValueParser(
             bind(p, \x ->
-                cons(always(x), atMostTimes(n - 1, p)))));
+                cons(always x, atMostTimes(n - 1, p))));
 
 /**
  * Consume 'p' between 'min' and 'max' times.
@@ -83,7 +83,7 @@ betweenTimes = \min, max, p -> {
  */
 then = \p, q ->
     bind(p, \x ->
-        next(q, always(x)));
+        next(q, always x));
 
 /**
  * Consume 'p' between 'open' and 'close', returning 'p' results.
@@ -101,39 +101,43 @@ between = \open, close, p ->
  * If sep succeeds but p fails, does not backtrack.
  */
 sepBy1 = \sep, p -> 
-    cons(p, many(next(sep, p)));
+    cons(p, many <| next(sep, p));
 
 /**
  * Parser that consumes 'p' separated by 'sep' zero or more times.
  */
-sepBy = sepBy1 \>> (optional, NIL);
+sepBy = sepBy1 \>> _optionalValueParser;
 
 /**
  * Parser that consumes 'p' one or more times separated and optional ended by 'sep'.
  */
 sepEndBy1 = \sep, p ->
-    rec(\self ->
-        cons(p, _optionalValueParser(
-            next(sep, _optionalValueParser(self)))));
+    rec <|\ self ->
+        cons(
+            p,
+            _optionalValueParser <| next(
+                sep,
+                _optionalValueParser self));
+
 /**
  * Parser that consumes 'p' zero or more times separated and optional ended by 'sep'.
  */
-sepEndBy = \sep, p ->
+sepEndBy = \sep p ->
     either(
         sepEndBy1(sep, p),
-        next(optional(null, sep), always(NIL)));
+        next(_optionalValueParser sep, _end));
 
 /**
  * Parser that consumes 'p' one or more times separated by 'sep' and ended by 'sep'.
  */
-endBy1 = \sep, p ->
-    many1(then(p, sep));
+endBy1 = \sep p ->
+    many1 <| then(p, sep);
 
 /**
  * Parser that consumes 'p' one or more times separated by 'sep' and ended by 'sep'.
  */
-endBy = \sep, p ->
-    many(then(p, sep));
+endBy = \sep p ->
+    many <| then(p, sep);
 
 /**
  * Parser that consumes 'p' one or more times separated by 'op' and returns 
@@ -141,10 +145,10 @@ endBy = \sep, p ->
  * values.
  */
 chainl1 = \op, p ->
-    bind(p, rec(\self ->
+    bind(p, rec <|\ self ->
         \x ->
             optional(x, bind(op, \f ->
-                bind(p, \y -> self(f(x, y)))))));
+                bind(p, \y -> self(f(x, y))))));
 
 /**
  * Parser that consumes 'p' one or more times separated by 'op' and returns 
@@ -160,10 +164,10 @@ chainl = \op, x, p ->
  * values.
  */
 chainr1 = \op, p ->
-    rec(\self ->
+    rec <|\ self ->
         bind(p, \x ->
             optional(x, bind(op, \f ->
-                bind(self, \y -> always(f(x, y)))))));
+                bind(self, \y -> always <| f(x, y)))));
 
 /**
  * Parser that consumes 'p' zero or more times separated by 'op' and returns 
