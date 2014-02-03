@@ -45,14 +45,14 @@ in {
  ******************************************************************************/
 // Request
 ////////////////////////////////////////
-var Request = function\(chunk, k) =self-> {
+var Request = function \chunk, k =self-> {
     self.chunk = chunk;
     self.k = k;
 };
 
 // Session
 ////////////////////////////////////////
-var Session = function\(done, k, chunks) =self-> {
+var Session = function \done, k, chunks =self-> {
     self.done = done;
     self.k = k;
     self.chunks = chunks;
@@ -68,7 +68,7 @@ Session.prototype.hasChunk = \c =self->
     (c < self.chunks.length);
 
 Session.prototype.getChunk = \c =self->
-    self.chunks[c];
+    self.chunks.(c);
 
 /* IncrementalState
  ******************************************************************************/
@@ -80,7 +80,7 @@ Session.prototype.getChunk = \c =self->
  * @param chunk Identifier for the chunk the state is currently operating on.
  * @param state Inner parser state.
  */
-var IncrementalState = function\(chunk, state) =self-> {
+var IncrementalState = function \chunk, state =self-> {
     self.chunk = chunk;
     self.state = state;
 };
@@ -113,13 +113,13 @@ IncrementalState.prototype.next = \x =self-> {
         self._next = bind(
             next(self.state.next(x), getParserState),
             \innerState ->
-                (innerState.isEmpty() ?
-                    \_, m, cok ->
+                ?innerState.isEmpty()
+                    :\_, m, cok ->
                         new Request(
                             chunk + 1,
-                            \i -> cok(x, new IncrementalState(chunk + 1, innerState.setInput(i)), m)) :
-                    let state = new IncrementalState(chunk, innerState) in
-                        \_, m, cok -> cok(x, state, m)));
+                            \i -> cok(x, new IncrementalState(chunk + 1, innerState.setInput(i)), m))
+                    :let state = new IncrementalState(chunk, innerState) in
+                        \_, m, cok -> cok(x, state, m));
     }
     return self._next;
 };
@@ -154,9 +154,9 @@ var forceProvide = \r c -> {
     while (result instanceof Request && r2.hasChunk(result.chunk))
         result = result.k(r2.getChunk(result.chunk)) |> trampoline;
     
-    return (result instanceof Request ?
-        new Session(false, result.k, r2.chunks) :
-        result);
+    return ?result instanceof Request
+        :new Session(false, result.k, r2.chunks)
+        :result;
 };
 
 /**
@@ -170,9 +170,9 @@ var forceProvide = \r c -> {
  * @return New resumable state for parser after input has been received.
  */
 provide = \r c ->
-    (isEmpty(c) ?
-        r :
-        forceProvide(r, c));
+    ?isEmpty c
+        :r
+        :forceProvide(r, c);
 
 /**
  * Feed an array-like to an incremental parser.
@@ -181,7 +181,7 @@ provide = \r c ->
  * @param input Array like object of input.
  */
 provideString = \r input ->
-    provide(r, streamFrom(input));
+    provide(r, streamFrom input);
 
 /**
  * Signal that an incremental parsing is complete.
@@ -193,7 +193,7 @@ provideString = \r input ->
 finish = let
     complete = \r -> r.k()
 in
-     \r -> complete(forceProvide(r, NIL));
+     \r -> complete <| forceProvide(r, NIL);
 
 /* Incremental Creation
  ******************************************************************************/
@@ -208,8 +208,8 @@ in
  * @return Opaque state object for a partially evaluated parser.
  */
 parseIncState = \p state ok err -> let 
-    pok = \x s -> new Session(true, (ok, x, s)),
-    perr = \x s -> new Session(true, (err, x, s))
+    pok = \x s -> new Session(true, ok@(x, s)),
+    perr = \x s -> new Session(true, err@(x, s))
 in
     provide(
         new Session(
@@ -281,9 +281,9 @@ runManyState = \p state toEnd -> let
     manyP = optional(NIL,
         \state m cok cerr eok eerr ->
             new Tail(p, state, m,
-                \x state m -> cok(memoStream(x, (runState, manyP, state, m))),
+                \x state m -> cok(memoStream(x, runState@(manyP, state, m))),
                 cerr,
-                \x state m -> eok(memoStream(x, (runState, manyP, state, m))),
+                \x state m -> eok(memoStream(x, runState@(manyP, state, m))),
                 eerr))
 in
     runState(manyP, state);
@@ -313,6 +313,6 @@ runManyStream = \p s ud ->
  * @see runManyStream
  */
 runMany = \p input ud ->
-    runManyStream(p, streamFrom(input), ud);
+    runManyStream(p, streamFrom input, ud);
 
 }

@@ -1,7 +1,10 @@
 # ChangeLog #
 
+## 16.1.3 - Feb 3, 2014
+* Made memo frame push and pop constant time.
+
 ## 16.1.2 - Jan 22, 2014
-* Fixed certain edge cases creating large a stack.
+* Fixed certain edge cases creating large stack.
 * Fixed `Parser` called on existing parser being an error.
 
 ## 16.1.0 - Jan 20, 2014

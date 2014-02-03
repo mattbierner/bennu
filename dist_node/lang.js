@@ -52,14 +52,14 @@ var __o = require("nu-stream")["stream"],
     return (function() {
         return f(g.apply(null, arguments));
     });
-})(optional.bind(null, NIL), sepBy1));
+})(_optionalValueParser, sepBy1));
 (sepEndBy1 = (function(sep, p) {
     return rec((function(self) {
         return cons(p, _optionalValueParser(next(sep, _optionalValueParser(self))));
     }));
 }));
 (sepEndBy = (function(sep, p) {
-    return either(sepEndBy1(sep, p), next(optional(null, sep), always(NIL)));
+    return either(sepEndBy1(sep, p), next(_optionalValueParser(sep), _end));
 }));
 (endBy1 = (function(sep, p) {
     return many1(then(p, sep));

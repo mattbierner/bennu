@@ -159,7 +159,7 @@ Memoer.empty = new Memoer(
     seshat.create(
         \x, y -> x.compare(y),
         \x, y -> (x.id === y.id && (x.state === y.state || (x.state && x.state.eq(y.state))))),
-    []);
+    NIL);
 
 /**
  * Push a new window onto the stack.
@@ -167,28 +167,31 @@ Memoer.empty = new Memoer(
 Memoer.pushWindow = \m lower ->
     new Memoer(
         m.memoer,
-        [lower].concat(m.frames));
+        stream.cons(lower, m.frames));
 
 /**
  * Pop the top most window.
  * 
  * Prunes table when possible.
  */
-Memoer.popWindow = \m#{frames} ->
+Memoer.popWindow = \m#{frames} -> let
+    r = rest frames
+in
     new Memoer(
-        (frames.length === 1 ?
-            seshat.prune(m.memoer, frames[0]) :
-            m.memoer),
-        frames.slice(1));
+        ?isEmpty r
+            :seshat.prune(m.memoer, first frames)
+            :m.memoer,
+        r);
 
 /**
  * Prune the table to exclude everything before position.
  */
 Memoer.prune = \m position ->
-    (m.frames.length ? m :
-        new Memoer(
+    ?isEmpty m.frames
+        :new Memoer(
             seshat.prune(m.memoer, position),
-            m.frames));
+            m.frames)
+        :m;
 
 /**
  * Lookup memoized result at `pos` for parser `id`.
@@ -348,7 +351,7 @@ ParseError = function\ position msg =self->{
     self.position = position;
     self._msg = msg;
 };
-ParseError.prototype = new Error;
+ParseError.prototype = new Error();
 ParseError.prototype.constructor = ParseError;
 ParseError.prototype.name = 'ParseError';
 
@@ -368,7 +371,9 @@ Object.defineProperties(ParseError.prototype, {
     'errorMessage': {
         'configurable': true,
         'get': \() =self->
-            (self._msg === undefined ? "" : self._msg)
+            ?self._msg === undefined
+                :""
+                : self._msg
     }
 });
 
@@ -470,9 +475,9 @@ ExpectError.prototype.name = "ExpectError";
 
 Object.defineProperty(ExpectError.prototype, 'errorMessage', {
     'get': \() =self->
-        "Expected:" + self.expected + (self.found ?
-            " Found:" + self.found :
-            "")
+        "Expected:" + self.expected + ?self.found
+            :" Found:" + self.found
+            :""
 });
 
 /* Rec
@@ -517,12 +522,12 @@ rec = \def -> {
  * @param p Parser.
  */
 Parser = \name p ->
-    (p.hasOwnProperty('displayName') ?
-        Parser(name, \args() -> p.apply(undefined, args)) :
-        Object.defineProperty(p, 'displayName', {
+    ?p.hasOwnProperty('displayName')
+        :Parser(name, \args() -> p.apply(undefined, args))
+        :Object.defineProperty(p, 'displayName', {
             'value': name,
             'writable': false
-        }));
+        });
 
 /**
  * Create a recursively defined parser.
@@ -664,19 +669,19 @@ var _fail = \e ->
  * @param {String} [msg] Message for error.
  */
 fail = \msg ->
-    let e = (msg ? ParseError : UnknownError) in
+    let e = ?msg :ParseError :UnknownError in
         _fail(\pos -> new e(pos, msg));
 
 /**
  * Parser that matches end of input.
  */
-eof = (Parser, 'EOF') <| let
-    end = always(NIL)
+eof = Parser@'EOF' <| let
+    end = always NIL
 in
     bind(getParserState, \s ->
-        (s.isEmpty() ?
-            end :
-            _fail(\pos -> new ExpectError(pos, "end of input", s.first()))));
+        ?s.isEmpty()
+            :end
+            :_fail(\pos -> new ExpectError(pos, "end of input", s.first())));
 
 /**
  * Parser that attempts parser `p`. Upon failure, never consumes any input.
@@ -733,7 +738,7 @@ lookahead = \p ->
  * Parse 'p', then 'q'. Return value from 'q'.
  */
 next = \p q ->
-    bind(p, constant(q));
+    bind(p, constant q);
 
 /**
  * Consume a sequence of 1 or more parsers, returning result from last.
@@ -743,7 +748,7 @@ next = \p q ->
  * 
  * @param s Stream of parsers
  */
-sequences = (reduceRight, flip(next));
+sequences = reduceRight@(flip next);
 
 /**
  * Consume a finite sequence of 1 or more parsers, returning result from last.
@@ -783,7 +788,7 @@ either = _either(\pos pErr qErr -> new MultipleError(pos, [pErr, qErr]));
  * 
  * @param s Stream of parsers.
  */
-choices = (foldr,
+choices = foldr@(
     flip(_either(\pos pErr qErr -> new ChoiceError(pos, pErr, qErr))),
     bind(getPosition, \pos -> never(new MultipleError(pos, []))));
 
@@ -808,7 +813,7 @@ choice = args \>> choicea;
  * @return Result of 'p' or default value.
  */
 optional = \x p ->
-    either(p, always(x));
+    either(p, always x);
 
 /**
  * Parser that parses 'p' but if 'p' fails without consuming input, produces
@@ -828,9 +833,9 @@ expected = \expect p ->
 
 // Iterative Parsers
 ////////////////////////////////////////
-var _end = always(NIL);
+var _end = always NIL;
 
-var _optionalValueParser = (optional, NIL);
+var _optionalValueParser = optional@NIL;
 
 var _joinParser = \joiner ->
     \p1 p2 ->
@@ -870,7 +875,7 @@ append = _joinParser(stream.append);
  * 
  * @param s Stream of parsers to consume.
  */
-enumerations = (foldr,
+enumerations = foldr@(
     flip(cons),
     _end);
 
@@ -909,7 +914,7 @@ in
  * 
  * @param p Parser to consume.
  */
-many1 = \p -> cons(p, many(p));
+many1 = \p -> cons(p, many p);
 
 // Token Parsers
 ////////////////////////////////////////
@@ -923,7 +928,7 @@ many1 = \p -> cons(p, many(p));
  */
 token = let
     defaultErr = \pos tok ->
-        new UnexpectError(pos, (tok === null ? "end of input" : tok))
+        new UnexpectError(pos, (?tok === null :"end of input" :tok))
 in
     \consume onErr -> let
         errorHandler = (onErr || defaultErr)
@@ -959,11 +964,11 @@ memo = \p ->
         var key = {'id': p, 'state': state};
         var entry = Memoer.lookup(m, position, key);
         if (entry) {
-            switch (entry[0]) {
-            case 'cok':     return cok(entry[1], entry[2], m);
-            case 'ceerr':   return cerr(entry[1], entry[2], m);
-            case 'eok':     return eok(entry[1], entry[2], m);
-            case 'eerr':    return eerr(entry[1], entry[2], m);
+            switch (entry.(0)) {
+            case 'cok':     return cok(entry.(1), entry.(2), m);
+            case 'ceerr':   return cerr(entry.(1), entry.(2), m);
+            case 'eok':     return eok(entry.(1), entry.(2), m);
+            case 'eerr':    return eerr(entry.(1), entry.(2), m);
             }
         }
         
