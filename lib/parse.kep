@@ -233,11 +233,12 @@ Position.prototype.toString = \() =self-> '' + self.index;
 /**
  * Advanced the position based on a consumed character.
  * 
- * @param tok Token that was consumed.
+ * @param tok Token consumed.
+ * @param rest Rest of stream.
  * 
  * @returns Position after 'tok'.
  */
-Position.prototype.increment = \tok =self-> new Position(self.index + 1);
+Position.prototype.increment = \_ _ =self-> new Position(self.index + 1);
 
 /**
  * Compares two positions.
@@ -290,9 +291,10 @@ ParserState.prototype.first = \() =self-> first(self.input);
  */
 ParserState.prototype.next = \x =self-> {
     if (!self._next) {
+        var r = rest self.input;
         var s = new ParserState(
-            rest(self.input),
-            self.position.increment(x),
+            r,
+            self.position.increment(x, r),
             self.userState);
         self._next = \_, m, cok -> cok(x, s, m);
     }
@@ -597,7 +599,7 @@ getParserState = Parser('Get Parser State',
  * @param s New parser state.
  */
 setParserState = \s ->
-    modifyParserState(constant(s));
+    modifyParserState(constant s);
 
 /**
  * Parser that extracts information from the Parser's current state.
@@ -628,7 +630,7 @@ getState = Parser('Get State',
  * @param s New user parser state.
  */
 setState = \s ->
-    modifyState(constant(s));
+    modifyState(constant s);
 
 /**
  * Parser that gets the current position.
@@ -950,7 +952,7 @@ in
  * Parser that consumes any token.
  */
 anyToken = Parser('Any Token',
-    token(constant(true)));
+    token(constant true));
 
 /* Memo Parsers
  ******************************************************************************/
@@ -1047,7 +1049,7 @@ parse = \p input ud ok err ->
  * @param state Parser state.
  */
 runState = let
-    ok = \x -> x,
+    ok = identity,
     err = \x -> { throw x; }
 in
     \p, state -> parseState(p, state, ok, err);
@@ -1083,8 +1085,8 @@ run = \p input ud ->
  * @return Did the parser successfully run?
  */
 testState = let
-    ok = constant(true),
-    err = constant(false)
+    ok = constant true,
+    err = constant false
 in
     \p, state -> parseState(p, state, ok, err);
 

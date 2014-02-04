@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 16.2.0 - Feb 3, 2014
+* Positions are passed an additional parameter for the rest of the stream after
+  the consumed token.
+
 ## 16.1.3 - Feb 3, 2014
 * Made memo frame push and pop constant time.
 

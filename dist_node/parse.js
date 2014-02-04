@@ -95,7 +95,7 @@ var stream = require("nu-stream")["stream"],
     var self = this;
     return ("" + self.index);
 }));
-(Position.prototype.increment = (function(tok) {
+(Position.prototype.increment = (function(_, _0) {
     var self = this;
     return new(Position)((self.index + 1));
 }));
@@ -124,7 +124,8 @@ var stream = require("nu-stream")["stream"],
 (ParserState.prototype.next = (function(x) {
     var self = this;
     if ((!self._next)) {
-        var s = new(ParserState)(rest(self.input), self.position.increment(x), self.userState);
+        var r = rest(self.input),
+            s = new(ParserState)(r, self.position.increment(x, r), self.userState);
         (self._next = (function(_, m, cok) {
             return cok(x, s, m);
         }));
@@ -569,9 +570,7 @@ var defaultErr = (function(pos, tok) {
 (parse = (function(p, input, ud, ok, err) {
     return parseStream(p, stream.from(input), ud, ok, err);
 }));
-var ok = (function(x) {
-    return x;
-}),
+var ok = identity,
     err = (function(x) {
         throw x;
     });
