@@ -137,17 +137,15 @@ var complete = (function(r) {
     return complete(forceProvide(r, NIL));
 }));
 (parseIncState = (function(p, state, ok, err) {
-    return (function() {
-        var pok = (function(x, s) {
-            return new(Session)(true, ok.bind(null, x, s));
-        }),
-            perr = (function(x, s) {
-                return new(Session)(true, err.bind(null, x, s));
-            });
-        return provide(new(Session)(false, (function(i) {
-            return parseState(p, new(IncrementalState)(0, state.setInput(i)), pok, perr);
-        }), []), state.input);
-    })();
+    var pok = (function(x, s) {
+        return new(Session)(true, ok.bind(null, x, s));
+    }),
+        perr = (function(x, s) {
+            return new(Session)(true, err.bind(null, x, s));
+        });
+    return provide(new(Session)(false, (function(i) {
+        return parseState(p, new(IncrementalState)(0, state.setInput(i)), pok, perr);
+    }), []), state.input);
 }));
 (parseInc = (function(p, ud, ok, err) {
     return parseIncState(p, new(ParserState)(NIL, Position.initial, ud), ok, err);
@@ -165,16 +163,14 @@ var ok = (function(x) {
     return runIncState(p, new(ParserState)(NIL, Position.initial, ud));
 }));
 (runManyState = (function(p, state, toEnd) {
-    return (function() {
-        var manyP = optional(NIL, (function(state, m, cok, cerr, eok, eerr) {
-            return new(Tail)(p, state, m, (function(x, state, m) {
-                return cok(memoStream(x, runState.bind(null, manyP, state, m)));
-            }), cerr, (function(x, state, m) {
-                return eok(memoStream(x, runState.bind(null, manyP, state, m)));
-            }), eerr);
-        }));
-        return runState(manyP, state);
-    })();
+    var manyP = optional(NIL, (function(state, m, cok, cerr, eok, eerr) {
+        return new(Tail)(p, state, m, (function(x, state, m) {
+            return cok(memoStream(x, runState.bind(null, manyP, state, m)));
+        }), cerr, (function(x, state, m) {
+            return eok(memoStream(x, runState.bind(null, manyP, state, m)));
+        }), eerr);
+    }));
+    return runState(manyP, state);
 }));
 (runManyStream = (function(p, s, ud) {
     return runManyState(p, new(ParserState)(s, Position.initial, ud));

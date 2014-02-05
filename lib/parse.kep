@@ -219,7 +219,7 @@ Memoer.update = \m pos id val ->
  * 
  * Simply tracks the index in the input.
  */
-Position = function\ i =self-> {
+Position = function \i =self-> {
     self.index = i;
 };
 
@@ -349,7 +349,7 @@ ParserError.prototype.name = 'ParserError';
  * @param position Position of error.
  * @param [msg] Error message.
  */
-ParseError = function\ position msg =self->{
+ParseError = function \position msg =self->{
     self.position = position;
     self._msg = msg;
 };
@@ -387,8 +387,8 @@ Object.defineProperties(ParseError.prototype, {
  * @params position Position of errors.
  * @params [errors] Array like object containing zero or more ParseErrors.
  */
-MultipleError = function\position, errors =self-> {
-    ParseError.call(self, position);
+MultipleError = function \position, errors =self-> {
+    self.position = position;
     self.errors = (errors || []);
 };
 MultipleError.prototype = new ParseError();
@@ -407,8 +407,8 @@ Object.defineProperty(MultipleError.prototype, 'errorMessage', {
  * 
  * Defers merging errors until actually needed.
  */
-var ChoiceError = function\position, pErr, qErr =self-> {
-    ParseError.call(self, position);
+var ChoiceError = function \position, pErr, qErr =self-> {
+    self.position = position;
     self._pErr = pErr;
     self._qErr = qErr;
 };
@@ -427,8 +427,8 @@ Object.defineProperty(ChoiceError.prototype, 'errors', {
  * 
  * @param position Position of error.
  */
-UnknownError = function\position =self-> {
-    ParseError.call(self, position);
+UnknownError = function \position =self-> {
+    self.position = position;
 };
 UnknownError.prototype = new ParseError();
 UnknownError.prototype.constructor = UnknownError;
@@ -445,8 +445,8 @@ Object.defineProperty(UnknownError.prototype, 'errorMessage', {
  * @param position Position of error.
  * @param unexpected Found value.
  */
-UnexpectError = function\ position, unexpected =self-> {
-    ParseError.call(self, position);
+UnexpectError = function \position, unexpected =self-> {
+    self.position = position;
     self.unexpected = unexpected;
 };
 UnexpectError.prototype = new ParseError();
@@ -466,8 +466,8 @@ Object.defineProperty(UnexpectError.prototype, 'errorMessage', {
  * @oaram expected Expected value.
  * @param [found] Found value.
  */
-ExpectError = function\position, expected, found =self-> {
-    ParseError.call(self, position);
+ExpectError = function \position, expected, found =self-> {
+    self.position = position;
     self.expected = expected;
     self.found = found;
 };
@@ -715,8 +715,8 @@ look = \p ->
         \state ->
             bind(p, \x ->
                 next(
-                    setParserState(state),
-                    always(x)))));
+                    setParserState state,
+                    always x))));
 
 /**
  * Run `p` but restore old input and position.
@@ -730,9 +730,9 @@ lookahead = \p ->
         \input, pos ->
             bind(p, \x ->
                 sequence(
-                    setPosition(pos),
-                    setInput(input),
-                    always(x)))));
+                    setPosition pos,
+                    setInput input,
+                    always x))));
 
 // Combinitorial Parsers
 ////////////////////////////////////////
@@ -772,7 +772,7 @@ var _either = \e ->
         function EITHER \state#{position} m cok cerr eok eerr -> let 
             peerr = \errFromP, _, mFromP -> let
                 qeerr = \errFromQ, _, mFromQ ->
-                    eerr(e(position, errFromP, errFromQ), state, mFromQ)
+                    new Tail(eerr, e(position, errFromP, errFromQ), state, mFromQ)
             in
                 new Tail(q, state, mFromP, cok, cerr, eok, qeerr)
         in

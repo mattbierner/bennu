@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 16.2.1 - Feb 4, 2014
+* Improved performance of Error objects.
+
 ## 16.2.0 - Feb 3, 2014
 * Positions are passed an additional parameter for the rest of the stream after
   the consumed token.
