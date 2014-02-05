@@ -139,7 +139,7 @@ trie = let
         ?trie.hasOwnProperty('')
             :either(
                 select,
-                always(trie.('')))
+                always trie.(''))
             :select
 in
     \words -> attempt <| _trie(makeTrie words, '');
