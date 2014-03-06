@@ -18,6 +18,7 @@ with
         attempt
         bind
         either
+        expected
         ExpectError
         next
         label
@@ -60,8 +61,13 @@ Object.defineProperty(StringError.prototype, 'errorMessage', {
 
 /* Parsers
  ******************************************************************************/
+var unbox := (+, '');
+
+var has = \a x ->
+    a.indexOf(unbox x) >= 0;
+
 var _character = let
-    pred = \l -> let x = l.valueOf() in \r -> (x === r.valueOf())
+    pred = \l -> let x = unbox l in \r -> (x === unbox r)
 in
     \c err -> token(pred(c), err);
 
@@ -80,22 +86,23 @@ character = \c -> _character(c, expectError(c));
  * Attempts to unbox primitive object boxes.
  */
 oneOf = \chars -> let
-    lookup = map(chars, \x -> x.valueOf()),
-    pred = \r -> lookup.indexOf(r.valueOf()) >= 0
+    chars = map(chars, unbox)
 in
-    token(pred, expectError(join(chars, ' or ')));
+    token(
+        has@chars,
+        expectError(join(chars, ' or ')));
 
 /**
  * Parser that consumes any character not in `chars`
  * 
  * Attempts to unbox primitive object boxes.
-
  */
 noneOf = \chars -> let
-    lookup = map(chars, \x -> x.valueOf()),
-    pred = \r -> lookup.indexOf(r.valueOf()) === --1
+    chars = map(chars, unbox)
 in
-    token(pred, expectError('none of:' + join(chars, ' or ')));
+    token(
+        (!) <\ has@chars,
+        expectError('none of:' + join(chars, ' or ')));
 
 /**
  * Consumes string `s`.

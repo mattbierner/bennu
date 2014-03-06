@@ -7,11 +7,12 @@
         attempt = __o["attempt"],
         bind = __o["bind"],
         either = __o["either"],
+        expected = __o["expected"],
         ExpectError = __o["ExpectError"],
         next = __o["next"],
         label = __o["label"],
         token = __o["token"],
-        character, oneOf, noneOf, string, trie, match, anyChar, letter, space, digit, pred, join = Function.prototype
+        character, oneOf, noneOf, string, trie, match, anyChar, letter, space, digit, x, pred, join = Function.prototype
             .call.bind(Array.prototype.join),
         map = Function.prototype.call.bind(Array.prototype.map),
         reduce = Function.prototype.call.bind(Array.prototype.reduce),
@@ -37,34 +38,36 @@
                 "end of input"));
         })
     }));
-    var _character = ((pred = (function(l) {
-        var x = l.valueOf();
-        return (function(r) {
-            return (x === r.valueOf());
-        });
-    })), (function(c, err) {
-        return token(pred(c), err);
-    }));
+    var unbox = ((x = ""), (function(y) {
+        return (x + y);
+    })),
+        has = (function(a, x) {
+            return (a.indexOf(unbox(x)) >= 0);
+        }),
+        _character = ((pred = (function(l) {
+            var x = unbox(l);
+            return (function(r) {
+                return (x === unbox(r));
+            });
+        })), (function(c, err) {
+            return token(pred(c), err);
+        }));
     (character = (function(c) {
         return _character(c, expectError(c));
     }));
     (oneOf = (function(chars) {
-        var lookup = map(chars, (function(x) {
-            return x.valueOf();
-        })),
-            pred = (function(r) {
-                return (lookup.indexOf(r.valueOf()) >= 0);
-            });
-        return token(pred, expectError(join(chars, " or ")));
+        var chars0 = map(chars, unbox);
+        return token(has.bind(null, chars0), expectError(join(chars0, " or ")));
     }));
     (noneOf = (function(chars) {
-        var lookup = map(chars, (function(x) {
-            return x.valueOf();
-        })),
-            pred = (function(r) {
-                return (lookup.indexOf(r.valueOf()) === -1);
+        var chars0 = map(chars, unbox);
+        return token((function(f, g) {
+            return (function(x) {
+                return f(g(x));
             });
-        return token(pred, expectError(("none of:" + join(chars, " or "))));
+        })((function(x) {
+            return (!x);
+        }), has.bind(null, chars0)), expectError(("none of:" + join(chars0, " or "))));
     }));
     var reducer = (function(p, c, i, s) {
         return next(_character(c, (function(pos, tok) {
