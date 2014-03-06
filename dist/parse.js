@@ -538,7 +538,7 @@
             }));
         })), always(null));
     });
-    (eof = expected("end of input", label.bind(null, "EOF")(notFollowedBy(anyToken))));
+    (eof = expected("end of input", label("EOF", notFollowedBy(anyToken))));
     (map = (function(f, p) {
         return new(Parser)((function(state, m, cok, cerr, eok, eerr) {
             return unparser(p, state, m, (function(f, g) {

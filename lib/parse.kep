@@ -1000,7 +1000,7 @@ var notFollowedBy = \p ->
 /**
  * Matches end of input.
  */
-eof = label@'EOF'
+eof = label@'EOF' <|
     notFollowedBy(anyToken) |> expected@'end of input';
 
 /* Fantasy Land

@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 17.0.2 - March 6, 2014
+* Fixed `eof`
+
 ## 17.0.1 - March 6, 2014
 * Added `late` to resolve a parser on first use.
 
