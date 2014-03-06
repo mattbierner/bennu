@@ -991,17 +991,16 @@ in
 anyToken = label@'Any Token' <|
     token(constant true);
 
-var notFollowedBy = \p ->
-    either(
-        bind(p, \x ->
-            _fail(\pos -> new UnexpectError(pos, x))),
-        always null);
-
 /**
  * Matches end of input.
  */
-eof = label@'EOF' <|
-    notFollowedBy(anyToken) |> expected@'end of input';
+eof = label@'EOF' <| let
+    end = always NIL
+in
+    bind(getParserState, \s ->
+        ?s.isEmpty()
+            :end
+            :_fail\pos -> newExpectError(pos, "end of input", s.first()));
 
 /* Fantasy Land
  ******************************************************************************/
