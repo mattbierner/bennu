@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 17.0.1 - March 6, 2014
+* Added `late` to resolve a parser on first use.
+
 ## 17.0.0 - March 5, 2014
 * Added `Fantasy Land` compatibility.
 ** Allows directly chaining parsers using parser objects `parse.always('x').chain(...)`

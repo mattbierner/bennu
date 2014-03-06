@@ -24,6 +24,7 @@ package (
 // Parser Definition
     Parser
     label
+    late
     rec
     
     unparser
@@ -498,6 +499,8 @@ unparser = \p state m cok cerr eok eerr ->
  ******************************************************************************/
 /**
  * Create a raw parser.
+ * 
+ * This class also has all the FL implementations defined on it.
  */
 Parser = function \n =self-> {
     self.run = n;
@@ -525,6 +528,22 @@ label = \name p ->
             'writable': false
         }));
 
+ /**
+ * Creates a placeholder for a parser that is resolved later.
+ * 
+ * This is useful for circular references when wrapping the entire thing in `rec`
+ * would be annoying.
+ * 
+ * @param def Function that when calls resolves a parser. Will be called once.
+ */
+late = \def -> {
+    var value;
+    return new Parser(\state m cok cerr eok eerr -> {
+        value = value || def();
+        return unparser(value, state, m, cok, cerr, eok, eerr);
+    });
+};
+
 /**
  * Creates a self referential parser.
  * 
@@ -542,12 +561,9 @@ label = \name p ->
  * 
  * @param def Factory function that is passed a reference to the parser being
  *     defined and returns the parser.
- * 
- * @return A parser.
  */
 rec = \def -> {
-    var value = def(new Parser(\state m cok cerr eok eerr ->
-        unparser(value, state, m, cok, cerr, eok, eerr)));
+    var value = def <| late\->value;
     return value;
 };
 
@@ -1031,13 +1047,13 @@ Parser.prototype.concat = \p =self ->
 /* Running
  ******************************************************************************/
 /**
- * Execute a given parser 'p', correctly extracting results.
+ * Execute parser `p`, correctly extracting results.
  */
 exec = \p state m cok cerr eok eerr ->
     trampoline <| unparser(p, state, m, cok, cerr, eok, eerr);
 
 /**
- * Run a parser with a given state and continuations.
+ * Run parser `p` with a given state and continuations.
  * 
  * Returns either the result of one of the continuations or the abrupt result
  * of the parser.

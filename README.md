@@ -10,15 +10,15 @@ can be written more quickly and integrate better with the host language.
 ```
 // Very simple Brainfuck Bennuu parser in Khepri
 
-var op = oneOf '><+-.,';
+var op := oneOf '><+-.,';
 
-var other = many <| noneOf "><+-.,[]"; // Brainfuck ignores any other characters
+var other := many <| noneOf "><+-.,[]"; // Brainfuck ignores any other characters
 
-var block = \body ->
+var block := \body ->
     between(character '[', character ']',
         body);
 
-var program = rec\self -> // allows referencing `program` in parse definition.
+var program := rec\self -> // allows referencing `program` in parse definition.
     next(
         other,                   // consume non BF chars at start,
         eager <| sepEndBy(other, // and between instructions and ending program
@@ -27,8 +27,8 @@ var program = rec\self -> // allows referencing `program` in parse definition.
                 block self)));
 ```
 
-Bennu provides many [Parsec][parsec] parser combinators, along with parser memoization.
-Unmodified bennu parser combinations can also be incrementally run by `bennu`.
+Bennu provides many [Parsec][parsec] parser combinators. Bennu also provides
+functionality like memoization and running unmodified parser combinations incrementally..
 
 
 ### Links

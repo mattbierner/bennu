@@ -11,15 +11,15 @@
         reduceRight = stream["reduceRight"],
         foldr = stream["foldr"],
         Tail, trampoline, ParserError, ParseError, MultipleError, UnknownError, UnexpectError, ExpectError,
-            ParserState, Position, Parser, label, rec, unparser, always, never, bind, extract, getParserState,
-            setParserState, modifyParserState, getState, setState, modifyState, getInput, setInput, getPosition,
-            setPosition, fail, attempt, look, lookahead, next, sequences, sequencea, sequence, either, choices,
-            choicea, choice, optional, expected, eager, binds, cons, append, enumerations, enumerationa,
-            enumeration, many, many1, memo, token, anyToken, eof, empty, ap, concat, map, chain, exec,
-            parseState, parseStream, parse, runState, runStream, run, testState, testStream, test, identity = (
-                function(x) {
-                    return x;
-                }),
+            ParserState, Position, Parser, label, late, rec, unparser, always, never, bind, extract,
+            getParserState, setParserState, modifyParserState, getState, setState, modifyState, getInput,
+            setInput, getPosition, setPosition, fail, attempt, look, lookahead, next, sequences, sequencea,
+            sequence, either, choices, choicea, choice, optional, expected, eager, binds, cons, append,
+            enumerations, enumerationa, enumeration, many, many1, memo, token, anyToken, eof, empty, ap, concat,
+            map, chain, exec, parseState, parseStream, parse, runState, runStream, run, testState, testStream,
+            test, identity = (function(x) {
+                return x;
+            }),
         args = (function() {
             var args = arguments;
             return args;
@@ -258,9 +258,16 @@
             "writable": false
         }))));
     }));
-    (rec = (function(def) {
-        var value = def(new(Parser)((function(state, m, cok, cerr, eok, eerr) {
+    (late = (function(def) {
+        var value;
+        return new(Parser)((function(state, m, cok, cerr, eok, eerr) {
+            (value = (value || def()));
             return unparser(value, state, m, cok, cerr, eok, eerr);
+        }));
+    }));
+    (rec = (function(def) {
+        var value = def(late((function() {
+            return value;
         })));
         return value;
     }));
@@ -625,6 +632,7 @@
     (exports["Position"] = Position);
     (exports["Parser"] = Parser);
     (exports["label"] = label);
+    (exports["late"] = late);
     (exports["rec"] = rec);
     (exports["unparser"] = unparser);
     (exports["always"] = always);
