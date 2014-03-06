@@ -63,10 +63,10 @@ Object.defineProperty(StringError.prototype, 'errorMessage', {
  ******************************************************************************/
 var unbox := (+, '');
 
-var has = \a x ->
+var has := \a x ->
     a.indexOf(unbox x) >= 0;
 
-var _character = let
+var _character := let
     pred = \l -> let x = unbox l in \r -> (x === unbox r)
 in
     \c err -> token(pred(c), err);
@@ -116,10 +116,10 @@ string = let
     reducer = \p c i s ->
        next(
            _character(c,
-               \pos, tok -> new StringError(pos, s, i, c, tok)),
+               \pos tok -> new StringError(pos, s, i, c, tok)),
            p)
 in
-    \s -> attempt <| reduceRight(s, reducer, always(s + ''));
+    \s -> attempt <| reduceRight(s, reducer, always(unbox s));
 
 /**
  * Parser that matches any string from an array of words using a trie.

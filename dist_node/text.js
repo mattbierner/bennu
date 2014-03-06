@@ -74,7 +74,7 @@ var reducer = (function(p, c, i, s) {
     })), p);
 });
 (string = (function(s) {
-    return attempt(reduceRight(s, reducer, always((s + ""))));
+    return attempt(reduceRight(s, reducer, always(unbox(s))));
 }));
 var wordReduce = (function(parent, l) {
     (parent[l] = (parent[l] || ({})));
