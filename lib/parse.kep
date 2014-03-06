@@ -86,6 +86,7 @@ package (
     empty
     ap
     concat
+    of
     map
     chain
     
@@ -490,11 +491,6 @@ Object.defineProperty(ExpectError.prototype, 'errorMessage', {
             :""
 });
 
-/*
- ******************************************************************************/
-unparser = \p state m cok cerr eok eerr ->
-    new Tail(p.run, state, m, cok, cerr, eok, eerr);
-
 /* Parser definition
  ******************************************************************************/
 /**
@@ -505,6 +501,9 @@ unparser = \p state m cok cerr eok eerr ->
 Parser = function \n =self-> {
     self.run = n;
 };
+
+unparser = \p state m cok cerr eok eerr ->
+    new Tail(p.run, state, m, cok, cerr, eok, eerr);
 
 /**
  * Attaches a name for debugging.
@@ -534,7 +533,7 @@ label = \name p ->
  * This is useful for circular references when wrapping the entire thing in `rec`
  * would be annoying.
  * 
- * @param def Function that when calls resolves a parser. Will be called once.
+ * @param def Function that, when called, resolves a parser. Will be called once.
  */
 late = \def -> {
     var value;
@@ -572,7 +571,7 @@ rec = \def -> {
 // Base Parsers
 ////////////////////////////////////////
 /**
- * Succeeds with `x`.
+ * Succeed with `x`.
  * 
  * Consumes no input.
  */
@@ -580,7 +579,7 @@ always = \x ->
     new Parser(\state m _ _ eok _ -> eok(x, state, m));
 
 /**
- * Fails with `x`.
+ * Fail with `x`.
  * 
  * Consumes no input.
  */
@@ -588,7 +587,7 @@ never = \x ->
     new Parser(\state m _ _ _ eerr -> eerr(x, state, m));
 
 /**
- * Parse `p`, passing the results to function 'f' which returns a
+ * Parse `p`, passing the results to function `f` which returns a
  * parser that continues the computation.
  * 
  * @param p Parser.
@@ -643,8 +642,8 @@ extract = \f ->
  *  @param {function(ParserState): *} f Function that transforms that current user state.
  */
 modifyState = \f ->
-    modifyParserState \ state ->
-        state.setUserState(f(state.userState));
+    modifyParserState \ s ->
+        s.setUserState(f(s.userState));
 
 /**
  * Parser that returns the current user state.
@@ -654,35 +653,33 @@ getState = label@'Get State' <|
 
 /**
  * Parser that sets current user parser state to 's'.
- * 
- * @param s New user parser state.
  */
 setState = \s ->
     modifyState(constant s);
 
 /**
- * Parser that gets the current position.
+ * Get the current position.
  */
 getPosition = label@'Get Position' <|
     extract \ s -> s.position;
 
 /**
- * Parser that sets the current position
+ * Set the position.
  */
 setPosition = \position ->
-    modifyParserState(\s -> s.setPosition(position));
+    modifyParserState \ s -> s.setPosition(position);
 
 /**
-  *Parser that gets the current input.
+ * Get the current input.
  */
 getInput = label@'Get Input' <|
     extract \ s -> s.input;
 
 /**
- * Parser that sets the current input.
+ * Set the input.
  */
 setInput = \input ->
-    modifyParserState(\s -> s.setInput(input));
+    modifyParserState \ s -> s.setInput(input);
 
 // Attempt
 ////////////////////////////////////////
@@ -868,13 +865,12 @@ binds = \p f ->
         f.apply(undefined, x));
 
 /**
- * Parser that cons the value result of 'valueParser' onto the stream result
- * of 'streamParser'.
+ * Cons result of a parser onto the stream result of an iterative another.
  */
 cons = liftM2 @ stream.cons;
 
 /**
- * Parser that joins the results of two iterative Parsers
+ * Joins the results of two iterative Parsers
  */
 append = liftM2 @ stream.append;
 
@@ -1030,7 +1026,8 @@ Parser.prototype.chain = \f =self->
     self.constructor.chain(self, f);
 
 // Monad
-Parser.of = always;
+of = always;
+Parser.of = of;
 Parser.prototype.of = Parser.of;
 
 // Monoid
@@ -1048,8 +1045,7 @@ Parser.prototype.concat = \p =self ->
 /**
  * Execute parser `p`, correctly extracting results.
  */
-exec = \p state m cok cerr eok eerr ->
-    trampoline <| unparser(p, state, m, cok, cerr, eok, eerr);
+exec = unparser \>> trampoline;
 
 /**
  * Run parser `p` with a given state and continuations.

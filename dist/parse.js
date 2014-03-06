@@ -16,8 +16,8 @@
             setInput, getPosition, setPosition, fail, attempt, look, lookahead, next, sequences, sequencea,
             sequence, either, choices, choicea, choice, optional, expected, eager, binds, cons, append,
             enumerations, enumerationa, enumeration, many, many1, memo, token, anyToken, eof, empty, ap, concat,
-            map, chain, exec, parseState, parseStream, parse, runState, runStream, run, testState, testStream,
-            test, end, identity = (function(x) {
+            of, map, chain, exec, parseState, parseStream, parse, runState, runStream, run, testState,
+            testStream, test, end, identity = (function(x) {
                 return x;
             }),
         args = (function() {
@@ -242,12 +242,12 @@
             return (("expected:" + self.expected) + (self.found ? (" found:" + self.found) : ""));
         })
     }));
-    (unparser = (function(p, state, m, cok, cerr, eok, eerr) {
-        return new(Tail)(p.run, state, m, cok, cerr, eok, eerr);
-    }));
     (Parser = (function(n) {
         var self = this;
         (self.run = n);
+    }));
+    (unparser = (function(p, state, m, cok, cerr, eok, eerr) {
+        return new(Tail)(p.run, state, m, cok, cerr, eok, eerr);
     }));
     (label = (function(name, p) {
         return (p.run.hasOwnProperty("displayName") ? label(name, new(Parser)((function(p, state, m,
@@ -306,8 +306,8 @@
         }));
     }));
     (modifyState = (function(f) {
-        return modifyParserState((function(state) {
-            return state.setUserState(f(state.userState));
+        return modifyParserState((function(s) {
+            return s.setUserState(f(s.userState));
         }));
     }));
     (getState = label("Get State", extract((function(s) {
@@ -570,7 +570,8 @@
         var self = this;
         return self.constructor.chain(self, f);
     }));
-    (Parser.of = always);
+    (of = always);
+    (Parser.of = of);
     (Parser.prototype.of = Parser.of);
     (empty = fail());
     (Parser.empty = empty);
@@ -581,9 +582,11 @@
         var self = this;
         return self.constructor.concat(self, p);
     }));
-    (exec = (function(p, state, m, cok, cerr, eok, eerr) {
-        return trampoline(unparser(p, state, m, cok, cerr, eok, eerr));
-    }));
+    (exec = (function(f, g) {
+        return (function() {
+            return f(g.apply(null, arguments));
+        });
+    })(trampoline, unparser));
     (parseState = (function(p, state, ok, err) {
         return exec(p, state, Memoer.empty, ok, err, ok, err);
     }));
@@ -676,6 +679,7 @@
     (exports["empty"] = empty);
     (exports["ap"] = ap);
     (exports["concat"] = concat);
+    (exports["of"] = of);
     (exports["map"] = map);
     (exports["chain"] = chain);
     (exports["exec"] = exec);
