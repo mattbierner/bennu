@@ -3,7 +3,8 @@
  */
 package (
     character
-    characters
+    oneOf
+    noneOf
     string
     trie
     match
@@ -19,7 +20,7 @@ with
         either
         ExpectError
         next
-        Parser
+        label
         token}
 in {
 
@@ -62,34 +63,42 @@ Object.defineProperty(StringError.prototype, 'errorMessage', {
 var _character = let
     pred = \l -> let x = l.valueOf() in \r -> (x === r.valueOf())
 in
-    \c, err -> token(pred(c), err);
+    \c err -> token(pred(c), err);
 
 /**
- * Parser that consumes a given character. 
+ * Parser that consumes `c`. 
  * 
  * Attempts to unbox objects.
- * 
- * @param c The char to consume.
  */
 character = \c -> _character(c, expectError(c));
 
 /**
- * Parser that consumes any of a set of character. 
+ * Parser that consumes any of a set of character `chars`. 
  * 
  * Behaves the same as a choice of single characters but more efficient.
  * 
  * Attempts to unbox primitive object boxes.
- * 
- * @param chars Array like of characters.
  */
-characters = \chars -> let
+oneOf = \chars -> let
     lookup = map(chars, \x -> x.valueOf()),
     pred = \r -> lookup.indexOf(r.valueOf()) >= 0
 in
     token(pred, expectError(join(chars, ' or ')));
 
 /**
- * Parser that consumes a given string.
+ * Parser that consumes any character not in `chars`
+ * 
+ * Attempts to unbox primitive object boxes.
+
+ */
+noneOf = \chars -> let
+    lookup = map(chars, \x -> x.valueOf()),
+    pred = \r -> lookup.indexOf(r.valueOf()) === --1
+in
+    token(pred, expectError('none of:' + join(chars, ' or ')));
+
+/**
+ * Consumes string `s`.
  * 
  * This parses all or nothing. Either it matches the string or it fails at the
  * starting location.
@@ -97,7 +106,7 @@ in
  * @param {String} s String, or array like of characters, to consume.
  */
 string = let
-    reducer = \p, c, i, s ->
+    reducer = \p c i s ->
        next(
            _character(c,
                \pos, tok -> new StringError(pos, s, i, c, tok)),
@@ -127,14 +136,14 @@ trie = let
         return trie;
     },
     makeTrie = \words -> reduce(words, wordsReduce, {}),
-    _trie = \trie -> let
+    _trie := \trie -> let
         keys = Object.keys(trie),
         paths = reduce(keys, \p, c -> {
             if (c.length)
                 p.(c) = _trie(trie.(c));
             return p;
         }, {}),
-        select = attempt <| bind(characters(keys), \x -> paths.(x))
+        select = attempt <| bind(oneOf(keys), \x -> paths.(x))
     in
         ?trie.hasOwnProperty('')
             :either(
@@ -159,25 +168,25 @@ match = \pattern expected ->
 /**
  * Parser that consumes any character.
  */
-anyChar = Parser@'Any Character' <|
+anyChar = label@'Any Character' <|
     match(`^.$`, "any character");
 
 /**
  * Parser that consumes any letter character.
  */
-letter = Parser@'Any Letter' <|
+letter = label@'Any Letter' <|
     match(`^[a-z]$`i, "any letter character");
 
 /**
  * Parser that consumes any space character.
  */
-space = Parser@'Any Whitespace' <|
+space = label@'Any Whitespace' <|
     match(`^\s$`i, "any space character");
 
 /**
  * Parser that consumes any number character.
  */
-digit = Parser@'Any Digit' <|
+digit = label@'Any Digit' <|
     match(`^[0-9]$`i, "any digit character");
 
 }

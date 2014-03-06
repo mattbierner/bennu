@@ -1,8 +1,7 @@
 /*
  * THIS FILE IS AUTO GENERATED from 'lib/lang.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var __o = require("nu-stream")["stream"],
     NIL = __o["NIL"],
     __o0 = require("nu-stream")["gen"],
@@ -68,15 +67,13 @@ var __o = require("nu-stream")["stream"],
     return many(then(p, sep));
 }));
 (chainl1 = (function(op, p) {
-    return bind(p, rec((function(self) {
-        return (function(x) {
-            return optional(x, bind(op, (function(f) {
-                return bind(p, (function(y) {
-                    return self(f(x, y));
-                }));
-            })));
-        });
-    })));
+    return bind(p, (function chain(x) {
+        return optional(x, bind(op, (function(f) {
+            return bind(p, (function(y) {
+                return chain(f(x, y));
+            }));
+        })));
+    }));
 }));
 (chainl = (function(op, x, p) {
     return optional(x, chainl1(op, p));
@@ -95,18 +92,18 @@ var __o = require("nu-stream")["stream"],
 (chainr = (function(op, x, p) {
     return optional(x, chainr1(op, p));
 }));
-(exports.times = times);
-(exports.atMostTimes = atMostTimes);
-(exports.betweenTimes = betweenTimes);
-(exports.then = then);
-(exports.between = between);
-(exports.sepBy1 = sepBy1);
-(exports.sepBy = sepBy);
-(exports.sepEndBy1 = sepEndBy1);
-(exports.sepEndBy = sepEndBy);
-(exports.endBy1 = endBy1);
-(exports.endBy = endBy);
-(exports.chainl1 = chainl1);
-(exports.chainl = chainl);
-(exports.chainr1 = chainr1);
-(exports.chainr = chainr);
+(exports["times"] = times);
+(exports["atMostTimes"] = atMostTimes);
+(exports["betweenTimes"] = betweenTimes);
+(exports["then"] = then);
+(exports["between"] = between);
+(exports["sepBy1"] = sepBy1);
+(exports["sepBy"] = sepBy);
+(exports["sepEndBy1"] = sepEndBy1);
+(exports["sepEndBy"] = sepEndBy);
+(exports["endBy1"] = endBy1);
+(exports["endBy"] = endBy);
+(exports["chainl1"] = chainl1);
+(exports["chainl"] = chainl);
+(exports["chainr1"] = chainr1);
+(exports["chainr"] = chainr);

@@ -1,8 +1,7 @@
 /*
  * THIS FILE IS AUTO GENERATED from 'lib/text.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "./parse"], (function(require, exports, __o) {
+*/define(["require", "exports", "./parse"], (function(require, exports, __o) {
     "use strict";
     var always = __o["always"],
         attempt = __o["attempt"],
@@ -10,10 +9,10 @@ define(["require", "exports", "./parse"], (function(require, exports, __o) {
         either = __o["either"],
         ExpectError = __o["ExpectError"],
         next = __o["next"],
-        Parser = __o["Parser"],
+        label = __o["label"],
         token = __o["token"],
-        character, characters, string, trie, match, anyChar, letter, space, digit, join = Function.prototype.call
-            .bind(Array.prototype.join),
+        character, oneOf, noneOf, string, trie, match, anyChar, letter, space, digit, pred, join = Function.prototype
+            .call.bind(Array.prototype.join),
         map = Function.prototype.call.bind(Array.prototype.map),
         reduce = Function.prototype.call.bind(Array.prototype.reduce),
         reduceRight = Function.prototype.call.bind(Array.prototype.reduceRight),
@@ -38,21 +37,18 @@ define(["require", "exports", "./parse"], (function(require, exports, __o) {
                 "end of input"));
         })
     }));
-    var _character = (function() {
-        var pred = (function(l) {
-            var x = l.valueOf();
-            return (function(r) {
-                return (x === r.valueOf());
-            });
+    var _character = ((pred = (function(l) {
+        var x = l.valueOf();
+        return (function(r) {
+            return (x === r.valueOf());
         });
-        return (function(c, err) {
-            return token(pred(c), err);
-        });
-    })();
+    })), (function(c, err) {
+        return token(pred(c), err);
+    }));
     (character = (function(c) {
         return _character(c, expectError(c));
     }));
-    (characters = (function(chars) {
+    (oneOf = (function(chars) {
         var lookup = map(chars, (function(x) {
             return x.valueOf();
         })),
@@ -60,6 +56,15 @@ define(["require", "exports", "./parse"], (function(require, exports, __o) {
                 return (lookup.indexOf(r.valueOf()) >= 0);
             });
         return token(pred, expectError(join(chars, " or ")));
+    }));
+    (noneOf = (function(chars) {
+        var lookup = map(chars, (function(x) {
+            return x.valueOf();
+        })),
+            pred = (function(r) {
+                return (lookup.indexOf(r.valueOf()) === -1);
+            });
+        return token(pred, expectError(("none of:" + join(chars, " or "))));
     }));
     var reducer = (function(p, c, i, s) {
         return next(_character(c, (function(pos, tok) {
@@ -87,7 +92,7 @@ define(["require", "exports", "./parse"], (function(require, exports, __o) {
                     if (c.length)(p[c] = _trie(trie[c]));
                     return p;
                 }), ({})),
-                select = attempt(bind(characters(keys), (function(x) {
+                select = attempt(bind(oneOf(keys), (function(x) {
                     return paths[x];
                 })));
             return (trie.hasOwnProperty("") ? either(select, always(trie[""])) : select);
@@ -98,17 +103,18 @@ define(["require", "exports", "./parse"], (function(require, exports, __o) {
     (match = (function(pattern, expected) {
         return token(RegExp.prototype.test.bind(pattern), expectError(expected));
     }));
-    (anyChar = Parser("Any Character", match(/^.$/, "any character")));
-    (letter = Parser("Any Letter", match(/^[a-z]$/i, "any letter character")));
-    (space = Parser("Any Whitespace", match(/^\s$/i, "any space character")));
-    (digit = Parser("Any Digit", match(/^[0-9]$/i, "any digit character")));
-    (exports.character = character);
-    (exports.characters = characters);
-    (exports.string = string);
-    (exports.trie = trie);
-    (exports.match = match);
-    (exports.anyChar = anyChar);
-    (exports.letter = letter);
-    (exports.space = space);
-    (exports.digit = digit);
+    (anyChar = label("Any Character", match(/^.$/, "any character")));
+    (letter = label("Any Letter", match(/^[a-z]$/i, "any letter character")));
+    (space = label("Any Whitespace", match(/^\s$/i, "any space character")));
+    (digit = label("Any Digit", match(/^[0-9]$/i, "any digit character")));
+    (exports["character"] = character);
+    (exports["oneOf"] = oneOf);
+    (exports["noneOf"] = noneOf);
+    (exports["string"] = string);
+    (exports["trie"] = trie);
+    (exports["match"] = match);
+    (exports["anyChar"] = anyChar);
+    (exports["letter"] = letter);
+    (exports["space"] = space);
+    (exports["digit"] = digit);
 }));

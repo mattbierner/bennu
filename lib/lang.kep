@@ -56,7 +56,7 @@ times = repeat \>> enumerations;
  * @param {Number} n Max number of times to consume `p`.
  * @param p Parser.
  */
-atMostTimes = \n, p ->
+atMostTimes = \n p ->
     ?n <= 0
         :_end
         :_optionalValueParser(
@@ -112,7 +112,7 @@ sepBy = sepBy1 \>> _optionalValueParser;
  * Parser that consumes 'p' one or more times separated and optional ended by 'sep'.
  */
 sepEndBy1 = \sep, p ->
-    rec <|\ self ->
+    rec\self ->
         cons(
             p,
             _optionalValueParser <| next(
@@ -144,18 +144,17 @@ endBy = \sep p ->
  * result of left associative application of resulting function from 'op' to 'p'
  * values.
  */
-chainl1 = \op, p ->
-    bind(p, rec <|\ self ->
-        \x ->
-            optional(x, bind(op, \f ->
-                bind(p, \y -> self(f(x, y))))));
+chainl1 = \op p ->
+    bind(p, function chain \x ->
+        optional(x, bind(op, \f ->
+            bind(p, \y -> chain <| f(x, y)))));
 
 /**
  * Parser that consumes 'p' one or more times separated by 'op' and returns 
  * result of left associative application of resulting function from 'op' to 'p'
  * values.
  */
-chainl = \op, x, p ->
+chainl = \op x p ->
     optional(x, chainl1(op, p));
 
 /**
@@ -163,8 +162,8 @@ chainl = \op, x, p ->
  * result of right associative application of resulting function from 'op' to 'p'
  * values.
  */
-chainr1 = \op, p ->
-    rec <|\ self ->
+chainr1 = \op p ->
+    rec\self ->
         bind(p, \x ->
             optional(x, bind(op, \f ->
                 bind(self, \y -> always <| f(x, y)))));
@@ -174,7 +173,7 @@ chainr1 = \op, p ->
  * result of right associative application of resulting function from 'op' to 'p'
  * values.
  */
-chainr = \op, x, p ->
+chainr = \op x p ->
     optional(x, chainr1(op, p));
 
 }

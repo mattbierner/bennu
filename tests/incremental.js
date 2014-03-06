@@ -16,8 +16,14 @@ var ab = parse.either(
 
 exports.simple = function (test) {
     var p = incremental.runInc(ab);
-    test.equal(incremental.finish(incremental.provideString(p, 'a')), 'a');
-    test.equal(incremental.finish(incremental.provideString(p, 'b')), 'b');
+    
+    test.equal(
+        incremental.finish(incremental.provideString('a', p)),
+        'a');
+    
+    test.equal(
+        incremental.finish(incremental.provideString('b', p)),
+        'b');
 
     test.done();
 };
@@ -37,48 +43,60 @@ exports.empty = function (test) {
 
 exports.multiple = function (test) {
     var p = incremental.runInc(parse.eager(parse.many(ab)));
-    test.deepEqual(incremental.finish(incremental.provideString(p, 'a')), ['a']);
-    test.deepEqual(incremental.finish(incremental.provideString(p, 'b')), ['b']);
-    test.deepEqual(incremental.finish(incremental.provideString(p, 'abba')), [
-        'a', 'b', 'b', 'a'
-    ]);
-    test.deepEqual(incremental.finish(incremental.provideString(p, 'babab')), [
-        'b', 'a', 'b', 'a', 'b'
-    ]);
+    
+    test.deepEqual(
+        incremental.finish(incremental.provideString('a', p)),
+        ['a']);
+    
+    test.deepEqual(
+        incremental.finish(incremental.provideString('b', p)),
+        ['b']);
+    
+    test.deepEqual(
+        incremental.finish(incremental.provideString('abba', p)),
+        ['a', 'b', 'b', 'a']);
+    
+    test.deepEqual(incremental.finish(incremental.provideString('babab', p)),
+        ['b', 'a', 'b', 'a', 'b']);
 
     test.done();
 };
 
 exports.multipleProvides = function (test) {
     var p = incremental.runInc(parse.eager(parse.many(ab)));
-    var r = incremental.provideString(p, 'a');
-    test.deepEqual(incremental.finish(incremental.provideString(r, 'a')), ['a',
-        'a'
-    ]);
-    test.deepEqual(incremental.finish(incremental.provideString(r, 'b')), ['a',
-        'b'
-    ]);
+    var r = incremental.provideString('a', p);
+    
+    
+    test.deepEqual(
+        incremental.finish(incremental.provideString('a', r)),
+        ['a', 'a']);
+    
+    test.deepEqual(
+        incremental.finish(incremental.provideString('b', r)),
+        ['a', 'b']);
     test.done();
 };
 
 exports.providesTooMuch = function (test) {
     var p = incremental.runInc(parse.eager(parse.enumeration(a, a, a)));
-    var r = incremental.provideString(p, 'aaaaaa');
-    test.deepEqual(incremental.finish(incremental.provideString(r, 'a')), ['a',
-        'a', 'a'
-    ]);
+    var r = incremental.provideString('aaaaaa', p);
+    
+    test.deepEqual(
+        incremental.finish(incremental.provideString('a', r)),
+        ['a', 'a', 'a']);
+    
     test.done();
 };
 
 exports.providesEmpty = function (test) {
     var p = incremental.runInc(parse.eager(parse.enumeration(a, a, a)));
-    var r = incremental.provideString(p, 'aa');
-    var r1 = incremental.provideString(r, '');
-    var r2 = incremental.provideString(r1, '');
+    var r = incremental.provideString('aa', p);
+    var r1 = incremental.provideString('', r);
+    var r2 = incremental.provideString('', r1);
 
-    test.deepEqual(incremental.finish(incremental.provideString(r2, 'a')), ['a',
-        'a', 'a'
-    ]);
+    test.deepEqual(
+        incremental.finish(incremental.provideString('a', r2)),
+        ['a', 'a', 'a']);
 
     test.done();
 };
@@ -89,8 +107,14 @@ exports.simpleBacktracking = function (test) {
         parse.either(
             parse.attempt(parse.sequence(a, a, a)),
             parse.sequence(a, a, b)));
-    test.deepEqual(incremental.finish(incremental.provideString(p, 'aaa')), 'a');
-    test.deepEqual(incremental.finish(incremental.provideString(p, 'aab')), 'b');
+    
+    test.deepEqual(
+        incremental.finish(incremental.provideString('aaa', p)),
+        'a');
+    
+    test.deepEqual(
+        incremental.finish(incremental.provideString('aab', p)),
+        'b');
 
     test.done();
 };
@@ -100,9 +124,15 @@ exports.backtrackingHalfProvided = function (test) {
         parse.either(
             parse.attempt(parse.sequence(a, a, a)),
             parse.sequence(a, a, b)));
-    var r = incremental.provideString(p, 'aa');
-    test.deepEqual(incremental.finish(incremental.provideString(r, 'a')), 'a');
-    test.deepEqual(incremental.finish(incremental.provideString(r, 'b')), 'b');
+    
+    var r = incremental.provideString('aa', p);
+    
+    test.deepEqual(
+        incremental.finish(incremental.provideString('a', r)),
+        'a');
+    test.deepEqual(
+        incremental.finish(incremental.provideString('b', r)),
+        'b');
 
     test.done();
 };
@@ -113,11 +143,16 @@ exports.backtrackingMultiProvides = function (test) {
         parse.either(
             parse.attempt(parse.sequence(a, a, a)),
             parse.sequence(a, a, b)));
-    var r = incremental.provideString(p, 'a');
-    var r2 = incremental.provideString(r, 'a');
+    var r = incremental.provideString('a', p);
+    var r2 = incremental.provideString('a', r);
 
-    test.deepEqual(incremental.finish(incremental.provideString(r2, 'a')), 'a');
-    test.deepEqual(incremental.finish(incremental.provideString(r2, 'b')), 'b');
+    test.deepEqual(
+        incremental.finish(incremental.provideString('a', r2)),
+        'a');
+    
+    test.deepEqual(
+        incremental.finish(incremental.provideString('b', r2)),
+        'b');
 
     test.done();
 };
@@ -127,11 +162,17 @@ exports.backtrackingEof = function (test) {
         parse.either(
             parse.attempt(parse.sequence(a, a, parse.eof)),
             parse.sequence(a, a, b)));
-    var r = incremental.provideString(p, 'a');
-    var r2 = incremental.provideString(r, 'a');
+    var r = incremental.provideString('a', p);
+    var r2 = incremental.provideString('a', r);
 
-    test.deepEqual(incremental.finish(r2), null);
-    test.deepEqual(incremental.finish(incremental.provideString(r2, 'b')), 'b');
+    test.deepEqual(
+        incremental.finish(r2),
+        null);
+    
+    test.deepEqual(
+        incremental.finish(incremental.provideString('b', r2)),
+        'b');
+    
     test.done();
 };
 exports.backtrackingConsumesThenFails = function (test) {
@@ -144,9 +185,11 @@ exports.backtrackingConsumesThenFails = function (test) {
                 return parse.never('');
             }))),
             parse.sequence(a, a, parse.anyToken)));
-    var r = incremental.provideString(p, 'aa');
+    var r = incremental.provideString('aa', p);
 
-    test.deepEqual(incremental.finish(incremental.provideString(r, 'a')), 'a');
+    test.deepEqual(
+        incremental.finish(incremental.provideString('a', r)),
+        'a');
     test.done();
 };
 
@@ -156,9 +199,10 @@ exports.eof = function (test) {
             parse.eager(parse.enumeration(a, a, a)),
             parse.eof));
 
-    test.deepEqual(incremental.finish(incremental.provideString(p, 'aaa')), [
-        'a', 'a', 'a'
-    ]);
+    test.deepEqual(
+        incremental.finish(incremental.provideString('aaa', p)),
+        ['a', 'a', 'a']);
+    
     test.done();
 };
 
@@ -169,7 +213,7 @@ exports.notEof = function (test) {
             parse.eof));
 
     test.throws(function () {
-        incremental.finish(incremental.provideString(p, 'aaa'));
+        incremental.finish(incremental.provideString('aaa', p));
     });
     test.done();
 };
@@ -180,12 +224,13 @@ exports.multiFeedDoesNotTrifferEof = function (test) {
             parse.eager(parse.enumeration(a, a, a)),
             parse.eof));
 
-    var r = incremental.provideString(p, 'a');
-    var r1 = incremental.provideString(r, 'a');
-    var r2 = incremental.provideString(r1, 'a');
+    var r = incremental.provideString('a', p);
+    var r1 = incremental.provideString('a', r);
+    var r2 = incremental.provideString('a', r1);
 
     test.deepEqual(
-        incremental.finish(r2), ['a', 'a', 'a']);
+        incremental.finish(r2),
+        ['a', 'a', 'a']);
 
     test.done();
 };
@@ -197,9 +242,9 @@ exports.multiFeedDoesNotTriggerEofWithFailure = function (test) {
             parse.eager(parse.enumeration(a, a)),
             parse.eof));
 
-    var r = incremental.provideString(p, 'a');
-    var r1 = incremental.provideString(r, 'a');
-    var r2 = incremental.provideString(r1, 'a');
+    var r = incremental.provideString('a', p);
+    var r1 = incremental.provideString('a', r);
+    var r2 = incremental.provideString('a', r1);
 
     test.throws(function () {
         incremental.finish(r2);
@@ -213,9 +258,8 @@ exports.infSource = function (test) {
         parse.eager(parse_lang.times(3, a)));
 
     test.deepEqual(
-        incremental.finish(incremental.provide(p, gen.repeat(Infinity, 'a'))), [
-            'a', 'a', 'a'
-        ]);
+        incremental.finish(incremental.provide(gen.repeat(Infinity, 'a'), p)),
+        ['a', 'a', 'a']);
 
     test.done();
 };
@@ -229,10 +273,11 @@ exports.startingInput = function (test) {
             parse.Position.initial,
             null));
 
-    var r = incremental.provideString(p, 'b');
-    var r2 = incremental.provideString(r, 'a');
+    var r = incremental.provideString('b', p);
+    var r2 = incremental.provideString('a', r);
     test.deepEqual(
-        incremental.finish(r2), ['a', 'a', 'b', 'a']);
+        incremental.finish(r2),
+        ['a', 'a', 'b', 'a']);
 
     test.done();
 };

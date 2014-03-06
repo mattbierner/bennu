@@ -27,3 +27,28 @@ exports.fail = function(test) {
     test.deepEqual(result, 10);
     test.done();
 };
+
+
+exports.chain = function(test) {
+    test.deepEqual(
+        parse.run(
+            parse.always(3).chain(function(x) {
+                return parse.always(x + 5);
+            }),
+            "abc"),
+        8);
+    
+    test.done();
+};
+
+exports.multi_chain = function(test) {
+    test.deepEqual(
+        parse.run(
+            parse.always(3)
+                .chain(function(x) { return parse.always(x + 5);})
+                .chain(function(x) { return parse.always(x / 2);}),
+            "abc"),
+        4);
+    
+    test.done();
+};

@@ -1,5 +1,13 @@
 # ChangeLog #
 
+## 17.0.0 - March 5, 2014
+* Added `Fantasy Land` compatibility.
+** Allows directly chaining parsers using parser objects `parse.always('x').chain(...)`
+* Added top level `ap` and `empty` and `chain`.
+* Reversed order of incremental functions to allow currying and pipelining.
+* Renamed `characters` to `oneOf`.
+* Added `noneOf`.
+
 ## 16.2.1 - Feb 4, 2014
 * Improved performance of Error objects.
 

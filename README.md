@@ -1,20 +1,48 @@
 # Bennu - Javascript Parser Combinator Library
 
 ## About
-Bennu is a library based on [Parsec][Parsec] for creating [combinatory parsers][CombinatorialParsers].
+Bennu is a Javascript parser combinator library based on [Parsec][Parsec].
 
 Parser combinators allow complex parsers to be created from a set of simple
 building blocks. Compared to other parsing techniques, combinatorial parsers
 can be written more quickly and integrate better with the host language.
 
+```
+// Very simple Brainfuck Bennuu parser in Khepri
+
+var op = oneOf '><+-.,';
+
+var other = many <| noneOf "><+-.,[]"; // Brainfuck ignores any other characters
+
+var block = \body ->
+    between(character '[', character ']',
+        body);
+
+var program = rec\self -> // allows referencing `program` in parse definition.
+    next(
+        other,                   // consume non BF chars at start,
+        eager <| sepEndBy(other, // and between instructions and ending program
+            either(
+                op,
+                block self)));
+```
+
+Bennu provides many [Parsec][parsec] parser combinators, along with parser memoization.
+Unmodified bennu parser combinations can also be incrementally run by `bennu`.
+
+### Links
+* [Documentation][documentation]
+
 ### Examples
+
+* [parse-pn][parse-pn] - Very simple polish notation calculator.
 * [parse-ecma][parse-ecma] - Combinatory parsers for lexing and parsing ECMAScript 5.1
 * [khepri][khepri] - khepri combinatory lexers and parsers.
 * [parse-re][parse-re] - ECMAScript regular expression grammar parser and engine
   using Bennu parser combinators.
-* [parse-pn][parse-pn] - Very simple polish notation calculator.
 * [parse-ecma-incremental][parse-ecma-incremental] - Demonstrates using unmodified
   parsers to incrementally lex ECMAScript.
+
 
 # Using Bennu
 
@@ -23,15 +51,9 @@ can be written more quickly and integrate better with the host language.
     cd bennu
     git submodule update --init
 
-### Dependencies
-* [Nu][nu] 3.1.x - Small functional, lazy stream library.
-* [Seshet][seshet] 0.1.x - Functional memoization utility.
-
-
 ## With Node
-Install:
 
-    npm install bennu
+    $ npm install bennu
 
 Use:
 
@@ -42,30 +64,23 @@ Use:
     var aOrB = parse.either(
         text.character('a'),
         text.character('b'));
-        
+    
     parse.run(aOrB, 'b'); // 'b'
 
 ## With AMD ##
 Include any AMD style module loader and load Bennu:
 
-    <!DOCTYPE html>
-    <html>
-    <head></head>
-    <body>
-        <script type="application/javascript" src="require.js"></script>
-        <script type="application/javascript">
-            requirejs.config({
-                paths: {
-                    'bennu': './dist',
-                    'nu-stream': './dependencies/nu/dist',
-                    'seshet': './dependencies/seshet/lib/seshet'
-                }
-            });
-            require(['bennu/parse'], function(parse) {
-                ...
-            });
-        </script>
-    </body>
+    requirejs.config({
+        paths: {
+            'bennu': './dist',
+            'nu-stream': './dependencies/nu/dist',
+            'seshet': './dependencies/seshet/lib/seshet'
+        }
+    });
+    require(['bennu/parse'], function(parse) {
+        ...
+    });
+
 
 ## Modules ##
 All files live in the top level 'parse' module.
@@ -83,13 +98,36 @@ Combinatory parsers for ordering parsers, like found in a language.
 ### lib/incremental - 'parse/incremental'
 Running parsers incrementally.
 
+
+## Fantasy Land
+<a href="https://github.com/fantasyland/fantasy-land">
+    <img src="https://raw.github.com/fantasyland/fantasy-land/master/logo.png" align="right" width="82px" height="82px" alt="Fantasy Land logo" />
+</a>
+Bennu parsers implement [Fantasy Land's][fs] monad, applicative, monoid and chain interfaces.
+
+This can be used to directly chain parsers using `.` instead of nested function
+calls:
+
+```
+var p = always(digit)
+     .chain(\x ->
+          always(parseInt(x)))
+    .chain(\x->
+        always(x + 5))
+    .chain(\x->
+        always(x / 2));
+
+run(p, '3'); // 4
+```
+
+
 # Code #
 Parse.js is written in Khepri. [Khepri][khepri] is an ECMAScript language
 focused on functional programming that compiles to Javascript.
 The `dist` directory contains the generated js library while the Khepri sources
 are in `lib` directory.
 
-
+[documentation]: https://github.com/mattbierner/bennu/wiki
 [CombinatorialParsers]: http://en.wikipedia.org/wiki/Parser_combinator
 [Parsatron]: https://github.com/youngnh/parsatron
 [Parsec]: http://legacy.cs.uu.nl/daan/parsec.html

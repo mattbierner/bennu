@@ -15,3 +15,12 @@ exports.empty = function(test) {
     
     test.done();
 };
+
+
+
+exports.simple_of = function(test) {
+    test.deepEqual(
+        parse.run(parse.Parser.of(5), "abc"),
+        5);
+    test.done();
+};

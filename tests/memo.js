@@ -25,10 +25,10 @@ exports.simple = function(test) {
 exports.parser = function(test) {
     var g = 0;
     
-    var a = parse.Parser('a', parse.bind(parse_text.character('a'), function(x) {
+    var a = parse.bind(parse_text.character('a'), function(x) {
         g++;
         return parse.always(x);
-    }));
+    });
     
     parse.run(
         parse.either(

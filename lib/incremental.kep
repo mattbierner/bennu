@@ -23,14 +23,14 @@ with
         always
         bind
         getParserState
-        Memoer
         next
         optional
         parseState
+        Parser
         ParserState
         Position
         runState
-        Tail
+        unparser
         trampoline},
     import 'nu-stream::stream' stream#{
         'from': streamFrom
@@ -114,12 +114,12 @@ IncrementalState.prototype.next = \x =self-> {
             next(self.state.next(x), getParserState),
             \innerState ->
                 ?innerState.isEmpty()
-                    :\_, m, cok ->
+                    :new Parser(\_ m cok ->
                         new Request(
                             chunk + 1,
-                            \i -> cok(x, new IncrementalState(chunk + 1, innerState.setInput(i)), m))
+                            \i -> cok(x, new IncrementalState(chunk + 1, innerState.setInput(i)), m)))
                     :let state = new IncrementalState(chunk, innerState) in
-                        \_, m, cok -> cok(x, state, m));
+                        new Parser(\_ m cok -> cok(x, state, m)));
     }
     return self._next;
 };
@@ -144,7 +144,7 @@ IncrementalState.prototype.setUserState = \userState =self->
 /**
  * Always add any chunk passed in, even empty ones.
  */
-var forceProvide = \r c -> {
+var forceProvide = \c r -> {
     if (r.done)
         return r;
     
@@ -164,24 +164,26 @@ var forceProvide = \r c -> {
  * 
  * Will parse as much as possible before returning.
  * 
- * @param r Resumable state
  * @param c Nu stream of input for chunk.
+ * @param r Resumable state
  * 
  * @return New resumable state for parser after input has been received.
  */
-provide = \r c ->
+provide = \c r ->
     ?isEmpty c
         :r
-        :forceProvide(r, c);
+        :forceProvide(c, r);
 
 /**
  * Feed an array-like to an incremental parser.
  * 
- * @param r Resumable state.
  * @param input Array like object of input.
+ * @param r Resumable state.
  */
-provideString = \r input ->
-    provide(r, streamFrom input);
+provideString = \input r ->
+    provide(
+        streamFrom input,
+        r);
 
 /**
  * Signal that an incremental parsing is complete.
@@ -193,7 +195,7 @@ provideString = \r input ->
 finish = let
     complete = \r -> r.k()
 in
-     \r -> complete <| forceProvide(r, NIL);
+    (forceProvide @ NIL) \> complete;
 
 /* Incremental Creation
  ******************************************************************************/
@@ -212,11 +214,11 @@ parseIncState = \p state ok err -> let
     perr = \x s -> new Session(true, err@(x, s))
 in
     provide(
+        state.input,
         new Session(
             false,
             \i -> parseState(p, new IncrementalState(0, state.setInput(i)), pok, perr),
-            []),
-        state.input);
+            []));
 
 /**
  * Begin incrementally parsing `p`.
@@ -272,19 +274,19 @@ runInc = \p ud ->
  * 
  * Result may be an infinite stream.
  * 
- * @param p Parser to run zero or more times.
+ * @param p Parser.
  * @param state State to run parser against.
  * 
  * @return Lazy stream of results.
  */
-runManyState = \p state toEnd -> let
-    manyP = optional(NIL,
-        \state m cok cerr eok eerr ->
-            new Tail(p, state, m,
+runManyState = \p state -> let
+    manyP := optional(NIL,
+        new Parser(\state m cok cerr eok eerr ->
+            unparser(p, state, m,
                 \x state m -> cok(memoStream(x, runState@(manyP, state, m))),
                 cerr,
                 \x state m -> eok(memoStream(x, runState@(manyP, state, m))),
-                eerr))
+                eerr)))
 in
     runState(manyP, state);
 
