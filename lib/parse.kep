@@ -1000,7 +1000,7 @@ in
     bind(getParserState, \s ->
         ?s.isEmpty()
             :end
-            :_fail\pos -> newExpectError(pos, "end of input", s.first()));
+            :_fail\pos -> new ExpectError(pos, "end of input", s.first()));
 
 /* Fantasy Land
  ******************************************************************************/

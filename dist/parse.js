@@ -17,7 +17,7 @@
             sequence, either, choices, choicea, choice, optional, expected, eager, binds, cons, append,
             enumerations, enumerationa, enumeration, many, many1, memo, token, anyToken, eof, empty, ap, concat,
             map, chain, exec, parseState, parseStream, parse, runState, runStream, run, testState, testStream,
-            test, identity = (function(x) {
+            test, end, identity = (function(x) {
                 return x;
             }),
         args = (function() {
@@ -531,14 +531,11 @@
         }));
     }));
     (anyToken = label("Any Token", token(constant(true))));
-    var notFollowedBy = (function(p) {
-        return either(bind(p, (function(x) {
-            return _fail((function(pos) {
-                return new(UnexpectError)(pos, x);
-            }));
-        })), always(null));
-    });
-    (eof = expected("end of input", label("EOF", notFollowedBy(anyToken))));
+    (eof = label("EOF", ((end = always(NIL)), bind(getParserState, (function(s) {
+        return (s.isEmpty() ? end : _fail((function(pos) {
+            return new(ExpectError)(pos, "end of input", s.first());
+        })));
+    })))));
     (map = (function(f, p) {
         return new(Parser)((function(state, m, cok, cerr, eok, eerr) {
             return unparser(p, state, m, (function(f, g) {
