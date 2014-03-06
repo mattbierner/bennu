@@ -1,6 +1,6 @@
 {
     "name": "bennu",
-    "version": "16.2.1",
+    "version": "17.0.0",
     "description": "Parser Combinator Library",
     "author": "Matt Bierner",
     "license": "MIT",
@@ -22,14 +22,13 @@
     },
     "files": [
         "dist_node/",
-        "dependencies/",
         "lib/",
         "tests/",
         "index.js",
         "test.js"
     ],
     "dependencies": {
-        "nu-stream": "3.1.x",
+        "nu-stream": ">=3.1.0",
         "seshet": "0.1.x"
     },
     "devDependencies": {

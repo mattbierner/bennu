@@ -30,6 +30,7 @@ var program = rec\self -> // allows referencing `program` in parse definition.
 Bennu provides many [Parsec][parsec] parser combinators, along with parser memoization.
 Unmodified bennu parser combinations can also be incrementally run by `bennu`.
 
+
 ### Links
 * [Documentation][documentation]
 
@@ -37,7 +38,7 @@ Unmodified bennu parser combinations can also be incrementally run by `bennu`.
 
 * [parse-pn][parse-pn] - Very simple polish notation calculator.
 * [parse-ecma][parse-ecma] - Combinatory parsers for lexing and parsing ECMAScript 5.1
-* [khepri][khepri] - khepri combinatory lexers and parsers.
+* [khepri][khepri] - Khepri language lexers and parsers.
 * [parse-re][parse-re] - ECMAScript regular expression grammar parser and engine
   using Bennu parser combinators.
 * [parse-ecma-incremental][parse-ecma-incremental] - Demonstrates using unmodified
@@ -103,13 +104,13 @@ Running parsers incrementally.
 <a href="https://github.com/fantasyland/fantasy-land">
     <img src="https://raw.github.com/fantasyland/fantasy-land/master/logo.png" align="right" width="82px" height="82px" alt="Fantasy Land logo" />
 </a>
+
 Bennu parsers implement [Fantasy Land's][fs] monad, applicative, monoid and chain interfaces.
 
-This can be used to directly chain parsers using `.` instead of nested function
-calls:
+This can be used to directly `.`  chain parsers instead of nested function calls:
 
 ```
-var p = always(digit)
+var p = digit
      .chain(\x ->
           always(parseInt(x)))
     .chain(\x->
@@ -136,5 +137,4 @@ are in `lib` directory.
 [parse-pn]: https://github.com/mattbierner/parse-pn
 [parse-ecma-incremental]: https://github.com/mattbierner/parse-ecma-incremental
 [khepri]: https://github.com/mattbierner/khepri
-[nu]: https://github.com/mattbierner/nu
 [seshet]: https://github.com/mattbierner/seshet
