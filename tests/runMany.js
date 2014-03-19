@@ -11,14 +11,15 @@ var ab = parse.either(
 
 exports.consumeMany = function (test) {
     test.deepEqual(
-        stream.toArray(incremental.runMany(ab, "abbaab")), ['a', 'b', 'b', 'a',
-            'a', 'b'
-        ]);
+        stream.toArray(
+            incremental.runMany(ab, "abbaab")),
+        ['a', 'b', 'b', 'a', 'a', 'b']);
 
     test.deepEqual(
-        stream.toArray(incremental.runMany(ab, "abbaab abba")), ['a', 'b', 'b',
-            'a', 'a', 'b'
-        ]);
+        stream.toArray(
+            incremental.runMany(ab, "abbaabXabba")),
+        ['a', 'b', 'b', 'a', 'a', 'b']);
+    
     test.done();
 };
 exports.consumeNone = function (test) {

@@ -13,7 +13,6 @@ var __o = require("./parse"),
     ParserState = __o["ParserState"],
     Position = __o["Position"],
     runState = __o["runState"],
-    unparser = __o["unparser"],
     trampoline = __o["trampoline"],
     stream = require("nu-stream")["stream"],
     streamFrom = stream["from"],
@@ -163,12 +162,10 @@ var ok = (function(x) {
     return runIncState(p, new(ParserState)(NIL, Position.initial, ud));
 }));
 (runManyState = (function(p, state) {
-    var manyP = optional(NIL, new(Parser)((function(state, m, cok, cerr, eok, eerr) {
-        return unparser(p, state, m, (function(x, state, m) {
-            return cok(memoStream(x, runState.bind(null, manyP, state, m)));
-        }), cerr, (function(x, state, m) {
-            return eok(memoStream(x, runState.bind(null, manyP, state, m)));
-        }), eerr);
+    var manyP = optional(NIL, bind(p, (function(x) {
+        return new(Parser)((function(state, m, _, _0, eok, _1) {
+            return eok(memoStream(x, runState.bind(null, manyP, state, m)), state, m);
+        }));
     })));
     return runState(manyP, state);
 }));

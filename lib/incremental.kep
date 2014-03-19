@@ -30,7 +30,6 @@ with
         ParserState
         Position
         runState
-        unparser
         trampoline},
     import 'nu-stream::stream' stream#{
         'from': streamFrom
@@ -267,10 +266,9 @@ runInc = \p ud ->
 /* Run Many
  ******************************************************************************/
 /**
- * Run parser 'p' zero or more times to produce a lazy stream of results.
+ * Run parser `p` zero or more times to produce a lazy stream of results.
  * 
- * Similar in operation to the 'many' parser, but is not a
- * combinatorial parser.
+ * Similar in operation to the `many` parser, but this is not a combinatorial parser.
  * 
  * Result may be an infinite stream.
  * 
@@ -281,12 +279,12 @@ runInc = \p ud ->
  */
 runManyState = \p state -> let
     manyP := optional(NIL,
-        new Parser(\state m cok cerr eok eerr ->
-            unparser(p, state, m,
-                \x state m -> cok(memoStream(x, runState@(manyP, state, m))),
-                cerr,
-                \x state m -> eok(memoStream(x, runState@(manyP, state, m))),
-                eerr)))
+        bind(p, \x ->
+            new Parser\state m _ _ eok _ ->
+                eok(
+                    memoStream(x, runState@(manyP, state, m)),
+                    state,
+                    m)))
 in
     runState(manyP, state);
 
