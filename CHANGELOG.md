@@ -1,8 +1,8 @@
 # ChangeLog #
 
 ## 17.0.4 - March 19, 2014
-* Improved human readable error messaging formatting.
 * Fixed V8 related error messaging issue.
+* Improved human readable error messaging formatting.
 
 ## 17.0.3 - March 6, 2014
 * Really Fixed `eof`.

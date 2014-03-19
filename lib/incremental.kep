@@ -110,15 +110,17 @@ IncrementalState.prototype.next = \x =self-> {
         var chunk = self.chunk;
         
         self._next = bind(
-            next(self.state.next(x), getParserState),
+            next(
+                self.state.next(x),
+                getParserState),
             \innerState ->
                 ?innerState.isEmpty()
-                    :new Parser(\_ m cok ->
+                    :new Parser\_ m cok ->
                         new Request(
                             chunk + 1,
-                            \i -> cok(x, new IncrementalState(chunk + 1, innerState.setInput(i)), m)))
-                    :let state = new IncrementalState(chunk, innerState) in
-                        new Parser(\_ m cok -> cok(x, state, m)));
+                            \i -> cok(x, new IncrementalState(chunk + 1, innerState.setInput(i)), m))
+                :let state = new IncrementalState(chunk, innerState) in
+                    new Parser\_ m cok -> cok(x, state, m));
     }
     return self._next;
 };

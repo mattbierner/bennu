@@ -1,6 +1,6 @@
 {
     "name": "bennu",
-    "version": "17.0.3",
+    "version": "17.0.4",
     "description": "Parser Combinator Library",
     "author": "Matt Bierner",
     "license": "MIT",
