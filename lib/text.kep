@@ -30,7 +30,7 @@ var map = Function.prototype.call.bind(Array.prototype.map);
 var reduce = Function.prototype.call.bind(Array.prototype.reduce);
 var reduceRight = Function.prototype.call.bind(Array.prototype.reduceRight);
 
-var expectError = \msg ->
+var expectError := \msg ->
     \pos tok ->
         new ExpectError(pos, msg, ?tok === null :"end of input" :tok);
 
