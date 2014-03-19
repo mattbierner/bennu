@@ -13,6 +13,7 @@ var __o = require("nu-stream")["stream"],
     cons = __o1["cons"],
     either = __o1["either"],
     enumerations = __o1["enumerations"],
+    late = __o1["late"],
     many = __o1["many"],
     many1 = __o1["many1"],
     next = __o1["next"],
@@ -28,9 +29,9 @@ var __o = require("nu-stream")["stream"],
     });
 })(enumerations, repeat));
 (atMostTimes = (function(n, p) {
-    return ((n <= 0) ? _end : _optionalValueParser(bind(p, (function(x) {
-        return cons(always(x), atMostTimes((n - 1), p));
-    }))));
+    return ((n <= 0) ? _end : _optionalValueParser(cons(p, late((function() {
+        return atMostTimes((n - 1), p);
+    })))));
 }));
 (betweenTimes = (function(min, max, p) {
     if ((max < min)) throw new(ParserError)("between max < min");
@@ -58,7 +59,7 @@ var __o = require("nu-stream")["stream"],
     }));
 }));
 (sepEndBy = (function(sep, p) {
-    return either(sepEndBy1(sep, p), next(_optionalValueParser(sep), _end));
+    return either(sepEndBy1(sep, p), next(optional(null, sep), _end));
 }));
 (endBy1 = (function(sep, p) {
     return many1(then(p, sep));

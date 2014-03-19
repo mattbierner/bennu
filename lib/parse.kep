@@ -376,6 +376,8 @@ ParseError.prototype = new Error();
 ParseError.prototype.constructor = ParseError;
 ParseError.prototype.name = 'ParseError';
 
+ParseError.prototype.toString = \=self-> self.message;
+
 Object.defineProperties(ParseError.prototype, {
     'message': {
         'configurable': true,
@@ -464,7 +466,7 @@ UnexpectError.prototype.name = 'UnexpectError';
 
 Object.defineProperty(UnexpectError.prototype, 'errorMessage', {
     'get': \() =self->
-        "unexpected:" + self.unexpected
+        "unexpected: " + self.unexpected
 });
 
 /**
@@ -486,8 +488,8 @@ ExpectError.prototype.name = "ExpectError";
 
 Object.defineProperty(ExpectError.prototype, 'errorMessage', {
     'get': \() =self->
-        "expected:" + self.expected + ?self.found
-            :" found:" + self.found
+        "expected: " + self.expected + ?self.found
+            :" found: " + self.found
             :""
 });
 
@@ -1001,42 +1003,33 @@ in
 /* Fantasy Land
  ******************************************************************************/
 // Functor
-map = \f p ->
+map = Parser.map = \f p ->
     new Parser\state m cok cerr eok eerr ->
         unparser(p, state, m, f \> cok, cerr, f \> eok, eerr);
-
-Parser.map = map;
 
 Parser.prototype.map = \f =self->
     self.constructor.map(self, f);
 
 // Applicative
-ap = \m1 m2 ->
-    _binary(m1, m2, \f x -> f(x));
-
-Parser.ap = ap;
+ap = Parser.ap = liftM2((<|));
 
 Parser.prototype.ap = \m2 =self->
     self.constructor.ap(self, m2);
 
 // Chain
-chain = bind;
-Parser.chain = chain;
+chain = Parser.chain = bind;
+
 Parser.prototype.chain = \f =self->
     self.constructor.chain(self, f);
 
 // Monad
-of = always;
-Parser.of = of;
-Parser.prototype.of = Parser.of;
+of = Parser.of = Parser.prototype.of = always;
 
 // Monoid
-empty = fail();
-Parser.empty = empty;
-Parser.prototype.empty = Parser.empty;
+empty = Parser.empty = Parser.prototype.empty = fail();
 
-concat = either;
-Parser.concat = concat;
+concat = Parser.concat = either;
+
 Parser.prototype.concat = \p =self ->
     self.constructor.concat(self, p);
 

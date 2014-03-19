@@ -155,6 +155,10 @@ var Memoer = (function(memoer, frames) {
 (ParseError.prototype = new(Error)());
 (ParseError.prototype.constructor = ParseError);
 (ParseError.prototype.name = "ParseError");
+(ParseError.prototype.toString = (function() {
+    var self = this;
+    return self.message;
+}));
 Object.defineProperties(ParseError.prototype, ({
     "message": ({
         "configurable": true,
@@ -224,7 +228,7 @@ Object.defineProperty(UnknownError.prototype, "errorMessage", ({
 Object.defineProperty(UnexpectError.prototype, "errorMessage", ({
     "get": (function() {
         var self = this;
-        return ("unexpected:" + self.unexpected);
+        return ("unexpected: " + self.unexpected);
     })
 }));
 (ExpectError = (function(position, expected, found) {
@@ -239,7 +243,7 @@ Object.defineProperty(UnexpectError.prototype, "errorMessage", ({
 Object.defineProperty(ExpectError.prototype, "errorMessage", ({
     "get": (function() {
         var self = this;
-        return (("expected:" + self.expected) + (self.found ? (" found:" + self.found) : ""));
+        return (("expected: " + self.expected) + (self.found ? (" found: " + self.found) : ""));
     })
 }));
 (Parser = (function(n) {
@@ -527,7 +531,7 @@ var defaultErr = (function(pos, tok) {
         return new(ExpectError)(pos, "end of input", s.first());
     })));
 })))));
-(map = (function(f, p) {
+(map = (Parser.map = (function(f, p) {
     return new(Parser)((function(state, m, cok, cerr, eok, eerr) {
         return unparser(p, state, m, (function(f, g) {
             return (function(x) {
@@ -539,36 +543,26 @@ var defaultErr = (function(pos, tok) {
             });
         })(eok, f), eerr);
     }));
-}));
-(Parser.map = map);
+})));
 (Parser.prototype.map = (function(f) {
     var self = this;
     return self.constructor.map(self, f);
 }));
-(ap = (function(m1, m2) {
-    return _binary(m1, m2, (function(f, x) {
-        return f(x);
-    }));
-}));
-(Parser.ap = ap);
+(ap = (Parser.ap = liftM2((function(x, y) {
+    return x(y);
+}))));
 (Parser.prototype.ap = (function(m2) {
     var self = this;
     return self.constructor.ap(self, m2);
 }));
-(chain = bind);
-(Parser.chain = chain);
+(chain = (Parser.chain = bind));
 (Parser.prototype.chain = (function(f) {
     var self = this;
     return self.constructor.chain(self, f);
 }));
-(of = always);
-(Parser.of = of);
-(Parser.prototype.of = Parser.of);
-(empty = fail());
-(Parser.empty = empty);
-(Parser.prototype.empty = Parser.empty);
-(concat = either);
-(Parser.concat = concat);
+(of = (Parser.of = (Parser.prototype.of = always)));
+(empty = (Parser.empty = (Parser.prototype.empty = fail())));
+(concat = (Parser.concat = either));
 (Parser.prototype.concat = (function(p) {
     var self = this;
     return self.constructor.concat(self, p);

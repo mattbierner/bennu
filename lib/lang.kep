@@ -28,6 +28,7 @@ with
         cons
         either
         enumerations
+        late
         many
         many1
         next
@@ -59,9 +60,10 @@ times = repeat \>> enumerations;
 atMostTimes = \n p ->
     ?n <= 0
         :_end
-        :_optionalValueParser(
-            bind(p, \x ->
-                cons(always x, atMostTimes(n - 1, p))));
+    :_optionalValueParser(
+        cons(
+            p,
+            late \-> atMostTimes(n - 1, p)));
 
 /**
  * Consume 'p' between 'min' and 'max' times.
@@ -70,7 +72,7 @@ atMostTimes = \n p ->
  * @param {Number} max Maximum number of times to consume 'p'.
  * @param p Parser.
  */
-betweenTimes = \min, max, p -> {
+betweenTimes = \min max p -> {
     if (max < min)
         throw new ParserError("between max < min");
     return append(
@@ -81,7 +83,7 @@ betweenTimes = \min, max, p -> {
 /**
  * Parse 'p' then 'q', returning result from 'p'.
  */
-then = \p, q ->
+then = \p q ->
     bind(p, \x ->
         next(q, always x));
 
@@ -100,7 +102,7 @@ between = \open, close, p ->
  * 
  * If sep succeeds but p fails, does not backtrack.
  */
-sepBy1 = \sep, p -> 
+sepBy1 = \sep p -> 
     cons(p, many <| next(sep, p));
 
 /**
@@ -111,7 +113,7 @@ sepBy = sepBy1 \>> _optionalValueParser;
 /**
  * Parser that consumes 'p' one or more times separated and optional ended by 'sep'.
  */
-sepEndBy1 = \sep, p ->
+sepEndBy1 = \sep p ->
     rec\self ->
         cons(
             p,
@@ -125,7 +127,7 @@ sepEndBy1 = \sep, p ->
 sepEndBy = \sep p ->
     either(
         sepEndBy1(sep, p),
-        next(_optionalValueParser sep, _end));
+        next(optional(null, sep), _end));
 
 /**
  * Parser that consumes 'p' one or more times separated by 'sep' and ended by 'sep'.

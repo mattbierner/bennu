@@ -33,8 +33,8 @@ var __o = require("./parse"),
 Object.defineProperty(StringError.prototype, "errorMessage", ({
     "get": (function() {
         var self = this;
-        return ((((((("In string:'" + self.string) + "' at index:") + self.index) + ", Expected:") + self.expected) +
-            " Found:") + (self.found ? self.found : "end of input"));
+        return ((((((("In string: '" + self.string) + "' at index: ") + self.index) + ", Expected: ") +
+            self.expected) + " Found: ") + (self.found ? self.found : "end of input"));
     })
 }));
 var unbox = ((x = ""), (function(y) {
