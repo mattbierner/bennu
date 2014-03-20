@@ -546,26 +546,26 @@ var defaultErr = (function(pos, tok) {
 })));
 (Parser.prototype.map = (function(f) {
     var self = this;
-    return self.constructor.map(self, f);
+    return map(self, f);
 }));
-(ap = (Parser.ap = liftM2((function(x, y) {
+(ap = (Parser.ap = liftM2.bind(null, (function(x, y) {
     return x(y);
 }))));
 (Parser.prototype.ap = (function(m2) {
     var self = this;
-    return self.constructor.ap(self, m2);
+    return ap(self, m2);
 }));
 (chain = (Parser.chain = bind));
 (Parser.prototype.chain = (function(f) {
     var self = this;
-    return self.constructor.chain(self, f);
+    return chain(self, f);
 }));
 (of = (Parser.of = (Parser.prototype.of = always)));
 (empty = (Parser.empty = (Parser.prototype.empty = fail())));
 (concat = (Parser.concat = either));
 (Parser.prototype.concat = (function(p) {
     var self = this;
-    return self.constructor.concat(self, p);
+    return concat(self, p);
 }));
 (exec = (function(f, g) {
     return (function() {

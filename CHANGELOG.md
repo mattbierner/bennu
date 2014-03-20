@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 17.0.5 - March 19, 2014
+* Fixed `ap`.
+
 ## 17.0.4 - March 19, 2014
 * Fixed V8 related error messaging issue.
 * Improved human readable error messaging formatting.

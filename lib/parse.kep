@@ -1008,19 +1008,19 @@ map = Parser.map = \f p ->
         unparser(p, state, m, f \> cok, cerr, f \> eok, eerr);
 
 Parser.prototype.map = \f =self->
-    self.constructor.map(self, f);
+    map(self, f);
 
 // Applicative
-ap = Parser.ap = liftM2((<|));
+ap = Parser.ap = liftM2 @ ((<|));
 
 Parser.prototype.ap = \m2 =self->
-    self.constructor.ap(self, m2);
+    ap(self, m2);
 
 // Chain
 chain = Parser.chain = bind;
 
 Parser.prototype.chain = \f =self->
-    self.constructor.chain(self, f);
+    chain(self, f);
 
 // Monad
 of = Parser.of = Parser.prototype.of = always;
@@ -1031,7 +1031,7 @@ empty = Parser.empty = Parser.prototype.empty = fail();
 concat = Parser.concat = either;
 
 Parser.prototype.concat = \p =self ->
-    self.constructor.concat(self, p);
+    concat(self, p);
 
 /* Running
  ******************************************************************************/

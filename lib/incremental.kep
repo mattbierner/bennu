@@ -302,7 +302,9 @@ in
  * @see runManyState
  */
 runManyStream = \p s ud ->
-    runManyState(p, new ParserState(s, Position.initial, ud));
+    runManyState(
+        p,
+        new ParserState(s, Position.initial, ud));
 
 /**
  * Run parser 'p' zero or more times against an input string to produce a lazy
@@ -315,6 +317,9 @@ runManyStream = \p s ud ->
  * @see runManyStream
  */
 runMany = \p input ud ->
-    runManyStream(p, streamFrom input, ud);
+    runManyStream(
+        p,
+        streamFrom input,
+        ud);
 
 }
