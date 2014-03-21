@@ -843,21 +843,50 @@ expected = \expect p ->
             eok,
             \x state m -> eerr(new ExpectError(state.position, expect), state, m));
 
+// Fantasy Land
+////////////////////////////////////////
+// Functor
+map = Parser.map = \f p ->
+     bind(p, \x ->
+         always <| f x);
+
+Parser.prototype.map = \f =self->
+    map(f, self);
+
+// Applicative
+ap = Parser.ap = \f m ->
+    bind(f, \f -> m.map f);
+
+Parser.prototype.ap = \m2 =self->
+    ap(self, m2);
+
+// Chain
+chain = Parser.chain = bind;
+
+Parser.prototype.chain = \f =self->
+    chain(self, f);
+
+// Monad
+of = Parser.of = Parser.prototype.of = always;
+
+// Monoid
+empty = Parser.empty = Parser.prototype.empty = fail();
+
+concat = Parser.concat = either;
+
+Parser.prototype.concat = \p =self ->
+    concat(self, p);
+
 // Iterative Parsers
 ////////////////////////////////////////
-var liftM = \f p1 ->
-    bind(p1, \x ->
-        always <| f(x));
-
 var liftM2 = \f p1 p2 ->
     bind(p1, \x ->
-        bind(p2, \y ->
-            always <| f(x, y)));
+        map(\y -> f(x, y), p2));
 
 /**
  * Map the stream result of a parser to a regular array.
  */
-eager = liftM @ stream.toArray;
+eager = map @ stream.toArray;
 
 /**
  * Same behavior as `bind` but calls apply on `f` using stream results of `p`.
@@ -993,45 +1022,13 @@ anyToken = label@'Any Token' <|
  * Matches end of input.
  */
 eof = label@'EOF' <| let
-    end = always NIL
+    end = always null
 in
     bind(getParserState, \s ->
         ?s.isEmpty()
             :end
             :_fail\pos -> new ExpectError(pos, "end of input", s.first()));
 
-/* Fantasy Land
- ******************************************************************************/
-// Functor
-map = Parser.map = \f p ->
-    new Parser\state m cok cerr eok eerr ->
-        unparser(p, state, m, f \> cok, cerr, f \> eok, eerr);
-
-Parser.prototype.map = \f =self->
-    map(self, f);
-
-// Applicative
-ap = Parser.ap = liftM2 @ ((<|));
-
-Parser.prototype.ap = \m2 =self->
-    ap(self, m2);
-
-// Chain
-chain = Parser.chain = bind;
-
-Parser.prototype.chain = \f =self->
-    chain(self, f);
-
-// Monad
-of = Parser.of = Parser.prototype.of = always;
-
-// Monoid
-empty = Parser.empty = Parser.prototype.empty = fail();
-
-concat = Parser.concat = either;
-
-Parser.prototype.concat = \p =self ->
-    concat(self, p);
 
 /* Running
  ******************************************************************************/

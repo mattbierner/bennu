@@ -94,9 +94,9 @@ var wordReduce = (function(parent, l) {
                 if (c.length)(p[c] = _trie(trie[c]));
                 return p;
             }), ({})),
-            select = attempt(bind(oneOf(keys), (function(x) {
-                return paths[x];
-            })));
+            x, select = attempt(bind(oneOf(keys), ((x = paths), (function(y) {
+                return x[y];
+            }))));
         return (trie.hasOwnProperty("") ? either(select, always(trie[""])) : select);
     });
 (trie = (function(words) {

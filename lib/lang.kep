@@ -41,7 +41,7 @@ in {
  ******************************************************************************/
 var _end = always NIL;
 
-var _optionalValueParser = optional@NIL;
+var _optionalValueParser = optional @ NIL;
 
 /**
  * Consume p exactly 'n' times.
@@ -103,7 +103,7 @@ between = \open, close, p ->
  * If sep succeeds but p fails, does not backtrack.
  */
 sepBy1 = \sep p -> 
-    cons(p, many <| next(sep, p));
+    cons(p, many next(sep, p));
 
 /**
  * Parser that consumes 'p' separated by 'sep' zero or more times.
@@ -168,7 +168,7 @@ chainr1 = \op p ->
     rec\self ->
         bind(p, \x ->
             optional(x, bind(op, \f ->
-                bind(self, \y -> always <| f(x, y)))));
+                self.map(\y -> f(x, y)))));
 
 /**
  * Parser that consumes 'p' zero or more times separated by 'op' and returns 

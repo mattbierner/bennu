@@ -119,7 +119,7 @@ string = let
                \pos tok -> new StringError(pos, s, i, c, tok)),
            p)
 in
-    \s -> attempt <| reduceRight(s, reducer, always(unbox s));
+    \s -> attempt reduceRight(s, reducer, always(unbox s));
 
 /**
  * Parser that matches any string from an array of words using a trie.
@@ -155,7 +155,7 @@ trie = let
             return p;
         }, {}),
         
-        select = attempt <| bind(oneOf(keys), \x -> paths.(x))
+        select = attempt bind(oneOf keys, (., paths))
     in
         ?trie.hasOwnProperty('')
             :either(
@@ -163,7 +163,7 @@ trie = let
                 always trie.(''))
             :select
 in
-    \words -> attempt <| _trie(makeTrie words, '');
+    \words -> attempt _trie(makeTrie words, '');
 
 /**
  * Parser that consumes input that matches a regular expression.

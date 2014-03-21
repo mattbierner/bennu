@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 17.0.6 - March 20, 2014
+* Fixed `map`.
+
 ## 17.0.5 - March 19, 2014
 * Fixed `ap`.
 

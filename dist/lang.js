@@ -82,8 +82,8 @@
         return rec((function(self) {
             return bind(p, (function(x) {
                 return optional(x, bind(op, (function(f) {
-                    return bind(self, (function(y) {
-                        return always(f(x, y));
+                    return self.map((function(y) {
+                        return f(x, y);
                     }));
                 })));
             }));

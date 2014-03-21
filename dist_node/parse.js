@@ -432,19 +432,44 @@ var _either = (function(e) {
         }));
     }));
 }));
-var liftM = (function(f, p1) {
-    return bind(p1, (function(x) {
+(map = (Parser.map = (function(f, p) {
+    return bind(p, (function(x) {
         return always(f(x));
     }));
-}),
-    liftM2 = (function(f, p1, p2) {
-        return bind(p1, (function(x) {
-            return bind(p2, (function(y) {
-                return always(f(x, y));
-            }));
-        }));
-    });
-(eager = liftM.bind(null, stream.toArray));
+})));
+(Parser.prototype.map = (function(f) {
+    var self = this;
+    return map(f, self);
+}));
+(ap = (Parser.ap = (function(f, m) {
+    return bind(f, (function(f) {
+        return m.map(f);
+    }));
+})));
+(Parser.prototype.ap = (function(m2) {
+    var self = this;
+    return ap(self, m2);
+}));
+(chain = (Parser.chain = bind));
+(Parser.prototype.chain = (function(f) {
+    var self = this;
+    return chain(self, f);
+}));
+(of = (Parser.of = (Parser.prototype.of = always)));
+(empty = (Parser.empty = (Parser.prototype.empty = fail())));
+(concat = (Parser.concat = either));
+(Parser.prototype.concat = (function(p) {
+    var self = this;
+    return concat(self, p);
+}));
+var liftM2 = (function(f, p1, p2) {
+    return bind(p1, (function(x) {
+        return map((function(y) {
+            return f(x, y);
+        }), p2);
+    }));
+});
+(eager = map.bind(null, stream.toArray));
 (binds = (function(p, f) {
     return bind(eager(p), (function(x) {
         return f.apply(undefined, x);
@@ -526,47 +551,11 @@ var defaultErr = (function(pos, tok) {
     }));
 }));
 (anyToken = label("Any Token", token(constant(true))));
-(eof = label("EOF", ((end = always(NIL)), bind(getParserState, (function(s) {
+(eof = label("EOF", ((end = always(null)), bind(getParserState, (function(s) {
     return (s.isEmpty() ? end : _fail((function(pos) {
         return new(ExpectError)(pos, "end of input", s.first());
     })));
 })))));
-(map = (Parser.map = (function(f, p) {
-    return new(Parser)((function(state, m, cok, cerr, eok, eerr) {
-        return unparser(p, state, m, (function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })(cok, f), cerr, (function(f, g) {
-            return (function(x) {
-                return f(g(x));
-            });
-        })(eok, f), eerr);
-    }));
-})));
-(Parser.prototype.map = (function(f) {
-    var self = this;
-    return map(self, f);
-}));
-(ap = (Parser.ap = liftM2.bind(null, (function(x, y) {
-    return x(y);
-}))));
-(Parser.prototype.ap = (function(m2) {
-    var self = this;
-    return ap(self, m2);
-}));
-(chain = (Parser.chain = bind));
-(Parser.prototype.chain = (function(f) {
-    var self = this;
-    return chain(self, f);
-}));
-(of = (Parser.of = (Parser.prototype.of = always)));
-(empty = (Parser.empty = (Parser.prototype.empty = fail())));
-(concat = (Parser.concat = either));
-(Parser.prototype.concat = (function(p) {
-    var self = this;
-    return concat(self, p);
-}));
 (exec = (function(f, g) {
     return (function() {
         return f(g.apply(null, arguments));
