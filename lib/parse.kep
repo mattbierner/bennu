@@ -821,13 +821,13 @@ choice = args \>> choicea;
 /**
  * Consume `p` or return `x`.
  * 
- * @param x Default value.
+ * @param [x] Default value.
  * @param p Parser.
  */
 optional = \x p ->
-    either(
-        p,
-        always x);
+    ?p
+        :either(p, always x)
+        :either(x, always null);
 
 /**
  * If `p` fails without consuming input, produce an ExpectError with `expect`.
@@ -847,8 +847,7 @@ expected = \expect p ->
 ////////////////////////////////////////
 // Functor
 map = Parser.map = \f p ->
-     bind(p, \x ->
-         always <| f x);
+     bind(p, f \> always);
 
 Parser.prototype.map = \f =self->
     map(f, self);
@@ -910,9 +909,7 @@ append = liftM2 @ stream.append;
  * 
  * @param s Stream of parsers to consume.
  */
-enumerations = foldr@(
-    flip cons,
-    always NIL);
+enumerations = foldr@(flip cons, always NIL);
 
 /**
  * @see enumerations
@@ -1006,10 +1003,12 @@ in
         new Parser\s m cok cerr eok eerr ->
             ?s.isEmpty()
                 :eerr(errorHandler(s.position, null), s, m)
+            
             :let tok = s.first() in
                 ?consume tok
                     :let pcok = \x s m -> cok(x, s, Memoer.prune(m, s.position)) in
                         unparser(s.next(tok), s, m, pcok, cerr, pcok, cerr)
+                    
                     :eerr(errorHandler(s.position, tok), s, m);
 
 /**
@@ -1028,7 +1027,6 @@ in
         ?s.isEmpty()
             :end
             :_fail\pos -> new ExpectError(pos, "end of input", s.first()));
-
 
 /* Running
  ******************************************************************************/

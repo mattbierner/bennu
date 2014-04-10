@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/incremental.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/incremental.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "./parse", "nu-stream/stream"], (function(require, exports, __o, stream) {
+*/
+define(["require", "exports", "./parse", "nu-stream/stream"], (function(require, exports, __o, stream) {
     "use strict";
     var always = __o["always"],
         bind = __o["bind"],
@@ -116,8 +117,9 @@
         if (r.done) return r;
         var r2 = r.addChunk(c),
             result = trampoline(r2.k(c));
-        while (((result instanceof Request) && r2.hasChunk(result.chunk)))(result = trampoline(result.k(r2.getChunk(
-            result.chunk))));
+        while (((result instanceof Request) && r2.hasChunk(result.chunk))) {
+            (result = trampoline(result.k(r2.getChunk(result.chunk))));
+        }
         return ((result instanceof Request) ? new(Session)(false, result.k, r2.chunks) : result);
     });
     (provide = (function(c, r) {
@@ -126,20 +128,17 @@
     (provideString = (function(input, r) {
         return provide(streamFrom(input), r);
     }));
-    var complete = (function(r) {
+    var x = forceProvide.bind(null, NIL);
+    (finish = (function(x0) {
+        var r = x(x0);
         return r.k();
-    });
-    (finish = (function(f, g) {
-        return (function(x) {
-            return f(g(x));
-        });
-    })(complete, forceProvide.bind(null, NIL)));
+    }));
     (parseIncState = (function(p, state, ok, err) {
-        var pok = (function(x, s) {
-            return new(Session)(true, ok.bind(null, x, s));
+        var pok = (function(x0, s) {
+            return new(Session)(true, ok.bind(null, x0, s));
         }),
-            perr = (function(x, s) {
-                return new(Session)(true, err.bind(null, x, s));
+            perr = (function(x0, s) {
+                return new(Session)(true, err.bind(null, x0, s));
             });
         return provide(state.input, new(Session)(false, (function(i) {
             return parseState(p, new(IncrementalState)(0, state.setInput(i)), pok, perr);
@@ -148,11 +147,11 @@
     (parseInc = (function(p, ud, ok, err) {
         return parseIncState(p, new(ParserState)(NIL, Position.initial, ud), ok, err);
     }));
-    var ok = (function(x) {
-        return x;
+    var ok = (function(x0) {
+        return x0;
     }),
-        err = (function(x) {
-            throw x;
+        err = (function(x0) {
+            throw x0;
         });
     (runIncState = (function(p, state) {
         return parseIncState(p, state, ok, err);
@@ -161,10 +160,10 @@
         return runIncState(p, new(ParserState)(NIL, Position.initial, ud));
     }));
     (runManyState = (function(p, state) {
-        var manyP = optional(NIL, bind(p, (function(x) {
-            return new(Parser)((function(state, m, _, _0, eok, _1) {
-                return eok(memoStream(x, runState.bind(null, manyP, state, m)),
-                    state, m);
+        var manyP = optional(NIL, bind(p, (function(x0) {
+            return new(Parser)((function(state0, m, _, _0, eok, _1) {
+                return eok(memoStream(x0, runState.bind(null, manyP, state0, m)),
+                    state0, m);
             }));
         })));
         return runState(manyP, state);

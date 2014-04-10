@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 17.1.0 - April 9, 2014
+* Allow `optional` to be used with a single argument to return `null` on
+  fail.
+
 ## 17.0.6 - March 20, 2014
 * Fixed `map`.
 

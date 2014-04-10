@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/text.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/text.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var __o = require("./parse"),
     always = __o["always"],
     attempt = __o["attempt"],
@@ -12,19 +13,14 @@ var __o = require("./parse"),
     next = __o["next"],
     label = __o["label"],
     token = __o["token"],
-    character, oneOf, noneOf, string, trie, match, anyChar, letter, space, digit, x, pred, join = Function.prototype.call
-        .bind(Array.prototype.join),
+    character, oneOf, noneOf, string, trie, match, anyChar, letter, space, digit, join = Function.prototype.call.bind(
+        Array.prototype.join),
     map = Function.prototype.call.bind(Array.prototype.map),
     reduce = Function.prototype.call.bind(Array.prototype.reduce),
     reduceRight = Function.prototype.call.bind(Array.prototype.reduceRight),
-    expectError = (function(msg) {
-        return (function(pos, tok) {
-            return new(ExpectError)(pos, msg, ((tok === null) ? "end of input" : tok));
-        });
-    }),
-    StringError = (function(position, string, index, expected, found) {
+    StringError = (function(position, string, index, expected0, found) {
         var self = this;
-        ExpectError.call(self, position, expected, found);
+        ExpectError.call(self, position, expected0, found);
         (self.string = string);
         (self.index = index);
     });
@@ -37,36 +33,36 @@ Object.defineProperty(StringError.prototype, "errorMessage", ({
             self.expected) + " Found: ") + (self.found ? self.found : "end of input"));
     })
 }));
-var unbox = ((x = ""), (function(y) {
-    return (x + y);
-})),
-    has = (function(a, x) {
-        return (a.indexOf(unbox(x)) >= 0);
-    }),
-    _character = ((pred = (function(l) {
-        var x = unbox(l);
-        return (function(r) {
-            return (x === unbox(r));
-        });
-    })), (function(c, err) {
-        return token(pred(c), err);
-    }));
+var unbox = (function(y) {
+    return ("" + y);
+}),
+    _character = (function(c, err) {
+        var x;
+        return token(((x = ("" + c)), (function(r) {
+            return (x === ("" + r));
+        })), err);
+    });
 (character = (function(c) {
-    return _character(c, expectError(c));
+    return _character(c, (function(pos, tok) {
+        return new(ExpectError)(pos, c, ((tok === null) ? "end of input" : tok));
+    }));
 }));
 (oneOf = (function(chars) {
-    var chars0 = map(chars, unbox);
-    return token(has.bind(null, chars0), expectError(join(chars0, " or ")));
+    var msg, chars0 = map(chars, unbox);
+    return token((function(x) {
+        return (chars0.indexOf(("" + x)) >= 0);
+    }), ((msg = join(chars0, " or ")), (function(pos, tok) {
+        return new(ExpectError)(pos, msg, ((tok === null) ? "end of input" : tok));
+    })));
 }));
 (noneOf = (function(chars) {
-    var chars0 = map(chars, unbox);
-    return token((function(f, g) {
-        return (function(x) {
-            return f(g(x));
-        });
-    })((function(x) {
-        return (!x);
-    }), has.bind(null, chars0)), expectError(("none of:" + join(chars0, " or "))));
+    var msg, chars0 = map(chars, unbox);
+    return token((function(x) {
+        var x0 = (chars0.indexOf(("" + x)) >= 0);
+        return (!x0);
+    }), ((msg = ("none of:" + join(chars0, " or "))), (function(pos, tok) {
+        return new(ExpectError)(pos, msg, ((tok === null) ? "end of input" : tok));
+    })));
 }));
 var reducer = (function(p, c, i, s) {
     return next(_character(c, (function(pos, tok) {
@@ -74,7 +70,7 @@ var reducer = (function(p, c, i, s) {
     })), p);
 });
 (string = (function(s) {
-    return attempt(reduceRight(s, reducer, always(unbox(s))));
+    return attempt(reduceRight(s, reducer, always(("" + s))));
 }));
 var wordReduce = (function(parent, l) {
     (parent[l] = (parent[l] || ({})));
@@ -85,25 +81,35 @@ var wordReduce = (function(parent, l) {
         (node[""] = word);
         return trie;
     }),
-    makeTrie = (function(words) {
-        return reduce(words, wordsReduce, ({}));
-    }),
     _trie = (function(trie) {
         var keys = Object.keys(trie),
             paths = reduce(keys, (function(p, c) {
-                if (c.length)(p[c] = _trie(trie[c]));
+                if (c.length) {
+                    (p[c] = _trie(trie[c]));
+                }
                 return p;
             }), ({})),
-            x, select = attempt(bind(oneOf(keys), ((x = paths), (function(y) {
-                return x[y];
-            }))));
+            select = attempt(bind(oneOf(keys), (function(y) {
+                return paths[y];
+            })));
         return (trie.hasOwnProperty("") ? either(select, always(trie[""])) : select);
     });
 (trie = (function(words) {
-    return attempt(_trie(makeTrie(words), ""));
+    var trie0, keys, paths, select;
+    return attempt(((trie0 = reduce(words, wordsReduce, ({}))), (keys = Object.keys(trie0)), (paths = reduce(
+        keys, (function(p, c) {
+            if (c.length) {
+                (p[c] = _trie(trie0[c]));
+            }
+            return p;
+        }), ({}))), (select = attempt(bind(oneOf(keys), (function(y) {
+        return paths[y];
+    })))), (trie0.hasOwnProperty("") ? either(select, always(trie0[""])) : select)));
 }));
-(match = (function(pattern, expected) {
-    return token(RegExp.prototype.test.bind(pattern), expectError(expected));
+(match = (function(pattern, expected0) {
+    return token(RegExp.prototype.test.bind(pattern), (function(pos, tok) {
+        return new(ExpectError)(pos, expected0, ((tok === null) ? "end of input" : tok));
+    }));
 }));
 (anyChar = label("Any Character", match(/^.$/, "any character")));
 (letter = label("Any Letter", match(/^[a-z]$/i, "any letter character")));

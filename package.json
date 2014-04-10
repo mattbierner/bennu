@@ -1,6 +1,6 @@
 {
     "name": "bennu",
-    "version": "17.0.6",
+    "version": "17.1.0",
     "description": "Parser Combinator Library",
     "author": "Matt Bierner",
     "license": "MIT",
@@ -36,6 +36,10 @@
     },
     
     "scripts": {
-        "test": "node test.js"
+        "test": "node test.js",
+        
+        "build": "npm run build-amd && npm run build-node",
+        "build-amd": "khepri lib -o dist",
+        "build-node": "khepri lib -o dist_node --package_manager=node"
     }
 }
