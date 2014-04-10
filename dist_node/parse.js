@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/parse.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/parse.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var stream = require("nu-stream")["stream"],
     NIL = stream["NIL"],
     first = stream["first"],
