@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/lang.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/lang.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "nu-stream/stream", "nu-stream/gen", "./parse"], (function(require, exports, __o, __o0,
+*/
+define(["require", "exports", "nu-stream/stream", "nu-stream/gen", "./parse"], (function(require, exports, __o, __o0,
     __o1) {
     "use strict";
     var times, atMostTimes, betweenTimes, then, between, sepBy1, sepBy, sepEndBy1, sepEndBy, endBy1, endBy,
@@ -18,7 +19,6 @@
         many1 = __o1["many1"],
         next = __o1["next"],
         optional = __o1["optional"],
-        ParserError = __o1["ParserError"],
         rec = __o1["rec"],
         _end = always(NIL),
         _optionalValueParser = optional.bind(null, NIL);
@@ -32,8 +32,11 @@
         })))));
     }));
     (betweenTimes = (function(min, max, p) {
-        if ((max < min)) throw new(ParserError)("between max < min");
-        return append(times(min, p), atMostTimes((max - min), p));
+        var args, n;
+        return append(((args = [min, p]), enumerations(repeat.apply(null, args))), ((n = (max - min)), (
+            (n <= 0) ? _end : _optionalValueParser(cons(p, late((function() {
+                return atMostTimes((n - 1), p);
+            })))))));
     }));
     (then = (function(p, q) {
         return bind(p, (function(x) {
@@ -41,16 +44,16 @@
         }));
     }));
     (between = (function(open, close, p) {
-        return next(open, then(p, close));
+        return next(open, bind(p, (function(x) {
+            return next(close, always(x));
+        })));
     }));
     (sepBy1 = (function(sep, p) {
         return cons(p, many(next(sep, p)));
     }));
-    var x = sepBy1,
-        y = _optionalValueParser;
     (sepBy = (function() {
         var args = arguments;
-        return y(x.apply(null, args));
+        return _optionalValueParser(sepBy1.apply(null, args));
     }));
     (sepEndBy1 = (function(sep, p) {
         return rec((function(self) {
@@ -58,39 +61,59 @@
         }));
     }));
     (sepEndBy = (function(sep, p) {
-        return either(sepEndBy1(sep, p), next(optional(sep), _end));
+        return either(rec((function(self) {
+            return cons(p, _optionalValueParser(next(sep, _optionalValueParser(self))));
+        })), next(optional(sep), _end));
     }));
     (endBy1 = (function(sep, p) {
-        return many1(then(p, sep));
+        return many1(bind(p, (function(x) {
+            return next(sep, always(x));
+        })));
     }));
     (endBy = (function(sep, p) {
-        return many(then(p, sep));
+        return many(bind(p, (function(x) {
+            return next(sep, always(x));
+        })));
     }));
     (chainl1 = (function(op, p) {
-        return bind(p, (function chain(x0) {
-            return optional(x0, bind(op, (function(f) {
-                return bind(p, (function(y0) {
-                    return chain(f(x0, y0));
+        return bind(p, (function chain(x) {
+            return optional(x, bind(op, (function(f) {
+                return bind(p, (function(y) {
+                    return chain(f(x, y));
                 }));
             })));
         }));
     }));
-    (chainl = (function(op, x0, p) {
-        return optional(x0, chainl1(op, p));
+    (chainl = (function(op, x, p) {
+        return optional(x, bind(p, (function chain(x0) {
+            return optional(x0, bind(op, (function(f) {
+                return bind(p, (function(y) {
+                    return chain(f(x0, y));
+                }));
+            })));
+        })));
     }));
     (chainr1 = (function(op, p) {
         return rec((function(self) {
-            return bind(p, (function(x0) {
-                return optional(x0, bind(op, (function(f) {
-                    return self.map((function(y0) {
-                        return f(x0, y0);
+            return bind(p, (function(x) {
+                return optional(x, bind(op, (function(f) {
+                    return self.map((function(y) {
+                        return f(x, y);
                     }));
                 })));
             }));
         }));
     }));
-    (chainr = (function(op, x0, p) {
-        return optional(x0, chainr1(op, p));
+    (chainr = (function(op, x, p) {
+        return optional(x, rec((function(self) {
+            return bind(p, (function(x0) {
+                return optional(x0, bind(op, (function(f) {
+                    return self.map((function(y) {
+                        return f(x0, y);
+                    }));
+                })));
+            }));
+        })));
     }));
     (exports["times"] = times);
     (exports["atMostTimes"] = atMostTimes);

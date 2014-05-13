@@ -71,6 +71,7 @@ package (
     choice
     optional
     expected
+    not
     
     eager
     binds
@@ -113,19 +114,19 @@ with
     import 'seshet' seshat
 in {
 
-var identity = \x -> x;
+var identity := \x -> x;
 
-var args = \-args(...) -> args;
+var args := \-args(...) -> args;
 
-var constant = \x -> \ -> x;
+var constant := \x -> \ -> x;
 
-var throwConstant = \err -> \ -> { throw err; };
+var throwConstant := \err -> \ -> { throw err; };
 
-var flip = \f -> \x y -> f(y, x);
+var flip := \f -> \x y -> f(y, x);
 
 /* Continuation
  ******************************************************************************/
-Tail = function\p, state, m, cok, cerr, eok, eerr =self-> {
+Tail := function \p state m cok cerr eok eerr =self-> {
     self.p = p;
     self.state = state;
     self.m = m;
@@ -135,7 +136,7 @@ Tail = function\p, state, m, cok, cerr, eok, eerr =self-> {
     self.eerr = eerr;
 };
 
-trampoline = \f -> {
+trampoline := \f -> {
     var value = f;
     while (value instanceof Tail)
         value = value.p(value.state, value.m, value.cok, value.cerr, value.eok, value.eerr);
@@ -151,7 +152,7 @@ trampoline = \f -> {
  * reachable results in the stream. Memoized results for positions outside of the
  * window will be automatically pruned when possible.
  */
-var Memoer = function \memoer frames =self-> {
+var Memoer := function \memoer frames =self-> {
     self.memoer = memoer;
     self.frames = frames;
 };
@@ -223,7 +224,7 @@ Memoer.update = \m pos id val ->
  * 
  * Tracks current index in input.
  */
-Position = function \i =self-> {
+Position := function \i =self-> {
     self.index = i;
 };
 
@@ -261,7 +262,7 @@ Position.prototype.compare = \pos =self-> (self.index - pos.index);
  * @param position Current position of head of input.
  * @param [userState] User data threaded through parser.
  */
-ParserState = function\input position userState =self-> {
+ParserState := function \input position userState =self-> {
     self.input = input;
     self.position = position;
     self.userState = userState;
@@ -349,7 +350,7 @@ ParserState.prototype.setUserState = \userState =self->
  * 
  * Base Error for an error with the parsers themselves.
  */
-ParserError = function\ msg =self-> {
+ParserError := function \msg =self-> {
     self.message = msg;
 };
 ParserError.prototype = new Error();
@@ -365,7 +366,7 @@ ParserError.prototype.name = 'ParserError';
  * @param position Position of error.
  * @param [msg] Error message.
  */
-ParseError = function \position msg =self->{
+ParseError := function \position msg =self->{
     self.position = position;
     self._msg = (msg || "");
 };
@@ -395,7 +396,7 @@ Object.defineProperties(ParseError.prototype, {
  * @params position Position of errors.
  * @params [errors] Array like object containing zero or more ParseErrors.
  */
-MultipleError = function \position errors =self-> {
+MultipleError := function \position errors =self-> {
     self.position = position;
     self.errors = (errors || []);
 };
@@ -415,7 +416,7 @@ Object.defineProperty(MultipleError.prototype, 'errorMessage', {
  * 
  * Defers merging errors until actually needed.
  */
-var ChoiceError = function \position, pErr, qErr =self-> {
+var ChoiceError := function \position, pErr, qErr =self-> {
     self.position = position;
     self._pErr = pErr;
     self._qErr = qErr;
@@ -435,7 +436,7 @@ Object.defineProperty(ChoiceError.prototype, 'errors', {
  * 
  * @param position Position of error.
  */
-UnknownError = function \position =self-> {
+UnknownError := function \position =self-> {
     self.position = position;
 };
 UnknownError.prototype = new ParseError();
@@ -453,7 +454,7 @@ Object.defineProperty(UnknownError.prototype, 'errorMessage', {
  * @param position Position of error.
  * @param unexpected Found value.
  */
-UnexpectError = function \position unexpected =self-> {
+UnexpectError := function \position unexpected =self-> {
     self.position = position;
     self.unexpected = unexpected;
 };
@@ -474,7 +475,7 @@ Object.defineProperty(UnexpectError.prototype, 'errorMessage', {
  * @oaram expected Expected value.
  * @param [found] Found value.
  */
-ExpectError = function \position expected found =self-> {
+ExpectError := function \position expected found =self-> {
     self.position = position;
     self.expected = expected;
     self.found = found;
@@ -497,7 +498,7 @@ Object.defineProperty(ExpectError.prototype, 'errorMessage', {
  * 
  * This class also has all the FL implementations defined on it.
  */
-Parser = function \n =self-> {
+Parser := function \n =self-> {
     self.run = n;
 };
 
@@ -533,7 +534,7 @@ label = \name p ->
  * 
  * @param def Function that, when called, resolves a parser. Will be called once.
  */
-late = \def -> {
+late := \def -> {
     var value;
     return new Parser\state m cok cerr eok eerr -> {
         value = value || def();
@@ -559,7 +560,7 @@ late = \def -> {
  * @param def Factory function that is passed a reference to the parser being
  *     defined and returns the parser.
  */
-rec = \def -> {
+rec := \def -> {
     var value = def <| late\-> { return value; };
     return value;
 };
@@ -573,7 +574,7 @@ rec = \def -> {
  * 
  * Consumes no input.
  */
-always = of = Parser.of = Parser.prototype.of = \x ->
+always := of := Parser.of := Parser.prototype.of := \x ->
     new Parser\state m _ _ eok _ -> eok(x, state, m);
 
 /**
@@ -581,7 +582,7 @@ always = of = Parser.of = Parser.prototype.of = \x ->
  * 
  * Consumes no input.
  */
-never = \x ->
+never := \x ->
     new Parser\state m _ _ _ eerr -> eerr(x, state, m);
 
 /**
@@ -591,14 +592,14 @@ never = \x ->
  * @param p Parser.
  * @param f Function that maps `p` result to next parser.
  */
-bind = chain = Parser.chain = \p f ->
+bind := chain := Parser.chain := \p f ->
     new Parser\state m cok cerr eok eerr ->
         unparser(p,
             state,
             m,
-            \x state m -> unparser(f(x), state, m, cok, cerr, cok, cerr),
+            \x state m -> unparser(f x, state, m, cok, cerr, cok, cerr),
             cerr,
-            \x state m -> unparser(f(x), state, m, cok, cerr, eok, eerr),
+            \x state m -> unparser(f x, state, m, cok, cerr, eok, eerr),
             eerr);
 
 Parser.prototype.chain = \f =self->
@@ -609,11 +610,11 @@ Parser.prototype.chain = \f =self->
 Parser.prototype.map = \f =self->
     bind(self, f \> always);
 
-map = Parser.map = \f p ->
+map := Parser.map = \f p ->
      p.map(f);
 
 // Applicative
-ap = Parser.ap = \f m ->
+ap := Parser.ap := \f m ->
     bind(f, \f -> m.map f);
 
 Parser.prototype.ap = \m2 =self->
@@ -624,7 +625,7 @@ Parser.prototype.ap = \m2 =self->
 /**
  * Modify the current parser state.
  * 
- *  @param f Function mapping old state to new state.
+ * @param f Function mapping old state to new state.
  */
 modifyParserState = \f ->
     new Parser\state m _ _ eok _ ->
@@ -651,7 +652,7 @@ setParserState = modifyParserState <\ constant;
  *     given state object.
  */
 extract = \f ->
-    new Parser\state m _ _ eok _ -> eok(f(state), state, m);
+    new Parser\state m _ _ eok _ -> eok(f state, state, m);
 
 /**
  * Parser that modifies the current user state using function 'f'.
@@ -731,7 +732,7 @@ attempt = \p ->
             peerr);
 
 /**
- * Run `p`, then restore old state but return result from `p`.
+ * Run `p`, restore old state, and return result from `p`.
  * 
  * This behavior is the same as parsec's `lookahead`.
  */
@@ -745,7 +746,7 @@ look = \p ->
                 always x));
 
 /**
- * Run `p` but restore old input and position.
+ * Run `p` and restore old input and position.
  * 
  * This preserves the `userState` from `p`.
  */
@@ -851,10 +852,10 @@ optional = \x p ->
         :either(x, always null);
 
 /**
- * If `p` fails without consuming input, produce an ExpectError with `expect`.
+ * Run `p` and if it fails without consuming input, produce an ExpectError with `expect`.
  * 
  * @param expect Expected value.
- * @param p Parser to attempt.
+ * @param p Parser.
  */
 expected = \expect p ->
     new Parser\state m cok cerr eok eerr ->
@@ -863,6 +864,17 @@ expected = \expect p ->
             cerr,
             eok,
             \x state m -> eerr(new ExpectError(state.position, expect), state, m));
+
+/**
+ * Run `p`, swapping result success and never consuming any input.
+ * 
+ * @param p Parser.
+ */
+not = \p msg -> 
+    either(
+        bind(attempt p, \x ->
+            _fail\pos -> new UnexpectError(pos, x)),
+        always null);
 
 // Iterative Parsers
 ////////////////////////////////////////
@@ -914,14 +926,14 @@ enumeration = args \>> enumerationa;
 /**
  * Consume `p` zero or more times.
  * 
- * Will throw an error when 'p' succeeds without consuming. As this is an error
+ * Will throw an error when `p` succeeds without consuming. As this is an error
  * with the parser itself, this event breaks out of parsing.
  */
 many = let
     _optionalValueParser = optional @ NIL,
 
     manyError = throwConstant(
-        new ParserError("Many parser applied to a parser that accepts an empty string"))
+        new ParserError("Many parser applied to parser that accepts an empty string"))
 in
     \p -> let
         safeP = new Parser\state m cok cerr eok eerr ->
@@ -996,8 +1008,8 @@ in
                 ?consume tok
                     :let pcok = \x s m -> cok(x, s, Memoer.prune(m, s.position)) in
                         unparser(s.next(tok), s, m, pcok, cerr, pcok, cerr)
-                    
-                    :eerr(errorHandler(s.position, tok), s, m);
+                
+                :eerr(errorHandler(s.position, tok), s, m);
 
 /**
  * Consume any token.
@@ -1008,13 +1020,8 @@ anyToken := label@'Any Token' <|
 /**
  * Matches end of input.
  */
-eof := label@'EOF' <| let
-    end = always null
-in
-    bind(getParserState, \s ->
-        ?s.isEmpty()
-            :end
-            :_fail\pos -> new ExpectError(pos, "end of input", s.first()));
+eof := label@'EOF' <|
+    not anyToken;
 
 /* Running
  ******************************************************************************/
@@ -1072,7 +1079,7 @@ parseStream = \p s ud ok err ->
 parse = \p input ud ok err ->
     parseStream(
         p,
-        stream.from(input),
+        stream.from input,
         ud,
         ok,
         err);
@@ -1087,7 +1094,12 @@ runState = let
     ok = identity,
     err = \x -> { throw x; }
 in
-    \p state -> parseState(p, state, ok, err);
+    \p state ->
+        parseState(
+            p,
+            state,
+            ok,
+            err);
 
 /**
  * Run parser 'p' against an input stream.
@@ -1113,7 +1125,7 @@ runStream = \p s ud ->
 run = \p input ud ->
     runStream(
         p,
-        stream.from(input),
+        stream.from input,
         ud);
 
 /**
@@ -1128,7 +1140,12 @@ testState = let
     ok = constant true,
     err = constant false
 in
-    \p state -> parseState(p, state, ok, err);
+    \p state ->
+        parseState(
+            p,
+            state,
+            ok,
+            err);
 
  /**
  * Test parser 'p' against stream 's'.

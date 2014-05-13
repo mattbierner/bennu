@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/text.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/text.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var __o = require("./parse"),
     character, oneOf, noneOf, string, trie, match, anyChar, letter, space, digit, always = __o["always"],
     attempt = __o["attempt"],
@@ -81,27 +82,36 @@ var wordReduce = (function(parent, l) {
         return trie;
     }),
     _trie = (function(trie) {
-        var keys = Object.keys(trie),
+        var chars, msg, keys = Object.keys(trie),
             paths = reduce(keys, (function(p, c) {
                 if (c) {
                     (p[c] = _trie(trie[c]));
                 }
                 return p;
             }), ({})),
-            select = attempt(bind(oneOf(keys), (function(y) {
+            select = attempt(bind(((chars = map(keys, unbox)), token((function(x) {
+                return (chars.indexOf(("" + x)) >= 0);
+            }), ((msg = join(chars, " or ")), (function(pos, tok) {
+                return new(ExpectError)(pos, msg, ((tok === null) ? "end of input" : tok));
+            })))), (function(y) {
                 return paths[y];
             })));
         return (trie.hasOwnProperty("") ? optional(trie[""], select) : select);
     });
 (trie = (function(z) {
     var z0 = reduce(z, wordsReduce, ({})),
-        keys, paths, select;
+        chars, msg, keys, paths, select;
     return attempt(((keys = Object.keys(z0)), (paths = reduce(keys, (function(p, c) {
         if (c) {
             (p[c] = _trie(z0[c]));
         }
         return p;
-    }), ({}))), (select = attempt(bind(oneOf(keys), (function(y) {
+    }), ({}))), (select = attempt(bind(((chars = map(keys, unbox)), token((function(x) {
+        return (chars.indexOf(("" + x)) >= 0);
+    }), ((msg = join(chars, " or ")), (function(pos, tok) {
+        return new(ExpectError)(pos, msg, ((tok === null) ? "end of input" :
+            tok));
+    })))), (function(y) {
         return paths[y];
     })))), (z0.hasOwnProperty("") ? optional(z0[""], select) : select)));
 }));

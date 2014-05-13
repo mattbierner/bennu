@@ -76,7 +76,8 @@ in
  * 
  * Attempts to unbox objects.
  */
-character = \c -> _character(c, expectError(c));
+character := \c ->
+    _character(c, expectError(c));
 
 /**
  * Parser that consumes any of a set of character `chars`.
@@ -85,7 +86,7 @@ character = \c -> _character(c, expectError(c));
  * 
  * Attempts to unbox primitive object boxes.
  */
-oneOf = \chars -> let
+oneOf := \chars -> let
     chars = map(chars, unbox)
 in
     token(
@@ -97,7 +98,7 @@ in
  * 
  * Attempts to unbox primitive object boxes.
  */
-noneOf = \chars -> let
+noneOf := \chars -> let
     chars = map(chars, unbox)
 in
     token(
@@ -112,7 +113,7 @@ in
  * 
  * @param {String} s String, or array like of characters, to consume.
  */
-string = let
+string := let
     reducer = \p c i s ->
        next(
            _character(c,
@@ -132,7 +133,7 @@ in
  * 
  * @param words Array of strings.
  */
-trie = let
+trie := let
     wordReduce = \parent l -> {
         parent.(l) = (parent.(l) || {});
         return parent.(l);
@@ -172,7 +173,7 @@ in
  * @param pattern Regular expression to test characters against.
  * @param {String} expected Human readable message of the expected value.
  */
-match = \pattern expected ->
+match := \pattern expected ->
     token(
         RegExp.prototype.test.bind(pattern),
         expectError(expected));
@@ -180,25 +181,25 @@ match = \pattern expected ->
 /**
  * Consume any character.
  */
-anyChar = label@'Any Character' <|
+anyChar := label@'Any Character' <|
     match(`^.$`, "any character");
 
 /**
  * Consume any letter character.
  */
-letter = label@'Any Letter' <|
+letter := label@'Any Letter' <|
     match(`^[a-z]$`i, "any letter character");
 
 /**
  * Consume any space character.
  */
-space = label@'Any Whitespace' <|
+space := label@'Any Whitespace' <|
     match(`^\s$`i, "any space character");
 
 /**
  * Consume any number character.
  */
-digit = label@'Any Digit' <|
+digit := label@'Any Digit' <|
     match(`^[0-9]$`i, "any digit character");
 
 }

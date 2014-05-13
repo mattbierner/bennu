@@ -48,12 +48,6 @@ exports.tooFew = function(test) {
 
     test.done();
 };
- 
- 
-exports.maxLtMin = function(test) {
-    test.throws(function() { parse_lang.betweenTimes(5, 1, parse_text.character('a')); }, parse.ParserError);
-    test.done();
-};
 
 exports.largeInput = function(test) {
     var a = parse.eager(parse_lang.betweenTimes(1000, 1500, parse_text.character('a')));

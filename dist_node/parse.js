@@ -1,14 +1,15 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/parse.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/parse.kep'
  * DO NOT EDIT
-*/"use strict";
+*/
+"use strict";
 var stream = require("nu-stream")["stream"],
     seshat = require("seshet"),
     Tail, trampoline, ParserError, ParseError, MultipleError, UnknownError, UnexpectError, ExpectError, ParserState,
         Position, Parser, label, late, rec, unparser, always, of, never, bind, chain, map, ap, extract, getParserState,
         setParserState, modifyParserState, getState, setState, modifyState, getInput, setInput, getPosition,
         setPosition, fail, attempt, look, lookahead, next, sequences, sequencea, sequence, empty, either, concat,
-        choices, choicea, choice, optional, expected, eager, binds, cons, append, enumerations, enumerationa,
+        choices, choicea, choice, optional, expected, not, eager, binds, cons, append, enumerations, enumerationa,
         enumeration, many, many1, memo, token, anyToken, eof, exec, parseState, parseStream, parse, runState, runStream,
         run, testState, testStream, test, NIL = stream["NIL"],
     first = stream["first"],
@@ -16,10 +17,12 @@ var stream = require("nu-stream")["stream"],
     rest = stream["rest"],
     reduceRight = stream["reduceRight"],
     foldr = stream["foldr"],
-    constant = (function(x) {
-        return (function() {
-            return x;
-        });
+    identity = (function(x) {
+        return x;
+    }),
+    args = (function() {
+        var args0 = arguments;
+        return args0;
     });
 (Tail = (function(p, state, m, cok, cerr, eok, eerr) {
     var self = this;
@@ -390,10 +393,12 @@ var _binary = (function(p10, p20, f) {
     }));
 }),
     _fail = (function(e) {
-        var y;
-        return bind(getPosition, ((y = never), (function(z) {
-            return y(e(z));
-        })));
+        return bind(getPosition, (function(z) {
+            var x1 = e(z);
+            return new(Parser)((function(state, m, _, _0, _1, eerr) {
+                return eerr(x1, state, m);
+            }));
+        }));
     });
 (fail = (function(msg) {
     var e = (msg ? ParseError : UnknownError);
@@ -426,7 +431,9 @@ var _binary = (function(p10, p20, f) {
     }));
 }));
 (next = (function(p3, q) {
-    return bind(p3, constant(q));
+    return bind(p3, (function() {
+        return q;
+    }));
 }));
 var f;
 (sequences = reduceRight.bind(null, ((f = next), (function(x1, y) {
@@ -437,20 +444,18 @@ var x1 = stream.from,
 (sequencea = (function(z) {
     return y(x1(z));
 }));
-var x2 = (function() {
-    var args = arguments;
-    return args;
-}),
-    y0 = sequencea;
+var y0 = sequencea;
 (sequence = (function() {
-    var args = arguments;
-    return y0(x2.apply(null, args));
+    var args0 = arguments;
+    return y0(args.apply(null, args0));
 }));
-var e = (undefined ? ParseError : UnknownError),
-    y1;
-(Parser.prototype.empty = bind(getPosition, ((y1 = never), (function(z) {
-    return y1(new(e)(z, undefined));
-}))));
+var e = (undefined ? ParseError : UnknownError);
+(Parser.prototype.empty = bind(getPosition, (function(z) {
+    var x2 = new(e)(z, undefined);
+    return new(Parser)((function(state, m, _, _0, _1, eerr) {
+        return eerr(x2, state, m);
+    }));
+})));
 (Parser.empty = Parser.prototype.empty);
 (empty = Parser.empty);
 (Parser.concat = (function(p3, q) {
@@ -472,8 +477,8 @@ var e = (undefined ? ParseError : UnknownError),
     var self = this;
     return concat(self, p3);
 }));
-var x3;
-(choices = foldr.bind(null, (function(x3, y2) {
+var x2;
+(choices = foldr.bind(null, (function(x2, y1) {
     return new(Parser)((function(state, m, cok, cerr, eok, eerr) {
         var position = state["position"],
             peerr = (function(errFromP, _, mFromP) {
@@ -481,78 +486,77 @@ var x3;
                     return eerr(new(ChoiceError)(position, errFromP, errFromQ), state,
                         mFromQ);
                 });
-                return unparser(x3, state, mFromP, cok, cerr, eok, qeerr);
+                return unparser(x2, state, mFromP, cok, cerr, eok, qeerr);
             });
-        return unparser(y2, state, m, cok, cerr, eok, peerr);
+        return unparser(y1, state, m, cok, cerr, eok, peerr);
     }));
-}), ((x3 = new(MultipleError)(null, [])), new(Parser)((function(state, m, _, _0, _1, eerr) {
-    return eerr(x3, state, m);
+}), ((x2 = new(MultipleError)(null, [])), new(Parser)((function(state, m, _, _0, _1, eerr) {
+    return eerr(x2, state, m);
 })))));
-var x4 = stream.from,
-    y2 = choices;
+var x3 = stream.from,
+    y1 = choices;
 (choicea = (function(z) {
-    return y2(x4(z));
+    return y1(x3(z));
 }));
-var x5 = (function() {
-    var args = arguments;
-    return args;
-}),
-    y3 = choicea;
+var y2 = choicea;
 (choice = (function() {
-    var args = arguments;
-    return y3(x5.apply(null, args));
+    var args0 = arguments;
+    return y2(args.apply(null, args0));
 }));
-(optional = (function(x6, p3) {
-    return (p3 ? either(p3, always(x6)) : either(x6, always(null)));
+(optional = (function(x4, p3) {
+    return (p3 ? either(p3, always(x4)) : either(x4, always(null)));
 }));
 (expected = (function(expect, p3) {
     return new(Parser)((function(state, m, cok, cerr, eok, eerr) {
-        return unparser(p3, state, m, cok, cerr, eok, (function(x6, state0, m0) {
+        return unparser(p3, state, m, cok, cerr, eok, (function(x4, state0, m0) {
             return eerr(new(ExpectError)(state0.position, expect), state0, m0);
         }));
     }));
 }));
+(not = (function(p3, msg) {
+    return either(bind(attempt(p3), (function(x4) {
+        return _fail((function(pos) {
+            return new(UnexpectError)(pos, x4);
+        }));
+    })), always(null));
+}));
 (eager = map.bind(null, stream.toArray));
 (binds = (function(p3, f0) {
-    return bind(eager(p3), (function(x6) {
-        return f0.apply(undefined, x6);
+    return bind(eager(p3), (function(x4) {
+        return f0.apply(undefined, x4);
     }));
 }));
 var f0 = stream.cons;
 (cons = (function(p10, p20) {
-    return bind(p10, (function(x6) {
-        return p20.map((function(y4) {
-            return f0(x6, y4);
+    return bind(p10, (function(x4) {
+        return p20.map((function(y3) {
+            return f0(x4, y3);
         }));
     }));
 }));
 var f1 = stream.append;
 (append = (function(p10, p20) {
-    return bind(p10, (function(x6) {
-        return p20.map((function(y4) {
-            return f1(x6, y4);
+    return bind(p10, (function(x4) {
+        return p20.map((function(y3) {
+            return f1(x4, y3);
         }));
     }));
 }));
 var f2;
-(enumerations = foldr.bind(null, ((f2 = cons), (function(x6, y4) {
-    return f2(y4, x6);
+(enumerations = foldr.bind(null, ((f2 = cons), (function(x4, y3) {
+    return f2(y3, x4);
 })), always(NIL)));
-var x6 = stream.from,
-    y4 = enumerations;
+var x4 = stream.from,
+    y3 = enumerations;
 (enumerationa = (function(z) {
-    return y4(x6(z));
+    return y3(x4(z));
 }));
-var x7 = (function() {
-    var args = arguments;
-    return args;
-}),
-    y5 = enumerationa;
+var y4 = enumerationa;
 (enumeration = (function() {
-    var args = arguments;
-    return y5(x7.apply(null, args));
+    var args0 = arguments;
+    return y4(args.apply(null, args0));
 }));
-var err = new(ParserError)("Many parser applied to a parser that accepts an empty string"),
+var err = new(ParserError)("Many parser applied to parser that accepts an empty string"),
     manyError = (function() {
         throw err;
     });
@@ -578,27 +582,27 @@ var err = new(ParserError)("Many parser applied to a parser that accepts an empt
             entry = Memoer.lookup(m, position, key);
         if (entry) {
             var type = entry[0],
-                x8 = entry[1],
+                x5 = entry[1],
                 s = entry[2];
             switch (type) {
                 case "cok":
-                    return cok(x8, s, m);
+                    return cok(x5, s, m);
                 case "ceerr":
-                    return cerr(x8, s, m);
+                    return cerr(x5, s, m);
                 case "eok":
-                    return eok(x8, s, m);
+                    return eok(x5, s, m);
                 case "eerr":
-                    return eerr(x8, s, m);
+                    return eerr(x5, s, m);
             }
         }
-        return unparser(p3, state, m, (function(x9, pstate, pm) {
-            return cok(x9, pstate, Memoer.update(pm, position, key, ["cok", x9, pstate]));
-        }), (function(x9, pstate, pm) {
-            return cerr(x9, pstate, Memoer.update(pm, position, key, ["cerr", x9, pstate]));
-        }), (function(x9, pstate, pm) {
-            return eok(x9, pstate, Memoer.update(pm, position, key, ["eok", x9, pstate]));
-        }), (function(x9, pstate, pm) {
-            return eerr(x9, pstate, Memoer.update(pm, position, key, ["eerr", x9, pstate]));
+        return unparser(p3, state, m, (function(x6, pstate, pm) {
+            return cok(x6, pstate, Memoer.update(pm, position, key, ["cok", x6, pstate]));
+        }), (function(x6, pstate, pm) {
+            return cerr(x6, pstate, Memoer.update(pm, position, key, ["cerr", x6, pstate]));
+        }), (function(x6, pstate, pm) {
+            return eok(x6, pstate, Memoer.update(pm, position, key, ["eok", x6, pstate]));
+        }), (function(x6, pstate, pm) {
+            return eerr(x6, pstate, Memoer.update(pm, position, key, ["eerr", x6, pstate]));
         }));
     }));
 }));
@@ -610,8 +614,8 @@ var defaultErr = (function(pos, tok) {
     return new(Parser)((function(s, m, cok, cerr, eok, eerr) {
         var tok, pcok;
         return (s.isEmpty() ? eerr(errorHandler(s.position, null), s, m) : ((tok = s.first()), (consume(
-            tok) ? ((pcok = (function(x8, s0, m0) {
-            return cok(x8, s0, Memoer.prune(m0, s0.position));
+            tok) ? ((pcok = (function(x5, s0, m0) {
+            return cok(x5, s0, Memoer.prune(m0, s0.position));
         })), unparser(s.next(tok), s, m, pcok, cerr, pcok, cerr)) : eerr(errorHandler(s.position,
             tok), s, m))));
     }));
@@ -626,23 +630,30 @@ var p3 = token((function() {
     value: "Any Token",
     writable: false
 })))));
-var end = always(null),
-    p4 = bind(getParserState, (function(s) {
-        return (s.isEmpty() ? end : _fail((function(pos) {
-            return new(ExpectError)(pos, "end of input", s.first());
-        })));
+var p4 = either(bind(new(Parser)((function(state, m, cok, cerr, eok, eerr) {
+    var peerr = (function(x5, s, m0) {
+        return eerr(x5, s, Memoer.popWindow(m0));
+    });
+    return unparser(anyToken, state, Memoer.pushWindow(m, state.position), (function(x5, s, m0) {
+        return cok(x5, s, Memoer.popWindow(m0));
+    }), peerr, (function(x5, s, m0) {
+        return eok(x5, s, Memoer.popWindow(m0));
+    }), peerr);
+})), (function(x5) {
+    return _fail((function(pos) {
+        return new(UnexpectError)(pos, x5);
     }));
+})), always(null));
 (eof = (p4.run.hasOwnProperty("displayName") ? label("EOF", new(Parser)((function(state, m, cok, cerr, eok, eerr) {
     return new(Tail)(p4.run, state, m, cok, cerr, eok, eerr);
 }))) : new(Parser)(Object.defineProperty(p4.run, "displayName", ({
     value: "EOF",
     writable: false
 })))));
-var x8 = unparser,
-    y6 = trampoline;
+var x5 = unparser;
 (exec = (function() {
-    var args = arguments;
-    return y6(x8.apply(null, args));
+    var args0 = arguments;
+    return trampoline(x5.apply(null, args0));
 }));
 (parseState = (function(p5, state, ok, err0) {
     return exec(p5, state, Memoer.empty, ok, err0, ok, err0);
@@ -653,14 +664,11 @@ var x8 = unparser,
 (parse = (function(p5, input, ud, ok, err0) {
     return parseStream(p5, stream.from(input), ud, ok, err0);
 }));
-var ok = (function(x9) {
-    return x9;
-}),
-    err0 = (function(x9) {
-        throw x9;
-    });
+var err0 = (function(x6) {
+    throw x6;
+});
 (runState = (function(p5, state) {
-    return parseState(p5, state, ok, err0);
+    return parseState(p5, state, identity, err0);
 }));
 (runStream = (function(p5, s, ud) {
     return runState(p5, new(ParserState)(s, Position.initial, ud));
@@ -668,14 +676,14 @@ var ok = (function(x9) {
 (run = (function(p5, input, ud) {
     return runStream(p5, stream.from(input), ud);
 }));
-var ok0 = (function() {
+var ok = (function() {
     return true;
 }),
     err1 = (function() {
         return false;
     });
 (testState = (function(p5, state) {
-    return parseState(p5, state, ok0, err1);
+    return parseState(p5, state, ok, err1);
 }));
 (testStream = (function(p5, s, ud) {
     return testState(p5, new(ParserState)(s, Position.initial, ud));
@@ -732,6 +740,7 @@ var ok0 = (function() {
 (exports["choice"] = choice);
 (exports["optional"] = optional);
 (exports["expected"] = expected);
+(exports["not"] = not);
 (exports["eager"] = eager);
 (exports["binds"] = binds);
 (exports["cons"] = cons);
