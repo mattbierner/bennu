@@ -857,7 +857,7 @@ optional = \x p ->
  * @param expect Expected value.
  * @param p Parser.
  */
-expected = \expect p ->
+expected := \expect p ->
     new Parser\state m cok cerr eok eerr ->
         unparser(p, state, m,
             cok,
@@ -870,8 +870,8 @@ expected = \expect p ->
  * 
  * @param p Parser.
  */
-not = \p msg -> 
-    either(
+not := \p msg -> 
+    attempt either(
         bind(attempt p, \x ->
             _fail\pos -> new UnexpectError(pos, x)),
         always null);

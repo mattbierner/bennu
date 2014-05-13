@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 17.2.1 - May 13, 2014
+* Fixed `not` not backtracking in certain edge cases.
+
 ## 17.2.0 - May 13, 2014
 * Added `parse.not(p)` as non consuming combinator that fails when `p` succeeds.
 * parse_lang.betweenTimes will always consume at least `min` even if `max < min`.

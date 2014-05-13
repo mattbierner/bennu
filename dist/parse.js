@@ -515,11 +515,11 @@ define(["require", "exports", "nu-stream/stream", "seshet"], (function(require, 
         }));
     }));
     (not = (function(p3, msg) {
-        return either(bind(attempt(p3), (function(x4) {
+        return attempt(either(bind(attempt(p3), (function(x4) {
             return _fail((function(pos) {
                 return new(UnexpectError)(pos, x4);
             }));
-        })), always(null));
+        })), always(null)));
     }));
     (eager = map.bind(null, stream.toArray));
     (binds = (function(p3, f0) {
@@ -653,11 +653,21 @@ define(["require", "exports", "nu-stream/stream", "seshet"], (function(require, 
         return _fail((function(pos) {
             return new(UnexpectError)(pos, x5);
         }));
-    })), always(null));
-    (eof = (p4.run.hasOwnProperty("displayName") ? label("EOF", new(Parser)((function(state, m, cok, cerr, eok,
+    })), always(null)),
+        p5 = new(Parser)((function(state, m, cok, cerr, eok, eerr) {
+            var peerr = (function(x5, s, m0) {
+                return eerr(x5, s, Memoer.popWindow(m0));
+            });
+            return unparser(p4, state, Memoer.pushWindow(m, state.position), (function(x5, s, m0) {
+                return cok(x5, s, Memoer.popWindow(m0));
+            }), peerr, (function(x5, s, m0) {
+                return eok(x5, s, Memoer.popWindow(m0));
+            }), peerr);
+        }));
+    (eof = (p5.run.hasOwnProperty("displayName") ? label("EOF", new(Parser)((function(state, m, cok, cerr, eok,
         eerr) {
-        return new(Tail)(p4.run, state, m, cok, cerr, eok, eerr);
-    }))) : new(Parser)(Object.defineProperty(p4.run, "displayName", ({
+        return new(Tail)(p5.run, state, m, cok, cerr, eok, eerr);
+    }))) : new(Parser)(Object.defineProperty(p5.run, "displayName", ({
         value: "EOF",
         writable: false
     })))));
@@ -666,26 +676,26 @@ define(["require", "exports", "nu-stream/stream", "seshet"], (function(require, 
         var args0 = arguments;
         return trampoline(x5.apply(null, args0));
     }));
-    (parseState = (function(p5, state, ok, err0) {
-        return exec(p5, state, Memoer.empty, ok, err0, ok, err0);
+    (parseState = (function(p6, state, ok, err0) {
+        return exec(p6, state, Memoer.empty, ok, err0, ok, err0);
     }));
-    (parseStream = (function(p5, s, ud, ok, err0) {
-        return parseState(p5, new(ParserState)(s, Position.initial, ud), ok, err0);
+    (parseStream = (function(p6, s, ud, ok, err0) {
+        return parseState(p6, new(ParserState)(s, Position.initial, ud), ok, err0);
     }));
-    (parse = (function(p5, input, ud, ok, err0) {
-        return parseStream(p5, stream.from(input), ud, ok, err0);
+    (parse = (function(p6, input, ud, ok, err0) {
+        return parseStream(p6, stream.from(input), ud, ok, err0);
     }));
     var err0 = (function(x6) {
         throw x6;
     });
-    (runState = (function(p5, state) {
-        return parseState(p5, state, identity, err0);
+    (runState = (function(p6, state) {
+        return parseState(p6, state, identity, err0);
     }));
-    (runStream = (function(p5, s, ud) {
-        return runState(p5, new(ParserState)(s, Position.initial, ud));
+    (runStream = (function(p6, s, ud) {
+        return runState(p6, new(ParserState)(s, Position.initial, ud));
     }));
-    (run = (function(p5, input, ud) {
-        return runStream(p5, stream.from(input), ud);
+    (run = (function(p6, input, ud) {
+        return runStream(p6, stream.from(input), ud);
     }));
     var ok = (function() {
         return true;
@@ -693,14 +703,14 @@ define(["require", "exports", "nu-stream/stream", "seshet"], (function(require, 
         err1 = (function() {
             return false;
         });
-    (testState = (function(p5, state) {
-        return parseState(p5, state, ok, err1);
+    (testState = (function(p6, state) {
+        return parseState(p6, state, ok, err1);
     }));
-    (testStream = (function(p5, s, ud) {
-        return testState(p5, new(ParserState)(s, Position.initial, ud));
+    (testStream = (function(p6, s, ud) {
+        return testState(p6, new(ParserState)(s, Position.initial, ud));
     }));
-    (test = (function(p5, input, ud) {
-        return testStream(p5, stream.from(input), ud);
+    (test = (function(p6, input, ud) {
+        return testStream(p6, stream.from(input), ud);
     }));
     (exports["Tail"] = Tail);
     (exports["trampoline"] = trampoline);
