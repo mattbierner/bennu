@@ -1,11 +1,11 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/incremental.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/incremental.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var __o = require("./parse"),
-    always = __o["always"],
-    bind = __o["bind"],
+    stream = require("nu-stream")["stream"],
+    provide, provideString, finish, parseIncState, parseInc, runIncState, runInc, runManyState, runManyStream, runMany,
+        bind = __o["bind"],
     getParserState = __o["getParserState"],
     next = __o["next"],
     optional = __o["optional"],
@@ -15,19 +15,15 @@ var __o = require("./parse"),
     Position = __o["Position"],
     runState = __o["runState"],
     trampoline = __o["trampoline"],
-    stream = require("nu-stream")["stream"],
     streamFrom = stream["from"],
     isEmpty = stream["isEmpty"],
-    first = stream["first"],
     NIL = stream["NIL"],
-    rest = stream["rest"],
     memoStream = stream["memoStream"],
-    provide, provideString, finish, parseIncState, parseInc, runIncState, runInc, runManyState, runManyStream, runMany,
-        Request = (function(chunk, k) {
-            var self = this;
-            (self.chunk = chunk);
-            (self.k = k);
-        }),
+    Request = (function(chunk, k) {
+        var self = this;
+        (self.chunk = chunk);
+        (self.k = k);
+    }),
     Session = (function(done, k, chunks) {
         var self = this;
         (self.done = done);
@@ -52,20 +48,20 @@ var IncrementalState = (function(chunk, state) {
     (self.state = state);
 });
 Object.defineProperties(IncrementalState.prototype, ({
-    "input": ({
-        "get": (function() {
+    input: ({
+        get: (function() {
             var self = this;
             return self.state.input;
         })
     }),
-    "position": ({
-        "get": (function() {
+    position: ({
+        get: (function() {
             var self = this;
             return self.state.position;
         })
     }),
-    "userState": ({
-        "get": (function() {
+    userState: ({
+        get: (function() {
             var self = this;
             return self.state.userState;
         })
@@ -130,8 +126,8 @@ var forceProvide = (function(c, r) {
     return provide(streamFrom(input), r);
 }));
 var x = forceProvide.bind(null, NIL);
-(finish = (function(x0) {
-    var r = x(x0);
+(finish = (function(z) {
+    var r = x(z);
     return r.k();
 }));
 (parseIncState = (function(p, state, ok, err) {

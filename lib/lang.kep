@@ -44,18 +44,12 @@ var _end = always NIL;
 var _optionalValueParser = optional @ NIL;
 
 /**
- * Consume p exactly 'n' times.
- * 
- * @param {Number} n Number of times to consume p.
- * @param p Parser.
+ * Consume `p` exactly `n` times.
  */
 times = repeat \>> enumerations;
 
 /**
- * Consume `p` at most 'n' times.
- * 
- * @param {Number} n Max number of times to consume `p`.
- * @param p Parser.
+ * Consume `p` at most `n` times.
  */
 atMostTimes = \n p ->
     ?n <= 0
@@ -63,14 +57,10 @@ atMostTimes = \n p ->
     :_optionalValueParser(
         cons(
             p,
-            late \-> atMostTimes(n - 1, p)));
+            late \-> { return atMostTimes(n - 1, p); }));
 
 /**
- * Consume 'p' between 'min' and 'max' times.
- * 
- * @param {Number} min Minimum number of times to consume 'p'.
- * @param {Number} max Maximum number of times to consume 'p'.
- * @param p Parser.
+ * Consume `p` between `min` and `max` times.
  */
 betweenTimes = \min max p -> {
     if (max < min)
@@ -81,37 +71,33 @@ betweenTimes = \min max p -> {
 };
 
 /**
- * Parse 'p' then 'q', returning result from 'p'.
+ * Parse `p` then `q`, returning result from `p`.
  */
 then = \p q ->
     bind(p, \x ->
         next(q, always x));
 
 /**
- * Consume 'p' between 'open' and 'close', returning 'p' results.
- * 
- * @param open Parser to consume first, discarding results.
- * @param close Parser to consume last, discarding results.
- * @param p Parser to consume between 'open' and 'close'.
+ * Consume `p` between `open` and `close`, returning `p` results.
  */
-between = \open, close, p ->
+between = \open close p ->
     next(open, then(p, close));
 
 /**
- * Consume 'p' separated by 'sep' one or more times.
+ * Consume `p` separated by `sep` one or more times.
  * 
- * If sep succeeds but p fails, does not backtrack.
+ * When `sep` succeeds but `p` fails, does not backtrack.
  */
 sepBy1 = \sep p -> 
     cons(p, many next(sep, p));
 
 /**
- * Parser that consumes 'p' separated by 'sep' zero or more times.
+ * Consumes `p` separated by `sep` zero or more times.
  */
 sepBy = sepBy1 \>> _optionalValueParser;
 
 /**
- * Parser that consumes 'p' one or more times separated and optional ended by 'sep'.
+ * Consume `p` one or more times, separated and optional ended by `sep`.
  */
 sepEndBy1 = \sep p ->
     rec\self ->
@@ -122,29 +108,32 @@ sepEndBy1 = \sep p ->
                 _optionalValueParser self));
 
 /**
- * Parser that consumes 'p' zero or more times separated and optional ended by 'sep'.
+ * Consume `p` zero or more times, separated and optional ended by `sep`.
  */
 sepEndBy = \sep p ->
     either(
         sepEndBy1(sep, p),
-        next(optional(null, sep), _end));
+        next(optional sep, _end));
 
 /**
- * Parser that consumes 'p' one or more times separated by 'sep' and ended by 'sep'.
+ * Consume `p` one or more times separated by `sep` and ended by `sep`.
  */
 endBy1 = \sep p ->
-    many1 <| then(p, sep);
+    many1 then(p, sep);
 
 /**
- * Parser that consumes 'p' one or more times separated by 'sep' and ended by 'sep'.
+ * Consume `p` zero or more times separated by `sep` and ended by `sep`.
  */
 endBy = \sep p ->
-    many <| then(p, sep);
+    many then(p, sep);
 
 /**
- * Parser that consumes 'p' one or more times separated by 'op' and returns 
- * result of left associative application of resulting function from 'op' to 'p'
- * values.
+ * Consume `p` one or more times separated by `op`.
+ * 
+ * Returns left associative application of functions from `op` to `p` values.
+ * 
+ * @param op Operator parser.
+ * @param p Value parser.
  */
 chainl1 = \op p ->
     bind(p, function chain \x ->
@@ -152,17 +141,24 @@ chainl1 = \op p ->
             bind(p, \y -> chain <| f(x, y)))));
 
 /**
- * Parser that consumes 'p' one or more times separated by 'op' and returns 
- * result of left associative application of resulting function from 'op' to 'p'
- * values.
+ * Consume `p` zero or more times separated by `op`.
+ * 
+ * @see chail1
+ * 
+ * @param op Operator parser.
+ * @param x Value to return when zero `p` consumed.
+ * @param p Value parser.
  */
 chainl = \op x p ->
     optional(x, chainl1(op, p));
 
 /**
- * Parser that consumes 'p' one or more times separated by 'op' and returns 
- * result of right associative application of resulting function from 'op' to 'p'
- * values.
+ * Consume `p` one or more times separated by `op`.
+ * 
+ * Returns right associative application of functions from `op` to `p` values.
+ * 
+ * @param op Operator parser.
+ * @param p Value parser.
  */
 chainr1 = \op p ->
     rec\self ->
@@ -171,9 +167,13 @@ chainr1 = \op p ->
                 self.map(\y -> f(x, y)))));
 
 /**
- * Parser that consumes 'p' zero or more times separated by 'op' and returns 
- * result of right associative application of resulting function from 'op' to 'p'
- * values.
+ * Consume `p` zero or more times separated by `op`.
+ * 
+ * @see chainr1
+ * 
+ * @param op Operator parser.
+ * @param x Value to return when zero `p` consumed.
+ * @param p Value parser.
  */
 chainr = \op x p ->
     optional(x, chainr1(op, p));

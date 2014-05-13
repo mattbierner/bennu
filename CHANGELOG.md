@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 17.1.1 - May 13, 2014
+* Fixed bug when `label` called on already labeled parser.
+
 ## 17.1.0 - April 9, 2014
 * Allow `optional` to be used with a single argument to return `null` on
   fail.

@@ -1,26 +1,23 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/text.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/text.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "./parse"], (function(require, exports, __o) {
+*/define(["require", "exports", "./parse"], (function(require, exports, __o) {
     "use strict";
-    var always = __o["always"],
+    var character, oneOf, noneOf, string, trie, match, anyChar, letter, space, digit, always = __o["always"],
         attempt = __o["attempt"],
         bind = __o["bind"],
-        either = __o["either"],
-        expected = __o["expected"],
+        optional = __o["optional"],
         ExpectError = __o["ExpectError"],
         next = __o["next"],
         label = __o["label"],
         token = __o["token"],
-        character, oneOf, noneOf, string, trie, match, anyChar, letter, space, digit, join = Function.prototype
-            .call.bind(Array.prototype.join),
+        join = Function.prototype.call.bind(Array.prototype.join),
         map = Function.prototype.call.bind(Array.prototype.map),
         reduce = Function.prototype.call.bind(Array.prototype.reduce),
         reduceRight = Function.prototype.call.bind(Array.prototype.reduceRight),
-        StringError = (function(position, string, index, expected0, found) {
+        StringError = (function(position, string, index, expected, found) {
             var self = this;
-            ExpectError.call(self, position, expected0, found);
+            ExpectError.call(self, position, expected, found);
             (self.string = string);
             (self.index = index);
         });
@@ -49,7 +46,8 @@ define(["require", "exports", "./parse"], (function(require, exports, __o) {
         }));
     }));
     (oneOf = (function(chars) {
-        var msg, chars0 = map(chars, unbox);
+        var chars0 = map(chars, unbox),
+            msg;
         return token((function(x) {
             return (chars0.indexOf(("" + x)) >= 0);
         }), ((msg = join(chars0, " or ")), (function(pos, tok) {
@@ -57,10 +55,11 @@ define(["require", "exports", "./parse"], (function(require, exports, __o) {
         })));
     }));
     (noneOf = (function(chars) {
-        var msg, chars0 = map(chars, unbox);
-        return token((function(x) {
-            var x0 = (chars0.indexOf(("" + x)) >= 0);
-            return (!x0);
+        var chars0 = map(chars, unbox),
+            msg;
+        return token((function(z) {
+            var x = (chars0.indexOf(("" + z)) >= 0);
+            return (!x);
         }), ((msg = ("none of:" + join(chars0, " or "))), (function(pos, tok) {
             return new(ExpectError)(pos, msg, ((tok === null) ? "end of input" : tok));
         })));
@@ -85,7 +84,7 @@ define(["require", "exports", "./parse"], (function(require, exports, __o) {
         _trie = (function(trie) {
             var keys = Object.keys(trie),
                 paths = reduce(keys, (function(p, c) {
-                    if (c.length) {
+                    if (c) {
                         (p[c] = _trie(trie[c]));
                     }
                     return p;
@@ -93,29 +92,49 @@ define(["require", "exports", "./parse"], (function(require, exports, __o) {
                 select = attempt(bind(oneOf(keys), (function(y) {
                     return paths[y];
                 })));
-            return (trie.hasOwnProperty("") ? either(select, always(trie[""])) : select);
+            return (trie.hasOwnProperty("") ? optional(trie[""], select) : select);
         });
-    (trie = (function(words) {
-        var trie0, keys, paths, select;
-        return attempt(((trie0 = reduce(words, wordsReduce, ({}))), (keys = Object.keys(trie0)), (paths =
-            reduce(keys, (function(p, c) {
-                if (c.length) {
-                    (p[c] = _trie(trie0[c]));
-                }
-                return p;
-            }), ({}))), (select = attempt(bind(oneOf(keys), (function(y) {
+    (trie = (function(z) {
+        var z0 = reduce(z, wordsReduce, ({})),
+            keys, paths, select;
+        return attempt(((keys = Object.keys(z0)), (paths = reduce(keys, (function(p, c) {
+            if (c) {
+                (p[c] = _trie(z0[c]));
+            }
+            return p;
+        }), ({}))), (select = attempt(bind(oneOf(keys), (function(y) {
             return paths[y];
-        })))), (trie0.hasOwnProperty("") ? either(select, always(trie0[""])) : select)));
+        })))), (z0.hasOwnProperty("") ? optional(z0[""], select) : select)));
     }));
-    (match = (function(pattern, expected0) {
+    (match = (function(pattern, expected) {
         return token(RegExp.prototype.test.bind(pattern), (function(pos, tok) {
-            return new(ExpectError)(pos, expected0, ((tok === null) ? "end of input" : tok));
+            return new(ExpectError)(pos, expected, ((tok === null) ? "end of input" : tok));
         }));
     }));
-    (anyChar = label("Any Character", match(/^.$/, "any character")));
-    (letter = label("Any Letter", match(/^[a-z]$/i, "any letter character")));
-    (space = label("Any Whitespace", match(/^\s$/i, "any space character")));
-    (digit = label("Any Digit", match(/^[0-9]$/i, "any digit character")));
+    var pattern;
+    (anyChar = label("Any Character", ((pattern = /^.$/), token(RegExp.prototype.test.bind(pattern), (function(
+        pos, tok) {
+        return new(ExpectError)(pos, "any character", ((tok === null) ? "end of input" :
+            tok));
+    })))));
+    var pattern0;
+    (letter = label("Any Letter", ((pattern0 = /^[a-z]$/i), token(RegExp.prototype.test.bind(pattern0), (
+        function(pos, tok) {
+            return new(ExpectError)(pos, "any letter character", ((tok === null) ?
+                "end of input" : tok));
+        })))));
+    var pattern1;
+    (space = label("Any Whitespace", ((pattern1 = /^\s$/i), token(RegExp.prototype.test.bind(pattern1), (
+        function(pos, tok) {
+            return new(ExpectError)(pos, "any space character", ((tok === null) ?
+                "end of input" : tok));
+        })))));
+    var pattern2;
+    (digit = label("Any Digit", ((pattern2 = /^[0-9]$/i), token(RegExp.prototype.test.bind(pattern2), (function(
+        pos, tok) {
+        return new(ExpectError)(pos, "any digit character", ((tok === null) ?
+            "end of input" : tok));
+    })))));
     (exports["character"] = character);
     (exports["oneOf"] = oneOf);
     (exports["noneOf"] = noneOf);

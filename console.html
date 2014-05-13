@@ -91,7 +91,7 @@
                         var parser = eval($('.Parser textarea').val());
                         var input = $('.Text textarea').val();
                         
-                        flatten(parse.run(parser, input), function(x) {
+                        flatten(parse.run(parser, input, 0), function(x) {
                             $('.ParseOut').append(x + '');
                         }); 
                     } catch (e) {

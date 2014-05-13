@@ -17,8 +17,8 @@ with
         always
         attempt
         bind
-        either
         expected
+        optional
         ExpectError
         next
         label
@@ -32,7 +32,7 @@ var reduceRight = Function.prototype.call.bind(Array.prototype.reduceRight);
 
 var expectError := \msg ->
     \pos tok ->
-        new ExpectError(pos, msg, ?tok === null :"end of input" :tok);
+        new ExpectError(pos, msg, ?tok === null : "end of input" : tok);
 
 /* Errors
  ******************************************************************************/
@@ -53,15 +53,15 @@ StringError.prototype = new ExpectError();
 StringError.prototype.constructor = StringError;
 
 Object.defineProperty(StringError.prototype, 'errorMessage', {
-    'get': \() =self->
+    'get': \ =self->
         "In string: '" + self.string + "' at index: " + self.index +
         ", Expected: " + self.expected +
-        " Found: " + (?self.found :self.found :"end of input")
+        " Found: " + (?self.found : self.found : "end of input")
 });
 
 /* Parsers
  ******************************************************************************/
-var unbox := (+, '');
+var unbox := (+ '');
 
 var has := \a x ->
     a.indexOf(unbox x) >= 0;
@@ -79,7 +79,7 @@ in
 character = \c -> _character(c, expectError(c));
 
 /**
- * Parser that consumes any of a set of character `chars`. 
+ * Parser that consumes any of a set of character `chars`.
  * 
  * Behaves the same as a choice of single characters but more efficient.
  * 
@@ -122,7 +122,7 @@ in
     \s -> attempt reduceRight(s, reducer, always(unbox s));
 
 /**
- * Parser that matches any string from an array of words using a trie.
+ * Consume any string from an array of words using a trie.
  * 
  * In cases with many overlapping strings, this is more efficient than `parse.choice`
  * as it avoids backtracking.
@@ -130,15 +130,15 @@ in
  * Matching is greedy and longest possible string is preferred. If no word matches,
  * nothing is consumed.
  * 
- * @param words 
+ * @param words Array of strings.
  */
 trie = let
-    wordReduce = \parent, l -> {
+    wordReduce = \parent l -> {
         parent.(l) = (parent.(l) || {});
         return parent.(l);
     },
     
-    wordsReduce = \trie, word -> {
+    wordsReduce = \trie word -> {
         var node = reduce(word, wordReduce, trie);
         node.('') = word;
         return trie;
@@ -149,8 +149,8 @@ trie = let
     _trie := \trie -> let
         keys = Object.keys(trie),
         
-        paths = reduce(keys, \p, c -> {
-            if (c.length)
+        paths = reduce(keys, \p c -> {
+            if (c)
                 p.(c) = _trie(trie.(c));
             return p;
         }, {}),
@@ -158,15 +158,13 @@ trie = let
         select = attempt bind(oneOf keys, (., paths))
     in
         ?trie.hasOwnProperty('')
-            :either(
-                select,
-                always trie.(''))
+            :optional(trie.(''), select)
             :select
 in
-    \words -> attempt _trie(makeTrie words, '');
+    makeTrie \> _trie \> attempt;
 
 /**
- * Parser that consumes input that matches a regular expression.
+ * Consume characters that match a regular expression.
  * 
  * This is a character level operation. The regular expression is run against
  * characters, not the stream.
@@ -180,25 +178,25 @@ match = \pattern expected ->
         expectError(expected));
 
 /**
- * Parser that consumes any character.
+ * Consume any character.
  */
 anyChar = label@'Any Character' <|
     match(`^.$`, "any character");
 
 /**
- * Parser that consumes any letter character.
+ * Consume any letter character.
  */
 letter = label@'Any Letter' <|
     match(`^[a-z]$`i, "any letter character");
 
 /**
- * Parser that consumes any space character.
+ * Consume any space character.
  */
 space = label@'Any Whitespace' <|
     match(`^\s$`i, "any space character");
 
 /**
- * Parser that consumes any number character.
+ * Consume any number character.
  */
 digit = label@'Any Digit' <|
     match(`^[0-9]$`i, "any digit character");

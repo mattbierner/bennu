@@ -44,14 +44,14 @@ in {
  ******************************************************************************/
 // Request
 ////////////////////////////////////////
-var Request = function \chunk, k =self-> {
+var Request = function \chunk k =self-> {
     self.chunk = chunk;
     self.k = k;
 };
 
 // Session
 ////////////////////////////////////////
-var Session = function \done, k, chunks =self-> {
+var Session = function \done k chunks =self-> {
     self.done = done;
     self.k = k;
     self.chunks = chunks;
@@ -85,24 +85,24 @@ var IncrementalState = function \chunk, state =self-> {
 };
 
 Object.defineProperties(IncrementalState.prototype, {
-    'input': {
-        'get': \() =self-> self.state.input
+    input: {
+        get: \ =self-> self.state.input
     },
-    'position': {
-        'get': \() =self-> self.state.position
+    position: {
+        get: \ =self-> self.state.position
     },
-    'userState': {
-        'get': \() =self-> self.state.userState
+    userState: {
+        get: \ =self-> self.state.userState
     }
 });
 
 IncrementalState.prototype.eq = \other =self->
     other && other.chunk === self.chunk && self.state.eq(other.state);
 
-IncrementalState.prototype.isEmpty = \() =self->
+IncrementalState.prototype.isEmpty = \ =self->
     self.state.isEmpty();
 
-IncrementalState.prototype.first = \() =self->
+IncrementalState.prototype.first = \ =self->
     self.state.first();
 
 IncrementalState.prototype.next = \x =self-> {

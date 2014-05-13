@@ -31,8 +31,12 @@ package (
     
 // Parsers
     always
+    of
     never
     bind
+    chain
+    map
+    ap
     
     extract
     getParserState
@@ -59,7 +63,9 @@ package (
     sequencea
     sequence
     
+    empty
     either
+    concat
     choices
     choicea
     choice
@@ -82,14 +88,6 @@ package (
     anyToken
     eof
     
-// Fantasy Land
-    empty
-    ap
-    concat
-    of
-    map
-    chain
-    
 // Running
     exec
     
@@ -110,7 +108,6 @@ with
         first
         isEmpty
         rest
-        foldl
         reduceRight
         foldr},
     import 'seshet' seshat
@@ -118,11 +115,11 @@ in {
 
 var identity = \x -> x;
 
-var args = \args(...) -> args;
+var args = \-args(...) -> args;
 
-var constant = \x -> \() -> x;
+var constant = \x -> \ -> x;
 
-var throwConstant = \err -> \() -> { throw err; };
+var throwConstant = \err -> \ -> { throw err; };
 
 var flip = \f -> \x y -> f(y, x);
 
@@ -164,8 +161,8 @@ var Memoer = function \memoer frames =self-> {
  */
 Memoer.empty = new Memoer(
     seshat.create(
-        \x, y -> x.compare(y),
-        \x, y -> (x.id === y.id && (x.state === y.state || (x.state && x.state.eq(y.state))))),
+        \x y -> x.compare(y),
+        \x y -> (x.id === y.id && (x.state === y.state || (x.state && x.state.eq(y.state))))),
     NIL);
 
 /**
@@ -222,9 +219,9 @@ Memoer.update = \m pos id val ->
 // Position
 ////////////////////////////////////////
 /**
- * Position in the input.
+ * Position in input.
  * 
- * Simply tracks the index in the input.
+ * Tracks current index in input.
  */
 Position = function \i =self-> {
     self.index = i;
@@ -233,22 +230,22 @@ Position = function \i =self-> {
 /**
  * Initial position in a stream.
  */
-Position.initial = new Position(0);
+Position.initial = new Position 0;
 
-Position.prototype.toString = \() =self-> '' + self.index;
+Position.prototype.toString = \ =self-> '' + self.index;
 
 /**
- * Advanced the position based on a consumed character.
+ * Advance the position based on the consumed character.
  * 
  * @param tok Token consumed.
  * @param rest Rest of stream.
  * 
- * @returns Position after 'tok'.
+ * @returns Position after `tok`.
  */
 Position.prototype.increment = \_ _ =self-> new Position(self.index + 1);
 
 /**
- * Compares two positions.
+ * Compare two positions.
  * 
  * @returns Number less than, equal to, or greater than zero if this position is
  *   less than, equal to, or greater than 'pos'.
@@ -258,13 +255,13 @@ Position.prototype.compare = \pos =self-> (self.index - pos.index);
 // ParserState
 ////////////////////////////////////////
 /**
- * Object used to track a Parser's state.
+ * State of a parser.
  * 
  * @param input Input to the parser.
  * @param position Current position of head of input.
- * @param [userState] Object that users can thread through parsers.
+ * @param [userState] User data threaded through parser.
  */
-ParserState = function\input, position, userState =self-> {
+ParserState = function\input position userState =self-> {
     self.input = input;
     self.position = position;
     self.userState = userState;
@@ -282,14 +279,14 @@ ParserState.prototype.eq = \other =self->
     && self.userState === other.userState);
 
 /**
- * Is the state's input empty.
+ * Is the state's input empty?
  */
-ParserState.prototype.isEmpty = \() =self-> isEmpty self.input;
+ParserState.prototype.isEmpty = \ =self-> isEmpty self.input;
 
 /**
  * Get the first item of the input.
  */
-ParserState.prototype.first = \() =self-> first self.input;
+ParserState.prototype.first = \ =self-> first self.input;
 
 /**
  * Get next state object for a given consumed token.
@@ -376,17 +373,17 @@ ParseError.prototype = new Error();
 ParseError.prototype.constructor = ParseError;
 ParseError.prototype.name = 'ParseError';
 
-ParseError.prototype.toString = \=self-> self.message;
+ParseError.prototype.toString = \ =self-> self.message;
 
 Object.defineProperties(ParseError.prototype, {
-    'message': {
-        'configurable': true,
-        'get': \() =self->
+    message: {
+        configurable: true,
+        get: \ =self->
             "At " + self.position + " " + self.errorMessage
     },
-    'errorMessage': {
-        'configurable': true,
-        'get': \() =self-> self._msg
+    errorMessage: {
+        configurable: true,
+        get: \ =self-> self._msg
     }
 });
 
@@ -398,7 +395,7 @@ Object.defineProperties(ParseError.prototype, {
  * @params position Position of errors.
  * @params [errors] Array like object containing zero or more ParseErrors.
  */
-MultipleError = function \position, errors =self-> {
+MultipleError = function \position errors =self-> {
     self.position = position;
     self.errors = (errors || []);
 };
@@ -407,8 +404,8 @@ MultipleError.prototype.constructor = MultipleError;
 MultipleError.prototype.name = 'MultipleError';
 
 Object.defineProperty(MultipleError.prototype, 'errorMessage', {
-    'get': \() =self->
-        "[" + self.errors.map(\x -> x.message).join(", ") + "]"
+    get: \ =self->
+        "[" + self.errors.map((.message)).join(", ") + "]"
 });
 
 /**
@@ -428,7 +425,7 @@ ChoiceError.prototype.constructor = MultipleError;
 ChoiceError.prototype.name = 'ChoiceError';
 
 Object.defineProperty(ChoiceError.prototype, 'errors', {
-    'get': \() =self->
+    get: \ =self->
         [self._pErr].concat(self._qErr.errors)
 });
 
@@ -446,7 +443,7 @@ UnknownError.prototype.constructor = UnknownError;
 UnknownError.prototype.name = 'UnknownError';
 
 Object.defineProperty(UnknownError.prototype, 'errorMessage', {
-    'value': "unknown error"
+    value: "unknown error"
 });
 
 /**
@@ -456,7 +453,7 @@ Object.defineProperty(UnknownError.prototype, 'errorMessage', {
  * @param position Position of error.
  * @param unexpected Found value.
  */
-UnexpectError = function \position, unexpected =self-> {
+UnexpectError = function \position unexpected =self-> {
     self.position = position;
     self.unexpected = unexpected;
 };
@@ -465,7 +462,7 @@ UnexpectError.prototype.constructor = UnexpectError;
 UnexpectError.prototype.name = 'UnexpectError';
 
 Object.defineProperty(UnexpectError.prototype, 'errorMessage', {
-    'get': \() =self->
+    get: \ =self->
         "unexpected: " + self.unexpected
 });
 
@@ -477,7 +474,7 @@ Object.defineProperty(UnexpectError.prototype, 'errorMessage', {
  * @oaram expected Expected value.
  * @param [found] Found value.
  */
-ExpectError = function \position, expected, found =self-> {
+ExpectError = function \position expected found =self-> {
     self.position = position;
     self.expected = expected;
     self.found = found;
@@ -487,7 +484,7 @@ ExpectError.prototype.constructor = ExpectError;
 ExpectError.prototype.name = "ExpectError";
 
 Object.defineProperty(ExpectError.prototype, 'errorMessage', {
-    'get': \() =self->
+    get: \ =self->
         "expected: " + self.expected + ?self.found
             :" found: " + self.found
             :""
@@ -521,12 +518,11 @@ label = \name p ->
     ?p.run.hasOwnProperty 'displayName'
        :label(
            name,
-           new Parser\p state m cok cerr eok eerr ->
-               unparser(p, state, m, cok, cerr, eok, eerr))
+           new Parser (unparser @ p))
        
        :new Parser(Object.defineProperty(p.run, 'displayName', {
-            'value': name,
-            'writable': false
+            value: name,
+            writable: false
         }));
 
  /**
@@ -564,7 +560,7 @@ late = \def -> {
  *     defined and returns the parser.
  */
 rec = \def -> {
-    var value = def <| late\->value;
+    var value = def <| late\-> { return value; };
     return value;
 };
 
@@ -577,7 +573,7 @@ rec = \def -> {
  * 
  * Consumes no input.
  */
-always = \x ->
+always = of = Parser.of = Parser.prototype.of = \x ->
     new Parser\state m _ _ eok _ -> eok(x, state, m);
 
 /**
@@ -595,7 +591,7 @@ never = \x ->
  * @param p Parser.
  * @param f Function that maps `p` result to next parser.
  */
-bind = \p f ->
+bind = chain = Parser.chain = \p f ->
     new Parser\state m cok cerr eok eerr ->
         unparser(p,
             state,
@@ -604,6 +600,24 @@ bind = \p f ->
             cerr,
             \x state m -> unparser(f(x), state, m, cok, cerr, eok, eerr),
             eerr);
+
+Parser.prototype.chain = \f =self->
+    chain(self, f);
+
+// Fantasy Land
+////////////////////////////////////////
+Parser.prototype.map = \f =self->
+    bind(self, f \> always);
+
+map = Parser.map = \f p ->
+     p.map(f);
+
+// Applicative
+ap = Parser.ap = \f m ->
+    bind(f, \f -> m.map f);
+
+Parser.prototype.ap = \m2 =self->
+    ap(self, m2);
 
 // State Interaction Parsers
 ////////////////////////////////////////
@@ -620,17 +634,18 @@ modifyParserState = \f ->
 /**
  * Return the current parser state.
  */
-getParserState = label@'Get Parser State' <|
+getParserState := label@'Get Parser State' <|
     modifyParserState(identity);
 
 /**
- * Set the current parser state to `s`.
+ * Set the current parser state.
+ * 
+ * @param s New state.
  */
-setParserState = \s ->
-    modifyParserState(constant s);
+setParserState = modifyParserState <\ constant;
 
 /**
- * Extracts information from the user state.
+ * Extracts information from the state.
  * 
  * @param {function(Object): *} f Function that extracts information from a 
  *     given state object.
@@ -650,20 +665,19 @@ modifyState = \f ->
 /**
  * Parser that returns the current user state.
  */
-getState = label@'Get State' <|
-    extract \ s -> s.userState;
+getState := label@'Get State' <|
+    extract (.userState);
 
 /**
  * Parser that sets current user parser state to 's'.
  */
-setState = \s ->
-    modifyState(constant s);
+setState = modifyState <\ constant;
 
 /**
  * Get the current position.
  */
-getPosition = label@'Get Position' <|
-    extract \ s -> s.position;
+getPosition := label@'Get Position' <|
+    extract (.position);
 
 /**
  * Set the position.
@@ -674,8 +688,8 @@ setPosition = \position ->
 /**
  * Get the current input.
  */
-getInput = label@'Get Input' <|
-    extract \ s -> s.input;
+getInput := label@'Get Input' <|
+    extract (.input);
 
 /**
  * Set the input.
@@ -690,7 +704,7 @@ var _binary = \p1 p2 f ->
         bind(p2, \v2 -> f(v1, v2)));
 
 var _fail = \e ->
-    bind(getPosition, \pos -> never(e(pos)));
+    bind(getPosition, e \> never);
 
 /**
  * Fails with an error and consumes no input.
@@ -779,6 +793,10 @@ sequencea = stream.from \> sequences;
  */
 sequence = args \>> sequencea;
 
+// Choice Parsers
+////////////////////////////////////////
+empty = Parser.empty = Parser.prototype.empty = fail();
+
 var _either = \e ->
     \p q ->
         new Parser\state#{position} m cok cerr eok eerr -> let 
@@ -791,10 +809,13 @@ var _either = \e ->
             unparser(p, state, m, cok, cerr, eok, peerr);
 
 /**
- * Parser that attempts p or q. If p succeeds, returns its value. Else, tries
- * to parse q.
+ * Run `p` or `q`. If `p` succeeds, return its value. Else, try
+ * to parse `q`.
  */
-either = _either(\pos pErr qErr -> new MultipleError(pos, [pErr, qErr]));
+either = concat = Parser.concat = _either(\pos pErr qErr -> new MultipleError(pos, [pErr, qErr]));
+
+Parser.prototype.concat = \p =self ->
+    concat(self, p);
 
 /**
  * Parser that attempts a number of parsers in order, returning the value of
@@ -843,44 +864,11 @@ expected = \expect p ->
             eok,
             \x state m -> eerr(new ExpectError(state.position, expect), state, m));
 
-// Fantasy Land
-////////////////////////////////////////
-// Functor
-map = Parser.map = \f p ->
-     bind(p, f \> always);
-
-Parser.prototype.map = \f =self->
-    map(f, self);
-
-// Applicative
-ap = Parser.ap = \f m ->
-    bind(f, \f -> m.map f);
-
-Parser.prototype.ap = \m2 =self->
-    ap(self, m2);
-
-// Chain
-chain = Parser.chain = bind;
-
-Parser.prototype.chain = \f =self->
-    chain(self, f);
-
-// Monad
-of = Parser.of = Parser.prototype.of = always;
-
-// Monoid
-empty = Parser.empty = Parser.prototype.empty = fail();
-
-concat = Parser.concat = either;
-
-Parser.prototype.concat = \p =self ->
-    concat(self, p);
-
 // Iterative Parsers
 ////////////////////////////////////////
 var liftM2 = \f p1 p2 ->
     bind(p1, \x ->
-        map(\y -> f(x, y), p2));
+        p2.map\y -> f(x, y));
 
 /**
  * Map the stream result of a parser to a regular array.
@@ -943,7 +931,7 @@ in
                 _optionalValueParser(cons(safeP, self));
 
 /**
- * Consume `p` 1 or more times.
+ * Consume `p` one or more times.
  */
 many1 = \p -> cons(p, many p);
 
@@ -956,7 +944,7 @@ many1 = \p -> cons(p, many p);
  */
 memo = \p ->
     new Parser\state#{position} m cok cerr eok eerr -> {
-        var key := {'id': p, 'state': state};
+        var key := { id: p, state: state};
         var entry := Memoer.lookup(m, position, key);
         
         if (entry) with [type, x, s] = entry in {
@@ -995,7 +983,7 @@ memo = \p ->
  */
 token = let
     defaultErr = \pos tok ->
-        new UnexpectError(pos, (?tok === null :"end of input" :tok))
+        new UnexpectError(pos, ?tok === null : "end of input" :tok)
 in
     \consume onErr -> let
         errorHandler = (onErr || defaultErr)
@@ -1012,15 +1000,15 @@ in
                     :eerr(errorHandler(s.position, tok), s, m);
 
 /**
- * Consumes any token.
+ * Consume any token.
  */
-anyToken = label@'Any Token' <|
+anyToken := label@'Any Token' <|
     token(constant true);
 
 /**
  * Matches end of input.
  */
-eof = label@'EOF' <| let
+eof := label@'EOF' <| let
     end = always null
 in
     bind(getParserState, \s ->
@@ -1047,7 +1035,14 @@ exec = unparser \>> trampoline;
  * @param err Failure continuation.
  */
 parseState = \p state ok err ->
-    exec(p, state, Memoer.empty, ok, err, ok, err);
+    exec(
+        p,
+        state,
+        Memoer.empty,
+        ok,
+        err,
+        ok,
+        err);
 
 /**
  * Run parser `p` against a given stream.
@@ -1066,22 +1061,24 @@ parseStream = \p s ud ok err ->
         err);
 
 /**
- * 
  * Run parser 'p' against an input string.
  * 
- * @param p Parser to run.
+ * @param p Parser.
  * @param input Array-like object of characters to run the parser against.
  * @param ud User data.
  * 
  * @see parseStream.
  */
 parse = \p input ud ok err ->
-    parseStream(p, stream.from(input), ud, ok, err);
+    parseStream(
+        p,
+        stream.from(input),
+        ud,
+        ok,
+        err);
 
 /**
- * Run parser `p` with a given state.
- * 
- * Success results are returned. Error results are thrown.
+ * Run parser `p`. Return success results and throw error results.
  * 
  * @param p Parser.
  * @param state Parser state.
@@ -1090,7 +1087,7 @@ runState = let
     ok = identity,
     err = \x -> { throw x; }
 in
-    \p, state -> parseState(p, state, ok, err);
+    \p state -> parseState(p, state, ok, err);
 
 /**
  * Run parser 'p' against an input stream.
@@ -1102,7 +1099,9 @@ in
  * @param [ud] User data.
  */
 runStream = \p s ud ->
-    runState(p, new ParserState(s, Position.initial, ud));
+    runState(
+        p,
+        new ParserState(s, Position.initial, ud));
 
 /**
  * Run parser 'p' against an input string.
@@ -1112,12 +1111,15 @@ runStream = \p s ud ->
  * @param [ud] User data.
  */
 run = \p input ud ->
-    runStream(p, stream.from(input), ud);
+    runStream(
+        p,
+        stream.from(input),
+        ud);
 
 /**
  * Tests parser 'p' with a given state.
  * 
- * @param p Parser to run.
+ * @param p Parser.
  * @param state State to run parser against.
  *
  * @return Did the parser successfully run?
@@ -1126,7 +1128,7 @@ testState = let
     ok = constant true,
     err = constant false
 in
-    \p, state -> parseState(p, state, ok, err);
+    \p state -> parseState(p, state, ok, err);
 
  /**
  * Test parser 'p' against stream 's'.
@@ -1138,7 +1140,9 @@ in
  * @see testState
  */
 testStream = \p s ud ->
-    testState(p, new ParserState(s, Position.initial, ud));
+    testState(
+        p,
+        new ParserState(s, Position.initial, ud));
 
 /**
  * Test parser 'p' against 'input'.
@@ -1150,6 +1154,9 @@ testStream = \p s ud ->
  * @see testStream
  */
 test = \p input ud ->
-    testStream(p, stream.from(input), ud);
+    testStream(
+        p,
+        stream.from(input),
+        ud);
 
 }

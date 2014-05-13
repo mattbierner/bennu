@@ -1,13 +1,13 @@
 /*
- * THIS FILE IS AUTO GENERATED FROM 'lib/lang.kep'
+ * THIS FILE IS AUTO GENERATED from 'lib/lang.kep'
  * DO NOT EDIT
-*/
-"use strict";
+*/"use strict";
 var __o = require("nu-stream")["stream"],
-    NIL = __o["NIL"],
     __o0 = require("nu-stream")["gen"],
-    repeat = __o0["repeat"],
     __o1 = require("./parse"),
+    times, atMostTimes, betweenTimes, then, between, sepBy1, sepBy, sepEndBy1, sepEndBy, endBy1, endBy, chainl1, chainl,
+        chainr1, chainr, NIL = __o["NIL"],
+    repeat = __o0["repeat"],
     append = __o1["append"],
     always = __o1["always"],
     bind = __o1["bind"],
@@ -21,13 +21,11 @@ var __o = require("nu-stream")["stream"],
     optional = __o1["optional"],
     ParserError = __o1["ParserError"],
     rec = __o1["rec"],
-    times, atMostTimes, betweenTimes, then, between, sepBy1, sepBy, sepEndBy1, sepEndBy, endBy1, endBy, chainl1, chainl,
-        chainr1, chainr, _end = always(NIL),
-    _optionalValueParser = optional.bind(null, NIL),
-    x = repeat,
-    y = enumerations;
+    _end = always(NIL),
+    _optionalValueParser = optional.bind(null, NIL);
 (times = (function() {
-    return y(x.apply(null, arguments));
+    var args = arguments;
+    return enumerations(repeat.apply(null, args));
 }));
 (atMostTimes = (function(n, p) {
     return ((n <= 0) ? _end : _optionalValueParser(cons(p, late((function() {
@@ -39,8 +37,8 @@ var __o = require("nu-stream")["stream"],
     return append(times(min, p), atMostTimes((max - min), p));
 }));
 (then = (function(p, q) {
-    return bind(p, (function(x0) {
-        return next(q, always(x0));
+    return bind(p, (function(x) {
+        return next(q, always(x));
     }));
 }));
 (between = (function(open, close, p) {
@@ -49,10 +47,11 @@ var __o = require("nu-stream")["stream"],
 (sepBy1 = (function(sep, p) {
     return cons(p, many(next(sep, p)));
 }));
-var x0 = sepBy1,
-    y0 = _optionalValueParser;
+var x = sepBy1,
+    y = _optionalValueParser;
 (sepBy = (function() {
-    return y0(x0.apply(null, arguments));
+    var args = arguments;
+    return y(x.apply(null, args));
 }));
 (sepEndBy1 = (function(sep, p) {
     return rec((function(self) {
@@ -60,7 +59,7 @@ var x0 = sepBy1,
     }));
 }));
 (sepEndBy = (function(sep, p) {
-    return either(sepEndBy1(sep, p), next(optional(null, sep), _end));
+    return either(sepEndBy1(sep, p), next(optional(sep), _end));
 }));
 (endBy1 = (function(sep, p) {
     return many1(then(p, sep));
@@ -69,30 +68,30 @@ var x0 = sepBy1,
     return many(then(p, sep));
 }));
 (chainl1 = (function(op, p) {
-    return bind(p, (function chain(x1) {
-        return optional(x1, bind(op, (function(f) {
-            return bind(p, (function(y1) {
-                return chain(f(x1, y1));
+    return bind(p, (function chain(x0) {
+        return optional(x0, bind(op, (function(f) {
+            return bind(p, (function(y0) {
+                return chain(f(x0, y0));
             }));
         })));
     }));
 }));
-(chainl = (function(op, x1, p) {
-    return optional(x1, chainl1(op, p));
+(chainl = (function(op, x0, p) {
+    return optional(x0, chainl1(op, p));
 }));
 (chainr1 = (function(op, p) {
     return rec((function(self) {
-        return bind(p, (function(x1) {
-            return optional(x1, bind(op, (function(f) {
-                return self.map((function(y1) {
-                    return f(x1, y1);
+        return bind(p, (function(x0) {
+            return optional(x0, bind(op, (function(f) {
+                return self.map((function(y0) {
+                    return f(x0, y0);
                 }));
             })));
         }));
     }));
 }));
-(chainr = (function(op, x1, p) {
-    return optional(x1, chainr1(op, p));
+(chainr = (function(op, x0, p) {
+    return optional(x0, chainr1(op, p));
 }));
 (exports["times"] = times);
 (exports["atMostTimes"] = atMostTimes);
