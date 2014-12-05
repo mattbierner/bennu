@@ -1,7 +1,8 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/incremental.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/incremental.kep'
  * DO NOT EDIT
-*/define(["require", "exports", "./parse", "nu-stream/stream"], (function(require, exports, __o, stream) {
+*/
+define(["require", "exports", "./parse", "nu-stream/stream"], (function(require, exports, __o, stream) {
     "use strict";
     var provide, provideString, finish, parseIncState, parseInc, runIncState, runInc, runManyState,
             runManyStream, runMany, bind = __o["bind"],

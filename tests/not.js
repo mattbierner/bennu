@@ -42,7 +42,6 @@ exports.backtrackConsumeThenFail = function(test) {
     test.throws(
         parse.run.bind(null, p, 'aa'));
     
-    
     test.equal(
         parse.run(p, 'ba'),
         'a');
