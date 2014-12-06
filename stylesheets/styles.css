@@ -1,11 +1,19 @@
 @import url(https://fonts.googleapis.com/css?family=Lato:300italic,700italic,300,700);
 
-.group:after {
-    content: "";
-    display: table;
-    clear: both;
+@font-face {
+    font-family: 'LasEnter';
+    src: url('/resources/LasEnter.ttf') format('truetype');
 }
 
+.cf:before,
+.cf:after {
+    content: " "; /* 1 */
+    display: table; /* 2 */
+}
+
+.cf:after {
+    clear: both;
+}
 
 /* normalize.css 2012-02-07T12:37 UTC - http://github.com/necolas/normalize.css */
 /* =============================================================================
@@ -83,11 +91,9 @@ textarea {
   font-family: sans-serif;
 }
 
-/*
- * Addresses margins handled incorrectly in IE6/7
- */
 body {
   margin: 0;
+  min-width: 320px;
 }
 
 /* =============================================================================
@@ -298,191 +304,26 @@ svg:not(:root) {
   overflow: hidden;
 }
 
-/* =============================================================================
-   Figures
-   ========================================================================== */
-/*
- * Addresses margin not present in IE6/7/8/9, S5, O11
- */
-figure {
-  margin: 0;
+
+html {
+    font: 15px/1.5 "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 300;
+    color: #333;
 }
 
-/* =============================================================================
-   Forms
-   ========================================================================== */
-/*
- * Corrects margin displayed oddly in IE6/7
- */
-form {
-  margin: 0;
+* {
+    box-sizing: border-box;
 }
-
-/*
- * Define consistent border, margin, and padding
- */
-fieldset {
-  border: 1px solid #c0c0c0;
-  margin: 0 2px;
-  padding: 0.35em 0.625em 0.75em;
-}
-
-/*
- * 1. Corrects color not being inherited in IE6/7/8/9
- * 2. Corrects text not wrapping in FF3 
- * 3. Corrects alignment displayed oddly in IE6/7
- */
-legend {
-  border: 0;
-  /* 1 */
-  padding: 0;
-  white-space: normal;
-  /* 2 */
-  *margin-left: -7px;
-  /* 3 */
-}
-
-/*
- * 1. Corrects font size not being inherited in all browsers
- * 2. Addresses margins set differently in IE6/7, FF3+, S5, Chrome
- * 3. Improves appearance and consistency in all browsers
- */
-button,
-input,
-select,
-textarea {
-  font-size: 100%;
-  /* 1 */
-  margin: 0;
-  /* 2 */
-  vertical-align: baseline;
-  /* 3 */
-  *vertical-align: middle;
-  /* 3 */
-}
-
-/*
- * Addresses FF3/4 setting line-height on 'input' using !important in the UA stylesheet
- */
-button,
-input {
-  line-height: normal;
-  /* 1 */
-}
-
-/*
- * 1. Improves usability and consistency of cursor style between image-type 'input' and others
- * 2. Corrects inability to style clickable 'input' types in iOS
- * 3. Removes inner spacing in IE7 without affecting normal text inputs
- *    Known issue: inner spacing remains in IE6
- */
-button,
-input[type="button"],
-input[type="reset"],
-input[type="submit"] {
-  cursor: pointer;
-  /* 1 */
-  -webkit-appearance: button;
-  /* 2 */
-  *overflow: visible;
-  /* 3 */
-}
-
-/*
- * Re-set default cursor for disabled elements
- */
-button[disabled],
-input[disabled] {
-  cursor: default;
-}
-
-/*
- * 1. Addresses box sizing set to content-box in IE8/9
- * 2. Removes excess padding in IE8/9
- * 3. Removes excess padding in IE7
-      Known issue: excess padding remains in IE6
- */
-input[type="checkbox"],
-input[type="radio"] {
-  box-sizing: border-box;
-  /* 1 */
-  padding: 0;
-  /* 2 */
-  *height: 13px;
-  /* 3 */
-  *width: 13px;
-  /* 3 */
-}
-
-/*
- * 1. Addresses appearance set to searchfield in S5, Chrome
- * 2. Addresses box-sizing set to border-box in S5, Chrome (include -moz to future-proof)
- */
-input[type="search"] {
-  -webkit-appearance: textfield;
-  /* 1 */
-  -moz-box-sizing: content-box;
-  -webkit-box-sizing: content-box;
-  /* 2 */
-  box-sizing: content-box;
-}
-
-/*
- * Removes inner padding and search cancel button in S5, Chrome on OS X
- */
-input[type="search"]::-webkit-search-decoration,
-input[type="search"]::-webkit-search-cancel-button {
-  -webkit-appearance: none;
-}
-
-/*
- * Removes inner padding and border in FF3+
- * www.sitepen.com/blog/2008/05/14/the-devils-in-the-details-fixing-dojos-toolbar-buttons/
- */
-button::-moz-focus-inner,
-input::-moz-focus-inner {
-  border: 0;
-  padding: 0;
-}
-
-/*
- * 1. Removes default vertical scrollbar in IE6/7/8/9
- * 2. Improves readability and alignment in all browsers
- */
-textarea {
-  overflow: auto;
-  /* 1 */
-  vertical-align: top;
-  /* 2 */
-}
-
-/* =============================================================================
-   Tables
-   ========================================================================== */
-/*
- * Remove most spacing between table cells
- */
-table {
-  border-collapse: collapse;
-  border-spacing: 0;
-}
-
-
-
 
 body {
-  padding: 0px 0 20px 0px;
+  padding: 0;
   margin: 0px;
-  font: 14px/1.5 Lato, "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-weight: 300;
-  color: #777;
-  font-weight: normal;
+  backgroud: #fdfdfd
 }
 
 h1, h2, h3, h4, h5, h6 {
-  color: #222;
+  color: #444;
   margin: 0 0 10px;
-  font-weight: normal;
 }
 
 p, ul, ol, table, pre, dl {
@@ -494,22 +335,21 @@ h1, h2, h3 {
 }
 
 h1 {
-  font-size: 28px;
+  font-size: 1.4rem;
 }
 
 h2 {
-  font-size: 24px;
+  font-size: 1.2rem;
 }
 
 h3 {
-  font-size: 18px;
+  font-size: 1rem;
   line-height: 24px;
   font-weight: normal;
-  color: #b6b6b6;
 }
 
 a {
-  color: #39c;
+  color: #5cb09e;
   font-weight: 400;
   text-decoration: none;
 }
@@ -524,47 +364,71 @@ a small {
   display: block;
 }
 
-ul {
-}
-
 strong {
   font-weight: bold;
 }
 
 
-
-header {
-    margin-top: 2em;
-    padding-bottom: 0.6em;
+.wrapper {
+  max-width: 650px;
+  margin: 0 auto;
+  position: relative;
+  padding: 0 20px;
 }
-header > .group {
-    padding-bottom: 1.2em;
+
+header.wrapper {
+    margin-top: 1em;
+    padding-bottom: 1.2rem;
 }
 
 header #title {
-    float: left;
+    color: #333;
+    padding-bottom: 3rem;
+    padding-top: 5rem;
+    width: 100%;
 }
 
 header #links {
     float: right;
 }
 
-header #links a span {
+header #logo {
     display: block;
-    text-align: center;
+    max-width: 24rem;
+    max-height: 24rem;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-header #links .download-title {
-    font-weight: bold;
-    color: #222;
-    margin-bottom: -0.4em;
+header #blurb { 
+    position: absolute;
+    font-size: 2.4rem;
+    line-height: 2.4rem;
+    text-align: center;
+    font-family: 'LasEnter', sans-serif;
+    color: #FC476A;
+    text-shadow:
+        0 0 1px  #fff,
+        0 0 4px  #fff,
+        0 0 8px  #FC476A;
+    
+    top: 4rem;
+    left: -3rem;
+    transform: rotate(-26deg);
+    -webkit-transform: rotate(-14deg);
+    -moz-transform: rotate(-26deg);
 }
+
+header #version {
+    display: block;
+    font-size: 0.85em;
+    width: 100%;
+    text-align: right;
+ }
 
 header #title h1 {
     margin-bottom: 0.2em;
 }
-
-
 
 header ul {
   list-style: none;
@@ -573,55 +437,21 @@ header ul {
   margin: 0;
 }
 
-header #links li,
-header #pages li {
-  border-right:1px solid #d2d2d2;
-}
-
-header #links li:last-child,
-header #pages li:last-child {
-    border-right:0;
-}
-
-
-header ul#links {
-  height:40px;
-  width:270px;
-}
-
-header #links li {
-  float:left;
-  width:89px;
-  height:40px;
-}
-
-header ul#links a {
-  line-height:1;
-  font-size:11px;
-  color:#999;
-  display:block;
-  text-align:center;
-  margin: 6px 4px;
-  height:28px;
-}
-
-header #pages {
-    border: 1px solid #ddd;
-    border-width: 1px 0;
-    padding: 0.4em 0;
-}
-
-header #pages ul {
-    display: table;
+header nav#pages {
     width: 100%;
+    font-size: 1rem;
+}
+
+header nav#pages ul {
+    display: table;
     table-layout: fixed;
-    position: relative;
+    border-collapse: collapse;
+    width: 100%;
 }
 
 header #pages li {
     display: table-cell;
     text-align: center;
-    width: 100%;
 }
 
 header #pages a {
@@ -634,23 +464,6 @@ header #pages a:hover {
 }
 
 
-strong {
-  color:#222;
-  font-weight:700;
-}
-
-header ul#links li + li + li {
-  border-right:none;
-  width:89px;
-}
-
-
-.wrapper {
-  max-width: 650px;
-  margin: 0 auto;
-  position: relative;
-  padding: 0 20px;
-}
 
 section img {
   max-width: 100%;
@@ -663,11 +476,7 @@ code, pre {
 }
 
 pre {
-  padding:8px 15px;
-  background: #f8f8f8;
-  border-radius:5px;
-  border:1px solid #e5e5e5;
-  overflow-x: auto;
+  overflow-x: visible;
 }
 
 table {
@@ -710,122 +519,125 @@ section {
   margin: 20px 0;
   margin-top: 70px;
 }
-section #title {
-  border: 0;
-  outline: none;
-  margin: 0 0 50px 0;
-  padding: 0 0 5px 0;
-}
-section #title h1 {
-  font-weight: light;
-  font-size: 40px;
-  text-align: center;
-  line-height: 36px;
-}
-section #title p {
-  color: #d7cfbe;
-  font-weight: light;
-  font-size: 18px;
-  text-align: center;
-}
-section #title .credits {
-  font-size: 11px;
-  font-weight: normal;
-  color: #696969;
-  margin-top: -10px;
-}
-section #title .credits.left {
-  float: left;
-}
-section #title .credits.right {
-  float: right;
-}
 
-
-#console-input {
-    margin-bottom: 1.4em;
-}
-
-#console-input textarea {
+article h1,
+article h2 {
     width: 100%;
-    display: block;
-    box-sizing: border-box;
-    resize: vertical;
+    clear: both;
 }
 
-#console-input h4 {
-    margin-bottom: 0.2em;
-}
-
-#console-text,
-#console-parser {
+article > h3,
+article > h3 ~ p {
     width: 50%;
     float: left;
+    clear: both;
+    padding: 0 1.4rem;
 }
 
-#console-parser > div {
-    margin-right: 0.4em;
+article .highlight {
+    float: right;
+    width: 50%;
+    clear: right;
+    margin-bottom: 1rem;
 }
 
-#console-text > div {
-    margin-left: 0.4em;
+article > h3 {
+    margin: 0;
+    line-height: 1.2rem;
+}
+
+article h3 ~ p {
+    font-style: italic;
+    font-size: 0.85rem;
+}
+
+article h2 + p {
+    width: 100%;
+    font-style: normal;
 }
 
 
-.ParseError {
-    color: red;
+
+footer.wrapper {
+    text-align: center;
+    padding: 1rem 0;
 }
+
+
+footer p {
+    margin-bottom: 0.2rem;
+    font-size: 0.8rem;
+}
+
+
+/*glow for webkit*/
+@-webkit-keyframes neon1 {
+  from {
+    text-shadow: 0 0 1px #fff,
+               0 0 2px  #fff,
+               0 0 3px  #fff,
+               0 0 4px  #FF1177,
+               0 0 7px  #FF1177,
+               0 0 8px  #FF1177,
+               0 0 10px #FF1177,
+               0 0 15px #FF1177;
+  }
+  to {
+    text-shadow: 0 0 0px #fff,
+               0 0 1px #fff,
+               0 0 1px #fff,
+               0 0 2px #FF1177,
+               0 0 3px #FF1177,
+               0 0 4px #FF1177,
+               0 0 5px #FF1177,
+               0 0 7px #FF1177;
+  }
+}
+
+
+@media print, screen and (max-width: 700px) {
+
+header #blurb { 
+    left: 0rem;
+}
+}
+
 
 @media print, screen and (max-width: 580px) {
-  #title .credits {
-    display: block;
+ 
+article > h3,
+article > p,
+article .highlight {
     width: 100%;
-    line-height: 30px;
-    text-align: center;
-  }
-  #title .credits .left {
     float: none;
-    display: block;
-  }
-  #title .credits .right {
-    float: none;
-    display: block;
-  }
-  
-  header > .group {
-    padding-bottom: 0.2em;
-  }
-  
-    header #title,
-    header #links {
-        width: 100%;
-    }
+    clear: none;
+}
+
+article > h3,
+article > p {
+    padding: 0;
+    margin-bottom: 0.2rem;
+}
+
+article .highlight {
+    margin-bottom: 0.8rem;
+    background: #f7f7f7;
+    padding: 0.2rem;
+    border-bottom: 1px solid #eee;
     
-    header #title {
-        padding-bottom: 0.6em;
-    }
-    
-     header #links ul, header #links ul li > a {
-        width: 100%;
-     }
-     
-     header #links li {
-        width: 100%;
-        height: auto;
-        text-align: center;
-     }
-     
-     #link-zip,
-     #link-tar {
-        display: none;
-     }
-     
-     header #link-github a > span {
-        display: inline;
-     }
-     
-     header #link-github .download-title,
-     header #link-github .download-line {
-        margin-bottom: 0;
-     }
+    word-wrap: break-word;
+}
+
+article .highlight pre {
+    margin-bottom: 0;
+}
+
+header #blurb {
+    display: none;
+}
+
+header #title {
+    padding-top: 0rem;
+}
+
 }
