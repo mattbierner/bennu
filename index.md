@@ -22,7 +22,7 @@ incrementally parsing user keyboard input in real time.
 parse.always('a');
 ```
 
-### You run a parser against some input like with `run`
+### You run a parser against input with `run`
 
 Since `always` consumes no input, it doesn't matter what you pass in.
 
@@ -31,7 +31,7 @@ parse.run(parse.always('a'), ''); // a
 parse.run(parse.always('a'), 'xyz'); // a
 ```
 
-### `never` always fails without consuming any input.
+### `never` always fails without consuming any input
 
 
 ``` javascript
@@ -57,14 +57,14 @@ var sqr = parse.bind(parse.always(3), function(x) {
     return parse.always(x * 2);
 });
 
-parse.run(sqr, ''); // 6
+parse.run(sqr, 123); // 6
 ```
 
-### You can also use [Fantasy Land's][fantasy-land] interface
+### Bennu parsers also implement [Fantasy Land interfaces][fantasy-land]
 Bennu implements the Monad, Monoid, Semigroup, Functor, and Applicative functor interfaces.
 
 ``` javascript
-var sqr = parse.of(3)
+var p = parse.of(3)
     .chain(function(x) {
         return parse.of(x * 2);
     })
@@ -72,7 +72,7 @@ var sqr = parse.of(3)
         return x + 100;
     });
 
-parse.run(sqr, ''); // 106
+parse.run(p, ''); // 106
 ```
 
 
@@ -80,7 +80,7 @@ parse.run(sqr, ''); // 106
 Bennu includes a few core modules, including [text](https://github.com/mattbierner/bennu/wiki/text)
 for working with strings and character data.
 
-### `parse_text.character` consumes a single character.
+### `parse_text.character` consumes a single character
 
 ```
 var a = parse_text.character('a');
@@ -124,7 +124,7 @@ parse.run(abc, 'ac'); // Expected 'c', found EOF
 parse.run(abc, 'axc'); // Expected 'b', found 'x'
 ```
 
-### Parsers for a few general ASCII character sets are included.
+### Parsers for a few general ASCII character sets are included
 
 ```javascript
 parse_text.anyChar; // any character
@@ -135,7 +135,7 @@ parse_text.anyDigit; // 0-9
 
 ## Sequencing
 
-### `parse.next` runs one parser and then another.
+### `parse.next` runs one parser and then another
 The second parser is only run if the first succeeds. Outputs the result of the
 second parser.
 
@@ -150,7 +150,7 @@ parse.run(ab, 'ac'); // Expected 'b' found 'c'
 parse.run(ab, 'xyz'); // Expected 'a' found 'x'
 ```
 
-### `parse.sequence` is like `next` for many parsers.
+### `parse.sequence` is like `next` for many parsers
 
 ```javascript
 var a = parse_text.character('a'),

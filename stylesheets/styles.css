@@ -408,15 +408,15 @@ header #blurb {
     font-family: 'LasEnter', sans-serif;
     color: #FC476A;
     text-shadow:
-        0 0 1px  #fff,
-        0 0 4px  #fff,
-        0 0 8px  #FC476A;
+        0 0 1px #fff,
+        0 0 4px #fff,
+        0 0 8px #FC476A;
     
     top: 4rem;
     left: -3rem;
-    transform: rotate(-26deg);
+    transform: rotate(-14deg);
     -webkit-transform: rotate(-14deg);
-    -moz-transform: rotate(-26deg);
+    -moz-transform: rotate(-14deg);
 }
 
 header #version {
@@ -608,9 +608,9 @@ header #blurb {
 article > h3,
 article > p,
 article .highlight {
-    width: 100%;
-    float: none;
-    clear: none;
+    width: 100% !important;
+    float: none !important;
+    clear: none !important;
 }
 
 article > h3,
@@ -620,10 +620,9 @@ article > p {
 }
 
 article .highlight {
-    margin-bottom: 0.8rem;
+    margin-bottom: 1.4rem;
     background: #f7f7f7;
     padding: 0.2rem;
-    border-bottom: 1px solid #eee;
     
     word-wrap: break-word;
 }
