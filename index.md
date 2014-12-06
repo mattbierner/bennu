@@ -3,10 +3,11 @@ layout: base
 ---
 
 Bennu is a Javascript [parser combinator][ParserCombinators] library based on [Parsec][Parsec].
-The Bennu library consists of a core set of parser combinators that implement [Fantasy Land's Specification][fantasy-land],
-while also providing more advanced functionality like advanced error messaging,
+The Bennu library consists of a core set of parser combinators that implement [Fantasy Land interfaces][fantasy-land].
+More advanced functionality such as detailed error messaging,
 [custom parser state](https://github.com/mattbierner/bennu/wiki/Custom-Parser-State),
-memoization, and [running unmodified parsers incrementally](http://blog.mattbierner.com/incremental-parsing-with-feedback-in-a-web-worker/).
+memoization, and [running unmodified parsers incrementally](http://blog.mattbierner.com/incremental-parsing-with-feedback-in-a-web-worker/)
+is also supported.
 
 Bennu works with Node or in browsers using AMD. With Bennu, you do do everything
 from rapidly prototyping a binary parser, to [parsing Javascript](parse-ecma), to
@@ -201,7 +202,7 @@ Other [sequencing combinators](https://github.com/mattbierner/bennu/wiki/parse#e
 
 ## Choice
 
-### `parse.either` is the base choice combinator.
+### `parse.either` is the base choice combinator
 It runs one parser and only if that fails, runs another. Returns the result from
 the first parser to succeed. If both parsers fail, `either `combines the error
 messages.
@@ -216,7 +217,7 @@ parse.run(p, 'b'); // b
 parse.run(p, 'c'); // Error! MultipleError
 ```
 
-`either` alone does not automatically [backtrack](http://en.wikipedia.org/wiki/Backtracking),
+`either` alone does not automatically [backtrack](http://en.wikipedia.org/wiki/Backtracking)
 
 ```
 var p = parse.either(
@@ -250,7 +251,7 @@ parse.run(p, 'ac'); // c
 parse.run(p, 'z'); // Error! MultipleError 
 ```
 
-### `parse.choice` is like either for multiple parsers
+### `parse.choice` is `either` for multiple parsers
 Attempts a variable number of parser in order until one succeeds or all fail. Returns result of first to succeed.
 
 ``` javascript
@@ -279,7 +280,7 @@ parse.run(p, 'z'); // 'def'
 Bennu's [lang module](https://github.com/mattbierner/bennu/wiki/lang) includes a number of
 parsers for more complex languages.
 
-### `parse_lang.times` runs a parser a set number of times.
+### `parse_lang.times` runs a parser a set number of times
 
 ```javascript
 var p = parse_lang.times(2, parse_text.character('a'));
@@ -346,21 +347,34 @@ var s = parse_inc.runInc(p);
 ```
 
 ### And feed it data (as a [Nu][nu] stream) with `provide`
-`finish` signals the end of input and gets the result.
 
 ```javascript
 var c1 = parse_inc.provide(stream.from('a'), c);
+```
+
+Or use `provideString` to feed string-like data directly
+
+```javascript
+parse_inc.provideString('a', c);
+```
+
+### `finish` signals the end of input and gets the result
+
+```javascript
 parse_inc.finish(c1); // 'a'
 ```
 
-### You can feed any number and sized of chunks to a parser and finish it multiple
-times to get real time parsing feedback
+You can feed any number of various sized chunks to a parser.
 
 ``` javascript
-var c2 = parse_inc.provide(stream.from('bc'), s);
+var c2 = parse_inc.provide(
+    nu.gen('x'), // infinite stream of 'x'
+    parse_inc.provideString('bc', s));
 parse_inc.finish(c2); // 'abc';
+```
+Or finish the same parser multiple times to get feedback parsing during parsing.
 
-// Feeding alt input to `c1`.
+```
 var c3 = parse_inc.provide(stream.from('yx'), c1);
 parse_inc.finish(c3); // 'axy';
 ```
