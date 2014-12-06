@@ -9,8 +9,8 @@ More advanced functionality such as detailed error messaging,
 memoization, and [running unmodified parsers incrementally](http://blog.mattbierner.com/incremental-parsing-with-feedback-in-a-web-worker/)
 is also supported.
 
-Bennu works with Node or in browsers using AMD. With Bennu, you do do everything
-from rapidly prototyping a binary parser, to [parsing Javascript](parse-ecma), to
+Bennu works with Node or in browsers using AMD. With Bennu, you can do everything
+from rapidly prototype a binary parser, to [parsing Javascript](parse-ecma), to
 incrementally parsing user keyboard input in real time.
 
 ## Basics
@@ -352,7 +352,7 @@ var s = parse_inc.runInc(p);
 var c1 = parse_inc.provide(stream.from('a'), c);
 ```
 
-Or use `provideString` to feed string-like data directly
+Or use `provideString` to feed string-like data directly.
 
 ```javascript
 parse_inc.provideString('a', c);
