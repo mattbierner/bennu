@@ -1,8 +1,8 @@
-<div style="width: 100%">
-    <img alt="Bennu" src="http://bennu-js.com/resources/bennu.svg"  style="width: 300px; text-align: center;"/>
+<div >
+    <img alt="Bennu" src="http://bennu-js.com/resources/bennu.svg" width="300px" align="center"/>
 </div>
 
-<h1 style='text-align: center; font-size: 1.2rem; '>Javascript Parser Combinator Library</h1>
+<h1 align="center">Javascript Parser Combinator Library</h1>
 
 ## About
 Bennu is a Javascript parser combinator library based on [Parsec][Parsec].
