@@ -1,5 +1,5 @@
-<div>
-    <img align="center" src="http://bennu-js.com/resources/bennu.svg" width="300px" alt="Bennu"  />
+<div align="center" >
+    <img src="http://bennu-js.com/resources/bennu.svg" width="300px" alt="Bennu"  />
 </div>
 
 ## About
