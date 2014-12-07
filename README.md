@@ -1,5 +1,7 @@
 <div align="center" >
-    <img src="http://bennu-js.com/resources/bennu.svg" width="300px" alt="Bennu"  />
+    <a href="http://bennu-js.com">
+        <img src="http://bennu-js.com/resources/bennu.svg" width="300px" alt="Bennu" />
+    </a>
 </div>
 
 ## About
