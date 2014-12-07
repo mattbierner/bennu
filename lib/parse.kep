@@ -502,7 +502,7 @@ Parser := function \n =self-> {
     self.run = n;
 };
 
-unparser = \p state m cok cerr eok eerr ->
+unparser := \p state m cok cerr eok eerr ->
     new Tail(p.run, state, m, cok, cerr, eok, eerr);
 
 /**
@@ -515,7 +515,7 @@ unparser = \p state m cok cerr eok eerr ->
  *     identifying a parser for debugging.
  * @param p Parser.
  */
-label = \name p ->
+label := \name p ->
     ?p.run.hasOwnProperty 'displayName'
        :label(
            name,
@@ -602,22 +602,22 @@ bind := chain := Parser.chain := \p f ->
             \x state m -> unparser(f x, state, m, cok, cerr, eok, eerr),
             eerr);
 
-Parser.prototype.chain = \f =self->
+Parser.prototype.chain := \f =self->
     chain(self, f);
 
 // Fantasy Land
 ////////////////////////////////////////
-Parser.prototype.map = \f =self->
+Parser.prototype.map := \f =self->
     bind(self, f \> always);
 
-map := Parser.map = \f p ->
+map := Parser.map := \f p ->
      p.map(f);
 
 // Applicative
 ap := Parser.ap := \f m ->
     bind(f, \f -> m.map f);
 
-Parser.prototype.ap = \m2 =self->
+Parser.prototype.ap := \m2 =self->
     ap(self, m2);
 
 // State Interaction Parsers
@@ -627,7 +627,7 @@ Parser.prototype.ap = \m2 =self->
  * 
  * @param f Function mapping old state to new state.
  */
-modifyParserState = \f ->
+modifyParserState := \f ->
     new Parser\state m _ _ eok _ ->
         let newState = f(state) in
             eok(newState, newState, m);
@@ -643,7 +643,7 @@ getParserState := label@'Get Parser State' <|
  * 
  * @param s New state.
  */
-setParserState = modifyParserState <\ constant;
+setParserState := modifyParserState <\ constant;
 
 /**
  * Extracts information from the state.
@@ -651,7 +651,7 @@ setParserState = modifyParserState <\ constant;
  * @param {function(Object): *} f Function that extracts information from a 
  *     given state object.
  */
-extract = \f ->
+extract := \f ->
     new Parser\state m _ _ eok _ -> eok(f state, state, m);
 
 /**
@@ -659,7 +659,7 @@ extract = \f ->
  * 
  *  @param {function(ParserState): *} f Function that transforms that current user state.
  */
-modifyState = \f ->
+modifyState := \f ->
     modifyParserState \ s ->
         s.setUserState(f(s.userState));
 
@@ -672,7 +672,7 @@ getState := label@'Get State' <|
 /**
  * Parser that sets current user parser state to 's'.
  */
-setState = modifyState <\ constant;
+setState := modifyState <\ constant;
 
 /**
  * Get the current position.
@@ -683,7 +683,7 @@ getPosition := label@'Get Position' <|
 /**
  * Set the position.
  */
-setPosition = \position ->
+setPosition := \position ->
     modifyParserState \ s -> s.setPosition(position);
 
 /**
@@ -700,11 +700,11 @@ setInput = \input ->
 
 // Attempt
 ////////////////////////////////////////
-var _binary = \p1 p2 f ->
+var _binary := \p1 p2 f ->
     bind(p1, \v1 ->
         bind(p2, \v2 -> f(v1, v2)));
 
-var _fail = \e ->
+var _fail := \e ->
     bind(getPosition, e \> never);
 
 /**
@@ -712,14 +712,14 @@ var _fail = \e ->
  * 
  * @param {String} [msg] Error message.
  */
-fail = \msg ->
+fail := \msg ->
     let e = ?msg : ParseError : UnknownError in
         _fail\pos -> new e(pos, msg);
 
 /**
  * Attempt parser `p`, but upon failure never consume any input.
  */
-attempt = \p ->
+attempt := \p ->
     new Parser\state m cok cerr eok eerr -> let
         peerr = \x s m -> eerr(x, s, Memoer.popWindow(m))
     in
@@ -736,7 +736,7 @@ attempt = \p ->
  * 
  * This behavior is the same as parsec's `lookahead`.
  */
-look = \p ->
+look := \p ->
     _binary(
         getParserState,
         p,
@@ -750,7 +750,7 @@ look = \p ->
  * 
  * This preserves the `userState` from `p`.
  */
-lookahead = \p ->
+lookahead := \p ->
     _binary(
         getInput,
         getPosition,
@@ -766,7 +766,7 @@ lookahead = \p ->
 /**
  * Parse `p`, then `q`. Return value from `q`.
  */
-next = \p q ->
+next := \p q ->
     bind(p, constant q);
 
 /**
@@ -777,7 +777,7 @@ next = \p q ->
  * 
  * @param s Stream of parsers
  */
-sequences = reduceRight@(flip next);
+sequences := reduceRight@(flip next);
 
 /**
  * Consume a finite sequence of 1 or more parsers, returning result from last.
@@ -787,16 +787,16 @@ sequences = reduceRight@(flip next);
  * 
  * @param arr Array of parsers to consume.
  */
-sequencea = stream.from \> sequences;
+sequencea := stream.from \> sequences;
 
 /**
  * Same as `sequencea` but gets parsers from arguments instead of array.
  */
-sequence = args \>> sequencea;
+sequence := args \>> sequencea;
 
 // Choice Parsers
 ////////////////////////////////////////
-empty = Parser.empty = Parser.prototype.empty = fail();
+empty := Parser.empty := Parser.prototype.empty := fail();
 
 var _either = \e ->
     \p q ->
@@ -813,9 +813,9 @@ var _either = \e ->
  * Run `p` or `q`. If `p` succeeds, return its value. Else, try
  * to parse `q`.
  */
-either = concat = Parser.concat = _either(\pos pErr qErr -> new MultipleError(pos, [pErr, qErr]));
+either := concat := Parser.concat = _either(\pos pErr qErr -> new MultipleError(pos, [pErr, qErr]));
 
-Parser.prototype.concat = \p =self ->
+Parser.prototype.concat := \p =self ->
     concat(self, p);
 
 /**
@@ -824,7 +824,7 @@ Parser.prototype.concat = \p =self ->
  * 
  * @param s Stream of parsers.
  */
-choices = foldr@(
+choices := foldr@(
     flip(_either(\pos pErr qErr -> new ChoiceError(pos, pErr, qErr))),
     never(new MultipleError(null, [])));
 
@@ -833,12 +833,12 @@ choices = foldr@(
  * 
  * @param arr Array of parsers to attempt.
  */
-choicea = stream.from \> choices;
+choicea := stream.from \> choices;
 
 /**
  * Same as choice but gets parsers from arguments.
  */
-choice = args \>> choicea;
+choice := args \>> choicea;
 
 /**
  * Consume `p` or return `x`.
@@ -846,7 +846,7 @@ choice = args \>> choicea;
  * @param [x] Default value.
  * @param p Parser.
  */
-optional = \x p ->
+optional := \x p ->
     ?p
         :either(p, always x)
         :either(x, always null);
@@ -878,50 +878,50 @@ not := \p msg ->
 
 // Iterative Parsers
 ////////////////////////////////////////
-var liftM2 = \f p1 p2 ->
+var liftM2 := \f p1 p2 ->
     bind(p1, \x ->
-        p2.map\y -> f(x, y));
+        map(\y -> f(x, y), p2));
 
 /**
  * Map the stream result of a parser to a regular array.
  */
-eager = map @ stream.toArray;
+eager := map @ stream.toArray;
 
 /**
  * Same behavior as `bind` but calls apply on `f` using stream results of `p`.
  */
-binds = \p f ->
+binds := \p f ->
     bind(eager p, \x ->
         f.apply(undefined, x));
 
 /**
  * Cons result of a parser onto the stream result of an iterative another.
  */
-cons = liftM2 @ stream.cons;
+cons := liftM2 @ stream.cons;
 
 /**
  * Joins the results of two iterative Parsers
  */
-append = liftM2 @ stream.append;
+append := liftM2 @ stream.append;
 
 /**
  * Consume a sequence of parsers, returning the results as a stream.
  * 
  * @param s Stream of parsers to consume.
  */
-enumerations = foldr@(flip cons, always NIL);
+enumerations := foldr@(flip cons, always NIL);
 
 /**
  * @see enumerations
  * 
  * @param arr Array of parsers to consume.
  */
-enumerationa = stream.from \> enumerations;
+enumerationa := stream.from \> enumerations;
 
 /**
  * Same as `enumerationa` but gets parsers from arguments.
  */
-enumeration = args \>> enumerationa;
+enumeration := args \>> enumerationa;
 
 /**
  * Consume `p` zero or more times.
@@ -945,7 +945,7 @@ in
 /**
  * Consume `p` one or more times.
  */
-many1 = \p -> cons(p, many p);
+many1 := \p -> cons(p, many p);
 
 /* Memo Parsers
  ******************************************************************************/
@@ -1028,7 +1028,7 @@ eof := label@'EOF' <|
 /**
  * Execute parser `p`, correctly extracting results.
  */
-exec = unparser \>> trampoline;
+exec := unparser \>> trampoline;
 
 /**
  * Run parser `p` with a given state and continuations.
@@ -1041,7 +1041,7 @@ exec = unparser \>> trampoline;
  * @param ok Success continuation.
  * @param err Failure continuation.
  */
-parseState = \p state ok err ->
+parseState := \p state ok err ->
     exec(
         p,
         state,
@@ -1060,7 +1060,7 @@ parseState = \p state ok err ->
  * 
  * @see parseState
  */
-parseStream = \p s ud ok err ->
+parseStream := \p s ud ok err ->
     parseState(
         p,
         new ParserState(s, Position.initial, ud),
@@ -1076,7 +1076,7 @@ parseStream = \p s ud ok err ->
  * 
  * @see parseStream.
  */
-parse = \p input ud ok err ->
+parse := \p input ud ok err ->
     parseStream(
         p,
         stream.from input,
@@ -1090,7 +1090,7 @@ parse = \p input ud ok err ->
  * @param p Parser.
  * @param state Parser state.
  */
-runState = let
+runState := let
     ok = identity,
     err = \x -> { throw x; }
 in
@@ -1110,7 +1110,7 @@ in
  * @param s Nu style stream supporting first and rest.
  * @param [ud] User data.
  */
-runStream = \p s ud ->
+runStream := \p s ud ->
     runState(
         p,
         new ParserState(s, Position.initial, ud));
@@ -1122,7 +1122,7 @@ runStream = \p s ud ->
  * @param input Array-like object of characters to run the parser against.
  * @param [ud] User data.
  */
-run = \p input ud ->
+run := \p input ud ->
     runStream(
         p,
         stream.from input,
@@ -1136,7 +1136,7 @@ run = \p input ud ->
  *
  * @return Did the parser successfully run?
  */
-testState = let
+testState := let
     ok = constant true,
     err = constant false
 in
@@ -1156,7 +1156,7 @@ in
  * 
  * @see testState
  */
-testStream = \p s ud ->
+testStream := \p s ud ->
     testState(
         p,
         new ParserState(s, Position.initial, ud));
@@ -1170,7 +1170,7 @@ testStream = \p s ud ->
  *
  * @see testStream
  */
-test = \p input ud ->
+test := \p input ud ->
     testStream(
         p,
         stream.from(input),
