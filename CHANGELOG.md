@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 17.2.2 - December 6, 2014
+* Small optimizations.
+
 ## 17.2.1 - May 13, 2014
 * Fixed `not` not backtracking in certain edge cases.
 
