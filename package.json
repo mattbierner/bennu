@@ -1,8 +1,9 @@
 {
     "name": "bennu",
-    "version": "17.2.1",
+    "version": "17.2.2",
     "description": "Parser Combinator Library",
     "author": "Matt Bierner",
+    "homepage": "http://bennu-js.com",
     "license": "MIT",
     "repository": {
         "type": "git",

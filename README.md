@@ -1,4 +1,6 @@
-# Bennu - Javascript Parser Combinator Library
+<img alt="Bennu" src="http://raw.githubusercontent.com/mattbierner/bennu/gh-pages/resources/bennu.svg" />
+
+<h1 style='text-align: center;'>Javascript Parser Combinator Library</h1>
 
 ## About
 Bennu is a Javascript parser combinator library based on [Parsec][Parsec].
@@ -7,7 +9,7 @@ Parser combinators allow complex parsers to be created from a set of simple
 building blocks. Compared to other parsing techniques, combinatorial parsers
 can be written more quickly and integrate better with the host language.
 
-```
+```javascript
 // Very simple Brainfuck Bennuu parser in Khepri
 
 var op := oneOf '><+-.,';

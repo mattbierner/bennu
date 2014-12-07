@@ -1173,7 +1173,7 @@ testStream := \p s ud ->
 test := \p input ud ->
     testStream(
         p,
-        stream.from(input),
+        stream.from input,
         ud);
 
 }
