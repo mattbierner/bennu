@@ -1,4 +1,4 @@
-<img alt="Bennu" src="http://raw.githubusercontent.com/mattbierner/bennu/gh-pages/resources/bennu.svg" />
+<img alt="Bennu" src="http://bennu-js.com/resources/bennu.svg" />
 
 <h1 style='text-align: center;'>Javascript Parser Combinator Library</h1>
 
