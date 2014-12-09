@@ -103,13 +103,13 @@ define(["require", "exports", "nu-stream/stream", "seshet"], (function(require, 
         var self = this;
         return first(self.input);
     }));
-    (ParserState.prototype.next = (function(x) {
+    (ParserState.prototype.next = (function(tok) {
         var self = this;
         if ((!self._next)) {
             var r = rest(self.input),
-                s = new(ParserState)(r, self.position.increment(x, r), self.userState);
+                s = new(ParserState)(r, self.position.increment(tok, r), self.userState);
             (self._next = new(Parser)((function(_, m, cok) {
-                return cok(x, s, m);
+                return cok(tok, s, m);
             })));
         }
         return self._next;
@@ -519,7 +519,7 @@ define(["require", "exports", "nu-stream/stream", "seshet"], (function(require, 
             return new(Tail)(p3.run, state, m, cok, cerr, eok, eerr0);
         }));
     }));
-    (not = (function(p3, msg) {
+    (not = (function(p3) {
         var p4 = concat(chain(new(Parser)((function(state, m, cok, cerr, eok, eerr) {
             var peerr = (function(x2, s, m0) {
                 return eerr(x2, s, Memoer.popWindow(m0));

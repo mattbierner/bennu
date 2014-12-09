@@ -296,15 +296,15 @@ ParserState.prototype.first = \ =self-> first self.input;
  * 
  * @returns New input state for next item in input.
  */
-ParserState.prototype.next = \x =self-> {
+ParserState.prototype.next = \tok =self-> {
     if (!self._next) with
         r = rest self.input,
         s = new ParserState(
             r,
-            self.position.increment(x, r),
+            self.position.increment(tok, r),
             self.userState)
     in {
-        self._next = new Parser\_ m cok -> cok(x, s, m);
+        self._next = new Parser\_ m cok -> cok(tok, s, m);
     }
     return self._next;
 };
@@ -526,7 +526,7 @@ label := \name p ->
             writable: false
         }));
 
- /**
+/**
  * Creates a placeholder for a parser that is resolved later.
  * 
  * This is useful for circular references when wrapping the entire thing in `rec`
@@ -870,7 +870,7 @@ expected := \expect p ->
  * 
  * @param p Parser.
  */
-not := \p msg -> 
+not := \p -> 
     attempt either(
         bind(attempt p, \x ->
             _fail\pos -> new UnexpectError(pos, x)),
@@ -995,7 +995,7 @@ memo = \p ->
  */
 token = let
     defaultErr = \pos tok ->
-        new UnexpectError(pos, ?tok === null : "end of input" :tok)
+        new UnexpectError(pos, ?tok === null : "end of input" : tok)
 in
     \consume onErr -> let
         errorHandler = (onErr || defaultErr)
