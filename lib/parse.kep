@@ -924,6 +924,8 @@ enumerationa := stream.from \> enumerations;
  */
 enumeration := args \>> enumerationa;
 
+var _optionalValueParser := optional @ NIL; 
+
 /**
  * Consume `p` zero or more times.
  * 
@@ -931,8 +933,6 @@ enumeration := args \>> enumerationa;
  * with the parser itself, this event breaks out of parsing.
  */
 many = let
-    _optionalValueParser = optional @ NIL,
-
     manyError = throwConstant(
         new ParserError("Many parser applied to parser that accepts an empty string"))
 in
@@ -955,8 +955,7 @@ manyTill := \p end ->
     rec\self ->
         either(
             attempt(lookahead(end)).map(\_ -> NIL),
-            optional(cons(p, self), NIL)
-        );
+            _optionalValueParser(cons(p, self)));
 
 /* Memo Parsers
  ******************************************************************************/

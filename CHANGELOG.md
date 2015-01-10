@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 17.3.0 - January 10, 2015
+* Added `parse.manyTill` - Thanks @felixSchl
+** Consumes first parser until the second parser matches.
+
 ## 17.2.2 - December 6, 2014
 * Small optimizations.
 

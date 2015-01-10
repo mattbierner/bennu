@@ -9,8 +9,8 @@ define(["require", "exports", "nu-stream/stream", "seshet"], (function(require, 
             extract, getParserState, setParserState, modifyParserState, getState, setState, modifyState,
             getInput, setInput, getPosition, setPosition, fail, attempt, look, lookahead, next, sequences,
             sequencea, sequence, empty, either, concat, choices, choicea, choice, optional, expected, not,
-            eager, binds, cons, append, enumerations, enumerationa, enumeration, many, many1, memo, token,
-            anyToken, eof, exec, parseState, parseStream, parse, runState, runStream, run, testState,
+            eager, binds, cons, append, enumerations, enumerationa, enumeration, many, many1, manyTill, memo,
+            token, anyToken, eof, exec, parseState, parseStream, parse, runState, runStream, run, testState,
             testStream, test, NIL = stream["NIL"],
         first = stream["first"],
         isEmpty = stream["isEmpty"],
@@ -603,6 +603,42 @@ define(["require", "exports", "nu-stream/stream", "seshet"], (function(require, 
     (many1 = (function(p3) {
         return cons(p3, many(p3));
     }));
+    (manyTill = (function(p3, end) {
+        return rec((function(self) {
+            var p4, p5;
+            return concat(((p4 = chain(getInput, (function(v1) {
+                    return chain(getPosition, (function(v2) {
+                        return chain(end, (function(x3) {
+                            return sequence(new(Parser)((
+                                function(state, m, _,
+                                    _0, eok, _1) {
+                                    var newState =
+                                        state.setPosition(
+                                            v2);
+                                    return eok(newState,
+                                        newState, m);
+                                })), setInput(v1), of(x3));
+                        }));
+                    }));
+                }))), new(Parser)((function(state, m, cok, cerr, eok, eerr) {
+                    var peerr = (function(x3, s, m0) {
+                        return eerr(x3, s, Memoer.popWindow(m0));
+                    }),
+                        m0 = Memoer.pushWindow(m, state.position),
+                        cok0 = (function(x3, s, m1) {
+                            return cok(x3, s, Memoer.popWindow(m1));
+                        }),
+                        eok0 = (function(x3, s, m1) {
+                            return eok(x3, s, Memoer.popWindow(m1));
+                        });
+                    return new(Tail)(p4.run, state, m0, cok0, peerr, eok0, peerr);
+                })))
+                .map((function(_) {
+                    return NIL;
+                })), ((p5 = cons(p3, self)), (p5 ? concat(p5, of(NIL)) : concat(NIL, of(null))))
+            );
+        }));
+    }));
     (memo = (function(p3) {
         return new(Parser)((function(state, m, cok, cerr, eok, eerr) {
             var position = state["position"],
@@ -815,6 +851,7 @@ define(["require", "exports", "nu-stream/stream", "seshet"], (function(require, 
     (exports["enumeration"] = enumeration);
     (exports["many"] = many);
     (exports["many1"] = many1);
+    (exports["manyTill"] = manyTill);
     (exports["memo"] = memo);
     (exports["token"] = token);
     (exports["anyToken"] = anyToken);

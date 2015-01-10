@@ -1,6 +1,6 @@
 {
     "name": "bennu",
-    "version": "17.2.2",
+    "version": "17.3.0",
     "description": "Parser Combinator Library",
     "author": "Matt Bierner",
     "homepage": "http://bennu-js.com",
