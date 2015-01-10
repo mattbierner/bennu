@@ -82,6 +82,7 @@ package (
     enumeration
     many
     many1
+    manyTill
     
     memo
     
@@ -946,6 +947,16 @@ in
  * Consume `p` one or more times.
  */
 many1 := \p -> cons(p, many p);
+
+/**
+ * Consume `p` until `end` matches.
+ */
+manyTill := \p end ->
+    rec\self ->
+        either(
+            attempt(lookahead(end)).map(\_ -> NIL),
+            optional(cons(p, self), NIL)
+        );
 
 /* Memo Parsers
  ******************************************************************************/
