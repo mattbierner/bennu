@@ -130,7 +130,7 @@ parse.run(abc, 'axc'); // Expected 'b', found 'x'
 ```javascript
 parse_text.anyChar; // any character
 parse_text.space; // any whitespace character
-parse_text.anyLetter; // a-z
+parse_text.letter; // a-z
 parse_text.anyDigit; // 0-9
 ```
 
